@@ -1,0 +1,45 @@
+Radio 25 um
+Caso1:
+	25um radio ; n1 = 1.47; n2 = 1.44; L= 10m
+	Pump LP11_a  ; P_power = 250 mW ; Lambdas: 980 y 990 nm 
+
+Caso2:
+	25um radio ; n1 = 1.47; n2 = 1.44; L= 10m
+	Pump LP01  ; P_power = 250 mW ; Lambda: 980 nm 
+
+Caso3:
+	25um radio ; n1 = 1.47; n2 = 1.44; L= 10m
+	Pump LP01  ; P_power = 250 mW ; Lambda: 980 y 990 nm 
+
+Caso4:
+	25um radio ; n1 = 1.47; n2 = 1.44; L= 10m
+	Pump LP11  ; P_power = 250 mW ; Lambda: 980 y 990 nm 
+
+Caso5:
+	25um radio ; n1 = 1.47; n2 = 1.44; L= 10m
+	Pump LP11 y LP01  ; P_power = 250 mW ; Lambda: 980 y 990 nm para ambos modos
+
+Radio 10 um
+
+Caso6:
+	10um radio ; n1 = 1.47; n2 = 1.44; L= 10m
+	Pump LP11_a  ; P_power = 250 mW ; Lambdas: 980 y 990 nm 
+
+Caso7:
+	10um radio ; n1 = 1.47; n2 = 1.44; L= 10m
+	Pump LP01  ; P_power = 250 mW ; Lambda: 980 nm 
+
+Caso8:
+	10um radio ; n1 = 1.47; n2 = 1.44; L= 10m
+	Pump LP01  ; P_power = 250 mW ; Lambda: 980 y 990 nm 
+
+Caso9:
+	10um radio ; n1 = 1.47; n2 = 1.44; L= 10m
+	Pump LP11  ; P_power = 250 mW ; Lambda: 980 y 990 nm 
+
+Caso10:
+	10um radio ; n1 = 1.47; n2 = 1.44; L= 10m
+	Pump LP11 y LP01  ; P_power = 250 mW ; Lambda: 980 y 990 nm para ambos modos
+
+
+

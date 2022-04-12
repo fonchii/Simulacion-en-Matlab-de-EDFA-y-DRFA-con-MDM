@@ -1,0 +1,86 @@
+Radio 25 um
+P0_signal = -15dBm
+
+Caso1:
+	25um radio ; n1 = 1.47; n2 = 1.44; L= 10m
+	Pump LP11_a  ; P_power = 250 mW ; Lambdas: 980 y 990 nm 
+
+Caso2:
+	25um radio ; n1 = 1.47; n2 = 1.44; L= 10m
+	Pump LP01  ; P_power = 250 mW ; Lambda: 980 nm 
+
+Caso3:
+	25um radio ; n1 = 1.47; n2 = 1.44; L= 10m
+	Pump LP01  ; P_power = 250 mW ; Lambda: 980 y 990 nm 
+
+Caso4:
+	25um radio ; n1 = 1.47; n2 = 1.44; L= 10m
+	Pump LP11  ; P_power = 250 mW ; Lambda: 980 y 990 nm 
+
+Caso5:
+	25um radio ; n1 = 1.47; n2 = 1.44; L= 10m
+	Pump LP11 y LP01  ; P_power = 250 mW ; Lambda: 980 y 990 nm para ambos modos
+
+Radio 10 um 
+P0_signal = -15dBm
+
+Caso6:
+	10um radio ; n1 = 1.47; n2 = 1.44; L= 10m
+	Pump LP11_a  ; P_power = 250 mW ; Lambdas: 980 y 990 nm 
+
+Caso7:
+	10um radio ; n1 = 1.47; n2 = 1.44; L= 10m
+	Pump LP01  ; P_power = 250 mW ; Lambda: 980 nm 
+
+Caso8:
+	10um radio ; n1 = 1.47; n2 = 1.44; L= 10m
+	Pump LP01  ; P_power = 250 mW ; Lambda: 980 y 990 nm 
+
+Caso9:
+	10um radio ; n1 = 1.47; n2 = 1.44; L= 10m
+	Pump LP11  ; P_power = 250 mW ; Lambda: 980 y 990 nm 
+
+Caso10:
+	10um radio ; n1 = 1.47; n2 = 1.44; L= 10m
+	Pump LP11 y LP01  ; P_power = 250 mW ; Lambda: 980 y 990 nm para ambos modos
+
+Caso11:
+	10um radio ; n1 = 1.47; n2 = 1.44; L= 10m
+	Pump LP01 y LP02  ; P_power = 250 mW ; Lambda: 980 y 990 nm para ambos modos
+
+Caso12:
+	10um radio ; n1 = 1.47; n2 = 1.44; L= 10m
+	Pump LP11 y LP21  ; P_power = 250 mW ; Lambda: 980 y 990 nm para ambos modos
+
+
+
+GananciaVsPotencia_caso1
+	Bombeo Modo LP01 a 980 nm
+	Señal Modos LP01,11_a y 11_b a 1550 y 1560 nm, gráfico muestra solo 1550nm
+	10um radio ; n1 = 1.47; n2 = 1.44; L= 10m
+
+GananciaVsPotencia_caso2
+	Bombeo Modo LP11 a 980 nm
+	Señal Modos LP01,11_a y 11_b a 1550 y 1560 nm, gráfico muestra solo 1550nm
+	10um radio ; n1 = 1.47; n2 = 1.44; L= 10m
+
+GananciaVsPotencia_caso3
+	Bombeo Modo LP01 y LP11 a 980 nm
+	Señal Modos LP01,11_a y 11_b a 1550 y 1560 nm, gráfico muestra solo 1550nm
+	10um radio ; n1 = 1.47; n2 = 1.44; L= 10m
+
+
+
+GananciaVsLargo_caso1
+	Bombeo Modo LP01 a 980 nm 
+	Potencia Bombeo 250 mW
+	Señal Modos LP01,11_a y 11_b a 1550 y 1560 nm, gráfico muestra solo 1550nm
+	10um radio ; n1 = 1.47; n2 = 1.44
+
+
+Valores de VPI
+	L = 2m ;  fibra.radio = 5e-6 ;
+	signal.lambda.LP_01 = [1520e-9 1525e-9 1530e-9 1535e-9 1540e-9 1545e-9 1550e-9 1555e-9 1560e-9 1565e-9 1570e-9 1575e-9 1580e-9];
+	signal.lambda.LP_11_a = [1520e-9 1525e-9 1530e-9 1535e-9 1540e-9 1545e-9 1550e-9 1555e-9 1560e-9 1565e-9 1570e-9 1575e-9 1580e-9];
+	pump.lambda.LP_01 = [980e-9];
+	P0_pump = 250e-3  ;   fibra.n1 = 1.47 ; fibra.n2 = 1.44;
