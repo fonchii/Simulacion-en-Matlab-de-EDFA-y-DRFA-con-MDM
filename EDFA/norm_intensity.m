@@ -1,4 +1,4 @@
-function Gamma = norm_intensity(fibra,modos,lambda_s)
+function [Gamma,Beta_0] = norm_intensity(fibra,modos,lambda_s)
 % NOTA:
 % las funciones de bessel se evaluan en la frecuencia normalizada de
 % operacion, por lo qe para un lambda dado, el modo 01 y 02 son iguales.
@@ -15,6 +15,7 @@ if isstruct(param) == 0
     error('No es posible transmitir el modo en la fibra')
 end
 
+Beta_0=param.beta*1e6; %[1/m]
 
 a = fibra.radio;
 l_s = str2num(extract(modos,1)); m_s = str2num(extract(modos,2));

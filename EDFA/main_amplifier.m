@@ -70,7 +70,7 @@ fibra.largo = 3     ; fibra.radio = 15e-6   ; fibra.N = 7e24; % fibra.N = 3e24;
 fibra.AN = 0.185;   %fibra.AN = 0.2 ; 
 fibra.n1 = 1.45 ;   fibra.n2 = sqrt((fibra.n1^2-fibra.AN^2));
 %fibra.dvk= P.OpticalBW; % diferencia : max_lambda - min_lambda 
-
+fibra.WaitBar = 1; fibra.Avance = 0;    % Despliegue de info
 fibra.ASEFlag = 1; % EVITA CALCULO DE ESPECTRO ASE
 
 

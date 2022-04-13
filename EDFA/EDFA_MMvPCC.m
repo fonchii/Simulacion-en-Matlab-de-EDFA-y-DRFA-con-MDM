@@ -1,4 +1,4 @@
-function edfa = EDFA_MM(fibra,signal,pump,ASE)
+function edfa = EDFA_MMvPCC(fibra,signal,pump,ASE)
 % Datos de entrada:
 % signal (struct)
 %       signal.lambda -> int [nm]
@@ -73,7 +73,7 @@ for i=1:length(ModoS)
     A_s.(ModoS(i)) = pi*fibra.radio^2;                                % Area efectiva para señal
 end
 for i=1:length(ModoP)
-    A_p.ModoP(i) = pi*fibra.radio^2 ;                               % Area efectiva para bombeo
+    A_p.(ModoP(i)) = pi*fibra.radio^2 ;                               % Area efectiva para bombeo
 end
 
 % De Paper ó VPIphotonics 
@@ -92,7 +92,7 @@ for p = 1:1:length(pump.modos) % Mode overlap factor for pump; entre modo y perf
     Nwlp = length(pump.lambda.(ModoP(p)));
     for i=1:1:Nwlp % Cada longitud de onda del modo p
         lambda_p = pump.lambda.(ModoP(p));
-        gamma_p.(ModoP(p)){i} = norm_intensity(fibra,pump.modos(p),lambda_p(i));
+        [gamma_p.(ModoP(p)){i},beta0_p.(ModoP(p)){i}] = norm_intensity(fibra,pump.modos(p),lambda_p(i));
     end
 end
 
@@ -100,15 +100,15 @@ for s = 1:1:length(signal.modos) % Mode overlap factor for signal entre modo y p
     Nwl = length(signal.lambda.(ModoS(s)));
     for i=1:1:Nwl % Cada longitud de onda del modo s
         lambda_s = signal.lambda.(ModoS(s));
-        gamma_s.(ModoS(s)){i} = norm_intensity(fibra,signal.modos(s),lambda_s(i)) ; ; % *CoupCoef ;
+        [gamma_s.(ModoS(s)){i},beta0_s.(ModoS(s)){i}] = norm_intensity(fibra,signal.modos(s),lambda_s(i)) ; 
     end
 end
 warning('on')
 
 % Power coupling coeficient pump
-h_pccP=pcc_calc(beta0_p,ModoP); 
+h_pccP = pcc_calc(beta0_p,ModoP); 
 % Power coupling coeficient signal
-h_pccS=pcc_calc(beta0_s,ModoS);
+h_pccS = pcc_calc(beta0_s,ModoS);
 
 % ASE Spectrum
 % Crear vector de longitudes de onda para ruido ase
@@ -127,6 +127,8 @@ else
     lambda_ase = ase_lambdas(allwavelengths);
 end
 
+
+%%
 fprintf('Iniciando cálculo...\n')
 for n = 1:1:Sch     % Iteración en nucleos
     ch = strcat('Nucleo',int2str(n));
@@ -160,6 +162,7 @@ for n = 1:1:Sch     % Iteración en nucleos
     pmp_xx = 0;
     pmp_yy = 0;
 
+    z_waitbar = waitbar(0 ,'','Name',"Cálculo a lo largo del EDFA: " , 'Visible', 'off') ;
     QQ = 3; % Iteraciones para aumentar precisión
     for Q = 1:QQ
         if (Q == 1) % Primera iteracion no calcula ASE en direccion -z
@@ -177,9 +180,9 @@ for n = 1:1:Sch     % Iteración en nucleos
                 % Primera Iteración
                 if(z == 1)
                     % Potencia Bombeo
-                    parfor p = 1:1:Pmod
+                    parfor p = 1:Pmod
                         Nwlp = length(pump.lambda.(ModoP(p)));
-                        for i=1:1:Nwlp
+                        for i=1:Nwlp
                             lambda_p = pump.lambda.(ModoP(p));
                             Gamma_p = gamma_p.(ModoP(p)){i};
 
@@ -213,7 +216,7 @@ for n = 1:1:Sch     % Iteración en nucleos
 
                             ase_xx = ase_xx+ sigma_abs(lambda_s(i))*(P_ase0*Gamma_s/A_s.(ModoS(s)))/(h*v_s(i));                           % Término en numerador
                             ase_yy = ase_yy+(sigma_abs(lambda_s(i)) + sigma_ems(lambda_s(i)) )*(P_ase0*Gamma_s/A_s.(ModoS(s)))/(h*v_s(i)); % Término en denominador
-
+                            
                         end
                     end
 
@@ -353,10 +356,14 @@ for n = 1:1:Sch     % Iteración en nucleos
                 for s = 1:1:Smod
                     Pase.(ModoS(s))(:,z) = Pap.(ModoS(s))(:,z)+Pan.(ModoS(s))(:,z);
                 end
-                clc
-                %fprintf('%.2f %% \n' ,  (z/Nz)*(1/QQ)* 100 + ((Q-1)/QQ) * 100  ) % Mostrar % de avance del cálculo
-
-
+                % Mostrar avance como prints en pantalla:
+                if fibra.Avance
+                    clc ; fprintf("Cálculo a lo largo del EDFA: \n") ; fprintf('%.2f %% \n' ,  (z/Nz)*(1/QQ)* 100 + ((Q-1)/QQ) * 100  ) % Mostrar % de avance del cálculo
+                end
+                % Mostrar avance como WaitBar:
+                if fibra.WaitBar
+                    avance = (z/Nz)*(1/QQ) + ((Q-1)/QQ) ; waitbar(avance, z_waitbar ,  sprintf("Cálculo a lo largo del EDFA: \n %.2f %%",avance*100 ) ) ; set(z_waitbar,'Visible', 'on');
+                end
             end   % Fin de calculo en fibra
 
         else  % Fin 1era iteración, usar estos valores de N para una 2da iteración mas precisa
@@ -546,9 +553,14 @@ for n = 1:1:Sch     % Iteración en nucleos
                         end
                     end
                 end
-                clc
-                fprintf('%.2f %% \n' ,  (z/Nz)*(1/QQ)* 100 + ((Q-1)/QQ) * 100 ) % Mostrar % de avance del cálculo
-
+                % Mostrar solo % de avance como prints en pantalla:
+                if fibra.Avance
+                    clc ; fprintf("Cálculo a lo largo del EDFA: \n") ; fprintf('%.2f %% \n' ,  (z/Nz)*(1/QQ)* 100 + ((Q-1)/QQ) * 100 ) % Mostrar % de avance del cálculo
+                end
+                % Mostrar solo % de avance como WaitBar:
+                if fibra.WaitBar
+                    avance = (z/Nz)*(1/QQ) + ((Q-1)/QQ) ; waitbar(avance , z_waitbar ,  sprintf("Cálculo a lo largo del EDFA: \n %.2f %%",avance*100 ) ) ; set(z_waitbar,'Visible', 'on');
+                end
             end % fin iteraciones en largo de fibra
 
         end
