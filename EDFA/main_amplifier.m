@@ -1,5 +1,6 @@
 % Simulador EDFA MM
-close all; clear all; clc
+close all; 
+clear all; clc
 
 % Parámetros de entrada
 
@@ -75,7 +76,8 @@ fibra.ASEFlag = 1; % EVITA CALCULO DE ESPECTRO ASE
 
 %%
 tic;
-EDFA = EDFA_MM(fibra,signal,pump,ASE); 
+%EDFA = EDFA_MM(fibra,signal,pump,ASE);         % Sin efecto acomplamiento intermodal
+EDFA = EDFA_MMvPCC(fibra,signal,pump,ASE);      % Con efecto acomplamiento intermodal
 t_end = toc; fprintf('Tiempo de cómputo: %.2f segundos\n', t_end);
 
 

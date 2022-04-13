@@ -69,8 +69,11 @@ sigma_abs = fit(lambda_cross,Sa,'linearinterp');
 sigma_ems = fit(lambda_cross,Se,'linearinterp');
 
 
-A_s = pi*fibra.radio^2;                                % Area efectiva para señal
-A_p = pi*fibra.radio^2 ;                               % Area efectiva para bombeo
+for i=1:length(ModoS)
+    A_s.(ModoS(i)) = pi*fibra.radio^2;                                % Area efectiva para señal
+end
+for i=1:llen
+    A_p = pi*fibra.radio^2 ;                               % Area efectiva para bombeo
 
 % De Paper ó VPIphotonics 
 % Para radio=10e-6 y AN=0.2
@@ -101,10 +104,10 @@ for s = 1:1:length(signal.modos) % Mode overlap factor for signal entre modo y p
 end
 warning('on')
 
-
-
-
-
+% Power coupling coeficient pump
+h_pccP=pcc_calc(beta0_p,ModoP); 
+% Power coupling coeficient signal
+h_pccS=pcc_calc(beta0_s,ModoS);
 
 % ASE Spectrum
 % Crear vector de longitudes de onda para ruido ase
@@ -155,7 +158,7 @@ for n = 1:1:Sch     % Iteración en nucleos
     ase_yy = 0;
     pmp_xx = 0;
     pmp_yy = 0;
-    z_waitbar = waitbar(0 ,'','Name',"Cálculo a lo largo del EDFA: " , 'Visible', 'off') ;
+
     QQ = 3; % Iteraciones para aumentar precisión
     for Q = 1:QQ
         if (Q == 1) % Primera iteracion no calcula ASE en direccion -z
@@ -173,7 +176,7 @@ for n = 1:1:Sch     % Iteración en nucleos
                 % Primera Iteración
                 if(z == 1)
                     % Potencia Bombeo
-                    parfor p = 1:1:Pmod 
+                    parfor p = 1:1:Pmod
                         Nwlp = length(pump.lambda.(ModoP(p)));
                         for i=1:1:Nwlp
                             lambda_p = pump.lambda.(ModoP(p));
@@ -181,11 +184,11 @@ for n = 1:1:Sch     % Iteración en nucleos
 
                             v_p = c./lambda_p; Pp0 = P_p0.(ModoP(p))(i);
 
-                            pmp_xx = pmp_xx + (sigma_abs(lambda_p(i)))*(Pp0*Gamma_p/A_p)/(h*v_p(i));                                   % Término en numerador
-                            pmp_yy = pmp_yy + (sigma_abs(lambda_p(i)) + sigma_ems(lambda_p(i)))*(Pp0*Gamma_p/A_p)/(h*v_p(i));          % Término en denominador
+                            pmp_xx = pmp_xx + (sigma_abs(lambda_p(i)))*(Pp0*Gamma_p/A_p.(ModoP(p)))/(h*v_p(i));                                   % Término en numerador
+                            pmp_yy = pmp_yy + (sigma_abs(lambda_p(i)) + sigma_ems(lambda_p(i)))*(Pp0*Gamma_p/A_p.(ModoP(p)))/(h*v_p(i));          % Término en denominador
                         end
                     end
-                    % Potencia de señal 
+                    % Potencia de señal
                     parfor s = 1:1:Smod
                         Nwl = length(signal.lambda.(ModoS(s)));
                         for i = 1:1:Nwl
@@ -193,8 +196,8 @@ for n = 1:1:Sch     % Iteración en nucleos
                             Gamma_s = gamma_s.(ModoS(s)){i};
                             v_s = c./lambda_s;  Ps0 = P_s0.(ModoS(s))(i);
 
-                            sig_xx = sig_xx+(sigma_abs(lambda_s(i))*(Ps0*Gamma_s/A_s)/(h*v_s(i)));                        % Término en numerador
-                            sig_yy = sig_yy+(sigma_abs(lambda_s(i))+sigma_ems(lambda_s(i)))*(Ps0*Gamma_s/A_s)/(h*v_s(i)); % Término en denominador
+                            sig_xx = sig_xx+(sigma_abs(lambda_s(i))*(Ps0*Gamma_s/A_s.(ModoS(s)))/(h*v_s(i)));                        % Término en numerador
+                            sig_yy = sig_yy+(sigma_abs(lambda_s(i))+sigma_ems(lambda_s(i)))*(Ps0*Gamma_s/A_s.(ModoS(s)))/(h*v_s(i)); % Término en denominador
 
                         end
                     end
@@ -207,14 +210,14 @@ for n = 1:1:Sch     % Iteración en nucleos
                             Gamma_s = gamma_s.(ModoS(s)){i};
                             v_s = c./lambda_s;
 
-                            ase_xx = ase_xx+ sigma_abs(lambda_s(i))*(P_ase0*Gamma_s/A_s)/(h*v_s(i));                           % Término en numerador
-                            ase_yy = ase_yy+(sigma_abs(lambda_s(i)) + sigma_ems(lambda_s(i)) )*(P_ase0*Gamma_s/A_s)/(h*v_s(i)); % Término en denominador
+                            ase_xx = ase_xx+ sigma_abs(lambda_s(i))*(P_ase0*Gamma_s/A_s.(ModoS(s)))/(h*v_s(i));                           % Término en numerador
+                            ase_yy = ase_yy+(sigma_abs(lambda_s(i)) + sigma_ems(lambda_s(i)) )*(P_ase0*Gamma_s/A_s.(ModoS(s)))/(h*v_s(i)); % Término en denominador
 
                         end
                     end
 
                 else
-                    % Iteraciones Restantes z>1 
+                    % Iteraciones Restantes z>1
                     % Bombeo
                     parfor p = 1:1:Pmod
                         Nwlp = length(pump.lambda.(ModoP(p)));
@@ -223,12 +226,12 @@ for n = 1:1:Sch     % Iteración en nucleos
                             Gamma_p = gamma_p.(ModoP(p)){i};
                             v_p = c./lambda_p;
 
-                            pmp_xx = pmp_xx + sigma_abs(lambda_p(i))*(Ppp.(ModoP(p))(i,z-1)*Gamma_p/A_p)/(h*v_p(i));                        % Termino en numerador
-                            pmp_yy = pmp_yy + (sigma_abs(lambda_p(i)) + sigma_ems(lambda_p(i)))*(Ppp.(ModoP(p))(i,z-1)*Gamma_p/A_p)/(h*v_p(i));           % Termino en denominador
+                            pmp_xx = pmp_xx + sigma_abs(lambda_p(i))*(Ppp.(ModoP(p))(i,z-1)*Gamma_p/A_p.(ModoP(p)))/(h*v_p(i));                        % Termino en numerador
+                            pmp_yy = pmp_yy + (sigma_abs(lambda_p(i)) + sigma_ems(lambda_p(i)))*(Ppp.(ModoP(p))(i,z-1)*Gamma_p/A_p.(ModoP(p)))/(h*v_p(i));           % Termino en denominador
                         end
                     end
 
-                    % Señal 
+                    % Señal
                     parfor s = 1:1:Smod
                         Nwl = length(signal.lambda.(ModoS(s)));
                         for i = 1:1:Nwl
@@ -236,8 +239,8 @@ for n = 1:1:Sch     % Iteración en nucleos
                             Gamma_s = gamma_s.(ModoS(s)){i};
                             v_s = c./lambda_s;
 
-                            sig_xx = sig_xx+(sigma_abs(lambda_s(i))*(Psp.(ModoS(s))(i,z-1)*Gamma_s/A_s)/(h*v_s(i)));
-                            sig_yy = sig_yy+(sigma_abs(lambda_s(i)) + sigma_ems(lambda_s(i))) * (Psp.(ModoS(s))(i,z-1)*Gamma_s/A_s)/(h*v_s(i));
+                            sig_xx = sig_xx+(sigma_abs(lambda_s(i))*(Psp.(ModoS(s))(i,z-1)*Gamma_s/A_s.(ModoS(s)))/(h*v_s(i)));
+                            sig_yy = sig_yy+(sigma_abs(lambda_s(i)) + sigma_ems(lambda_s(i))) * (Psp.(ModoS(s))(i,z-1)*Gamma_s/A_s.(ModoS(s)))/(h*v_s(i));
                         end
                     end
 
@@ -249,8 +252,8 @@ for n = 1:1:Sch     % Iteración en nucleos
                             Gamma_s = gamma_s.(ModoS(s)){i};
                             v_s = c./lambda_s;
 
-                            ase_xx = ase_xx+(sigma_abs(lambda_s(i))*(Pase.(ModoS(s))(i,z-1)*Gamma_s/A_s)/(h*v_s(i)));
-                            ase_yy = ase_yy+( sigma_abs(lambda_s(i)) + sigma_ems(lambda_s(i)) )*(Pase.(ModoS(s))(i,z-1)*Gamma_s/A_s)/(h*v_s(i));
+                            ase_xx = ase_xx+(sigma_abs(lambda_s(i))*(Pase.(ModoS(s))(i,z-1)*Gamma_s/A_s.(ModoS(s)))/(h*v_s(i)));
+                            ase_yy = ase_yy+( sigma_abs(lambda_s(i)) + sigma_ems(lambda_s(i)) )*(Pase.(ModoS(s))(i,z-1)*Gamma_s/A_s.(ModoS(s)))/(h*v_s(i));
                         end
                     end
                 end
@@ -265,7 +268,7 @@ for n = 1:1:Sch     % Iteración en nucleos
 
                 %% Ecuaciones de Potencias
 
-                % Ecuacion diferencial para bombeo en direccion +z 
+                % Ecuacion diferencial para bombeo en direccion +z
                 for p = 1:1:Pmod      % Iteracion en cada modo de bombeo
                     Nwlp = length(pump.lambda.(ModoP(p)));
                     if(z == 1)
@@ -284,8 +287,17 @@ for n = 1:1:Sch     % Iteración en nucleos
                         end
                     end
                 end
+                % Añadiendo PCC en cada modo de bombeo 
+                Ppp_aux=Ppp;
+                for pu = 1:1:Pmod
+                    for pv=1:Pmod
+                        if (pu~=pv)
+                            Ppp.(ModoP(pu))=Ppp_aux.(ModoP(pu))-h_pccP(pu,pv).*(Ppp_aux.(ModoP(pu))-Ppp_aux.(ModoP(pv)));
+                        end
+                    end
+                end
 
-                % Ecuacion diferencial para señal en direccion +z 
+                % Ecuacion diferencial para señal en direccion +z
                 for s = 1:1:Smod
                     Nwl = length(signal.lambda.(ModoS(s)));
                     if(z == 1)
@@ -302,6 +314,15 @@ for n = 1:1:Sch     % Iteración en nucleos
                             Psp.(ModoS(s))(i,z) = Psp.(ModoS(s))(i,z-1) + (sum(N2(z,:))*sigma_ems(lambda_s(i))-sum(N1(z,:))*sigma_abs(lambda_s(i)))*Gamma_s*Psp.(ModoS(s))(i,z-1)*del_z/(1+Psp.(ModoS(s))(i,z-1)/Psat);
                         end
                     end
+                end
+                % Añadiendo PCC en cada modo de señal
+                Psp_aux=Psp;
+                for su = 1:1:Smod
+                   for sv=1:Smod
+                        if (su~=sv)
+                            Psp.(ModoS(su))=Psp_aux.(ModoS(su))-h_pccS(su,sv).*(Psp_aux.(ModoS(su))-Psp_aux.(ModoS(sv)));
+                        end
+                   end
                 end
 
                 % Ecuacion diferencial para ASE en direccion +z
@@ -331,23 +352,19 @@ for n = 1:1:Sch     % Iteración en nucleos
                 for s = 1:1:Smod
                     Pase.(ModoS(s))(:,z) = Pap.(ModoS(s))(:,z)+Pan.(ModoS(s))(:,z);
                 end
-                %clc
-                %fprintf("Cálculo a lo largo del EDFA: \n")
+                clc
                 %fprintf('%.2f %% \n' ,  (z/Nz)*(1/QQ)* 100 + ((Q-1)/QQ) * 100  ) % Mostrar % de avance del cálculo
-                avance = (z/Nz)*(1/QQ) + ((Q-1)/QQ) ;
-                waitbar(avance, z_waitbar ,  sprintf("Cálculo a lo largo del EDFA: \n %.2f %%",avance*100 ) )
-                set(z_waitbar,'Visible', 'on');
+
 
             end   % Fin de calculo en fibra
 
         else  % Fin 1era iteración, usar estos valores de N para una 2da iteración mas precisa
             % Agregando ASE en dirección -z
 
-
-            for z = 1:1:Nz  % Iteraciones a lo largo del EDFA
+            for z = 1:1:Nz %Iteraciones a lo largo del EDFA
                 % Siguientes Primeras Iteraciones
                 if(z == 1)
-                    % Potencia Bombeo 
+                    % Potencia Bombeo
                     parfor p = 1:1:Pmod
                         Nwlp = length(pump.lambda.(ModoP(p)));
                         for i=1:1:Nwlp
@@ -355,11 +372,11 @@ for n = 1:1:Sch     % Iteración en nucleos
                             Gamma_p = gamma_p.(ModoP(p)){i};
                             v_p = c./lambda_p; Pp0 = P_p0.(ModoP(p))(i);
 
-                            pmp_xx = pmp_xx + (sigma_abs(lambda_p(i)))*(Pp0*Gamma_p/A_p)/(h*v_p(i));                                   % Termino en numerador
-                            pmp_yy = pmp_yy + (sigma_abs(lambda_p(i)) + sigma_ems(lambda_p(i)))*(Pp0*Gamma_p/A_p)/(h*v_p(i));          % Termino en denominador
+                            pmp_xx = pmp_xx + (sigma_abs(lambda_p(i)))*(Pp0*Gamma_p/A_p.(ModoP(p)))/(h*v_p(i));                                   % Termino en numerador
+                            pmp_yy = pmp_yy + (sigma_abs(lambda_p(i)) + sigma_ems(lambda_p(i)))*(Pp0*Gamma_p/A_p.(ModoP(p)))/(h*v_p(i));          % Termino en denominador
                         end
                     end
-                    % Potencia de señal 
+                    % Potencia de señal
                     parfor s = 1:1:Smod
                         Nwl = length(signal.lambda.(ModoS(s)));
                         for i = 1:1:Nwl
@@ -367,8 +384,8 @@ for n = 1:1:Sch     % Iteración en nucleos
                             Gamma_s = gamma_s.(ModoS(s)){i};
                             v_s = c./lambda_s;  Ps0 = P_s0.(ModoS(s))(i);
 
-                            sig_xx = sig_xx+(sigma_abs(lambda_s(i))*(Ps0*Gamma_s/A_s)/(h*v_s(i)));                        % Termino en numerador
-                            sig_yy = sig_yy+(sigma_abs(lambda_s(i))+sigma_ems(lambda_s(i)))*(Ps0*Gamma_s/A_s)/(h*v_s(i)); % Termino en denominador
+                            sig_xx = sig_xx+(sigma_abs(lambda_s(i))*(Ps0*Gamma_s/A_s.(ModoS(s)))/(h*v_s(i)));                        % Termino en numerador
+                            sig_yy = sig_yy+(sigma_abs(lambda_s(i))+sigma_ems(lambda_s(i)))*(Ps0*Gamma_s/A_s.(ModoS(s)))/(h*v_s(i)); % Termino en denominador
                         end
                     end
                     % Potencia ASE
@@ -379,13 +396,13 @@ for n = 1:1:Sch     % Iteración en nucleos
                             v_s = c./lambda_s;
                             Gamma_s = gamma_s.(ModoS(s)){i};
 
-                            ase_xx = ase_xx+ sigma_abs(lambda_s(i))*(P_ase0*Gamma_s/A_s)/(h*v_s(i));                           % Termino en numerador
-                            ase_yy = ase_yy+(sigma_abs(lambda_s(i)) + sigma_ems(lambda_s(i)) )*(P_ase0*Gamma_s/A_s)/(h*v_s(i)); % Termino en denominador
+                            ase_xx = ase_xx+ sigma_abs(lambda_s(i))*(P_ase0*Gamma_s/A_s.(ModoS(s)))/(h*v_s(i));                           % Termino en numerador
+                            ase_yy = ase_yy+(sigma_abs(lambda_s(i)) + sigma_ems(lambda_s(i)) )*(P_ase0*Gamma_s/A_s.(ModoS(s)))/(h*v_s(i)); % Termino en denominador
                         end
                     end
 
                 else
-                    % Iteraciones Restantes z>1 
+                    % Iteraciones Restantes z>1
                     % Bombeo
                     parfor p = 1:1:Pmod
                         Nwlp = length(pump.lambda.(ModoP(p)));
@@ -394,12 +411,12 @@ for n = 1:1:Sch     % Iteración en nucleos
                             Gamma_p = gamma_p.(ModoP(p)){i};
                             v_p = c./lambda_p;
 
-                            pmp_xx = pmp_xx + sigma_abs(lambda_p(i))*(Ppp.(ModoP(p))(i,z-1)*Gamma_p/A_p)/(h*v_p(i));                        % Termino en numerador
-                            pmp_yy = pmp_yy + (sigma_abs(lambda_p(i)) + sigma_ems(lambda_p(i)))*(Ppp.(ModoP(p))(i,z-1)*Gamma_p/A_p)/(h*v_p(i));           % Termino en denominador
+                            pmp_xx = pmp_xx + sigma_abs(lambda_p(i))*(Ppp.(ModoP(p))(i,z-1)*Gamma_p/A_p.(ModoP(p)))/(h*v_p(i));                        % Termino en numerador
+                            pmp_yy = pmp_yy + (sigma_abs(lambda_p(i)) + sigma_ems(lambda_p(i)))*(Ppp.(ModoP(p))(i,z-1)*Gamma_p/A_p.(ModoP(p)))/(h*v_p(i));           % Termino en denominador
                         end
                     end
 
-                    % Señal 
+                    % Señal
                     parfor s = 1:1:Smod
                         Nwl = length(signal.lambda.(ModoS(s)));
                         for i = 1:1:Nwl
@@ -407,8 +424,8 @@ for n = 1:1:Sch     % Iteración en nucleos
                             v_s = c./lambda_s;
                             Gamma_s = gamma_s.(ModoS(s)){i};
 
-                            sig_xx = sig_xx + (sigma_abs(lambda_s(i))*(Psp.(ModoS(s))(i,z-1)*Gamma_s/A_s)/(h*v_s(i)));
-                            sig_yy = sig_yy + (sigma_abs(lambda_s(i)) + sigma_ems(lambda_s(i))) * (Psp.(ModoS(s))(i,z-1)*Gamma_s/A_s)/(h*v_s(i));
+                            sig_xx = sig_xx + (sigma_abs(lambda_s(i))*(Psp.(ModoS(s))(i,z-1)*Gamma_s/A_s.(ModoS(s)))/(h*v_s(i)));
+                            sig_yy = sig_yy + (sigma_abs(lambda_s(i)) + sigma_ems(lambda_s(i))) * (Psp.(ModoS(s))(i,z-1)*Gamma_s/A_s.(ModoS(s)))/(h*v_s(i));
                         end
                     end
 
@@ -420,8 +437,8 @@ for n = 1:1:Sch     % Iteración en nucleos
                             v_s = c./lambda_s;
                             Gamma_s = gamma_s.(ModoS(s)){i};
 
-                            ase_xx = ase_xx + (sigma_abs(lambda_s(i))*(Pase.(ModoS(s))(i,z-1)*Gamma_s/A_s)/(h*v_s(i)));
-                            ase_yy = ase_yy + ( sigma_abs(lambda_s(i)) + sigma_ems(lambda_s(i)) )*(Pase.(ModoS(s))(i,z-1)*Gamma_s/A_s)/(h*v_s(i));
+                            ase_xx = ase_xx + (sigma_abs(lambda_s(i))*(Pase.(ModoS(s))(i,z-1)*Gamma_s/A_s.(ModoS(s)))/(h*v_s(i)));
+                            ase_yy = ase_yy + ( sigma_abs(lambda_s(i)) + sigma_ems(lambda_s(i)) )*(Pase.(ModoS(s))(i,z-1)*Gamma_s/A_s.(ModoS(s)))/(h*v_s(i));
                         end
                     end
                 end
@@ -430,7 +447,7 @@ for n = 1:1:Sch     % Iteración en nucleos
                 N1(z) = N-N2(z);                                                               % Densidad de iones de Erbio en estado basal
                 Nt(z) = N1(z) + N2(z);
 
-                % % Ecuaciones de Potencias 
+                % % Ecuaciones de Potencias
 
                 % Ecuacion diferencial para bombeo en direccion +z
                 for p = 1:1:Pmod      % Iteracion en cada modo de bombeo
@@ -451,7 +468,17 @@ for n = 1:1:Sch     % Iteración en nucleos
                     end
                 end
 
-                % Ecuacion diferencial para señal en direccion +z 
+                % Añadiendo PCC en cada modo de bombeo
+                Ppp_aux=Ppp;
+                for pu = 1:1:Pmod
+                    for pv=1:Pmod
+                        if (pu~=pv)
+                                Ppp.(ModoP(pu))=Ppp_aux.(ModoP(pu))-h_pccP(pu,pv).*(Ppp_aux.(ModoP(pu))-Ppp_aux.(ModoP(pv)));
+                        end
+                    end
+                end
+
+                % Ecuacion diferencial para señal en direccion +z
                 for s = 1:1:Smod
                     Nwl = length(signal.lambda.(ModoS(s)));
                     if(z == 1)
@@ -468,6 +495,15 @@ for n = 1:1:Sch     % Iteración en nucleos
                             Psp.(ModoS(s))(i,z) = Psp.(ModoS(s))(i,z-1) + (sum(N2(z,:))*sigma_ems(lambda_s(i))-sum(N1(z,:))*sigma_abs(lambda_s(i)))*Gamma_s*Psp.(ModoS(s))(i,z-1)*del_z/(1+Psp.(ModoS(s))(i,z-1)/Psat);
                         end
                     end
+                end
+                Psp_aux=Psp;
+                 % Añadiendo PCC en cada modo de señal
+                for su = 1:1:Smod
+                   for sv=1:Smod
+                        if (su~=sv)
+                            Psp.(ModoS(su))=Psp_aux.(ModoS(su))-h_pccS(su,sv).*(Psp_aux.(ModoS(su))-Psp_aux.(ModoS(sv)));
+                        end
+                   end
                 end
 
                 % Ecuacion diferencial para ASE en direccion +z
@@ -509,12 +545,9 @@ for n = 1:1:Sch     % Iteración en nucleos
                         end
                     end
                 end
-                %clc
-                %fprintf("Cálculo a lo largo del EDFA: \n")
-                %fprintf('%.2f %% \n' ,  (z/Nz)*(1/QQ)* 100 + ((Q-1)/QQ) * 100 ) % Mostrar % de avance del cálculo
-                avance = (z/Nz)*(1/QQ) + ((Q-1)/QQ) ;
-                waitbar(avance , z_waitbar ,  sprintf("Cálculo a lo largo del EDFA: \n %.2f %%",avance*100 ) )
-                set(z_waitbar,'Visible', 'on');
+                clc
+                fprintf('%.2f %% \n' ,  (z/Nz)*(1/QQ)* 100 + ((Q-1)/QQ) * 100 ) % Mostrar % de avance del cálculo
+
             end % fin iteraciones en largo de fibra
 
         end
@@ -548,11 +581,11 @@ for n = 1:1:Sch     % Iteración en nucleos
         for s = 1:1:Smod
             if(z == 1)
                 for i = 1:1:Nch_ase
-                    Pan_sp.(strcat("LP_",signal.modos(s)))(i,Nz-z+1) = 0+((sum(N2(Nz-z+1,:))*sigma_ems(lambda_ase(i)) - sum(N1(Nz-z+1,:))*sigma_abs(lambda_ase(i)))*Gamma_s*0 + 2*sum(N2(Nz-z+1,:))*sigma_ems(lambda_ase(i))*Gamma_s*h*v_s_sp(i)*d_vk)*del_z;
+                    Pan_sp.(ModoS(s))(i,Nz-z+1) = 0+((sum(N2(Nz-z+1,:))*sigma_ems(lambda_ase(i)) - sum(N1(Nz-z+1,:))*sigma_abs(lambda_ase(i)))*Gamma_s*0 + 2*sum(N2(Nz-z+1,:))*sigma_ems(lambda_ase(i))*Gamma_s*h*v_s_sp(i)*d_vk)*del_z;
                 end
             else
                 for i = 1:1:Nch_ase
-                    Pan_sp.(strcat("LP_",signal.modos(s)))(i,Nz-z+1) = Pan_sp.(ModoS(s))(i,Nz-z+1+1) + ((sum(N2(Nz-z+1,:))*sigma_ems(lambda_ase(i)) - sum(N1(Nz-z+1,:))*sigma_abs(lambda_ase(i)))*Gamma_s*Pan_sp.(ModoS(s))(i,Nz-z+1+1) + 2*sum(N2(Nz-z+1,:))*sigma_ems(lambda_ase(i))*Gamma_s*h*v_s_sp(i)*d_vk)*del_z/(1+Pan_sp.(ModoS(s))(i,Nz-z+1+1)/Psat);
+                    Pan_sp.(ModoS(s))(i,Nz-z+1) = Pan_sp.(ModoS(s))(i,Nz-z+1+1) + ((sum(N2(Nz-z+1,:))*sigma_ems(lambda_ase(i)) - sum(N1(Nz-z+1,:))*sigma_abs(lambda_ase(i)))*Gamma_s*Pan_sp.(ModoS(s))(i,Nz-z+1+1) + 2*sum(N2(Nz-z+1,:))*sigma_ems(lambda_ase(i))*Gamma_s*h*v_s_sp(i)*d_vk)*del_z/(1+Pan_sp.(ModoS(s))(i,Nz-z+1+1)/Psat);
                 end
             end
         end
@@ -564,7 +597,7 @@ for n = 1:1:Sch     % Iteración en nucleos
             ASE_Spectrum.(ModoS(s))(i,1) = 10*log10( (Pap_sp.(ModoS(s))(i,end) + Pan_sp.(ModoS(s))(i,end)));
         end
     end
-    close(z_waitbar)
+
 
 
 
@@ -573,11 +606,10 @@ for n = 1:1:Sch     % Iteración en nucleos
 
     % Calculo OSNR
     for s = 1:1:Smod
-        Nwl = length(signal.lambda.(strcat("LP_",signal.modos(s))));
+        Nwl = length(signal.lambda.(ModoS(s)));
         for i = 1:1:Nwl
-            %OSNR.(strcat("LP_",signal.modos(s)))(i,:) = 10*log10(Psp.(strcat("LP_",signal.modos(s)))(i,:)/1e-3) - 10*log10(Pase.(strcat("LP_",signal.modos(s)))(i,:)/1e-3);
-            OSNR.(strcat("LP_",signal.modos(s)))(i,:) = (Psp.(ModoS(s))(i,:)) - (Pase.(ModoS(s))(i,:));
-            gain.(strcat("LP_",signal.modos(s)))(1,i) = 10*log10(Psp.(ModoS(s))(i,end)/Psp.(ModoS(s))(i,1));
+            OSNR.(ModoS(s))(i,:) = 10*log10(Psp.(ModoS(s))(i,:)/1e-3) - 10*log10(Pase.(ModoS(s))(i,:)/1e-3);
+            gain.(ModoS(s))(1,i) = 10*log10(Psp.(ModoS(s))(i,end)/Psp.(ModoS(s))(i,1));
         end
     end
 
@@ -598,11 +630,11 @@ for n = 1:1:Sch     % Iteración en nucleos
     end
     % Guardar los datos calculados
     sdm.(ch).N2 = N2 ; sdm.(ch).N1 = N1 ; sdm.(ch).Nt = Nt;
-    for p=1:Pmod 
+    for p=1:Pmod
         sdm.(ch).pump.Potencia_dBm.(ModoP(p)) = 10*log10(Ppp.(ModoP(p))./1e-3) ;
         sdm.(ch).salida.pump.potencia_dBm.(ModoP(p)) = 10*log10(Ppp.(ModoP(p))(:,end)./1e-3);
     end
-    for s=1:Smod 
+    for s=1:Smod
         sdm.(ch).signal.Potencia_dBm.(ModoS(s)) = 10*log10(Psp.(ModoS(s))./1e-3) ;
         sdm.(ch).salida.signal.potencia_dBm.(ModoS(s)) = 10*log10(Psp.(ModoS(s))(:,end)./1e-3);
 
@@ -621,7 +653,8 @@ for n = 1:1:Sch     % Iteración en nucleos
     sdm.(ch).ASE_Spectrum.lambdas = lambda_ase;
     sdm.(ch).Gamma.Gamma_p = gamma_p;
     sdm.(ch).Gamma.Gamma_s = gamma_s;
-    
+    sdm.(ch).Gamma.Gamma_s.info = "Este coeficiente es la multiplicación entre la superposición del modo con el dopaje multiplicado y la suma de los acoplamientos con cada bombeo";
+
 
 end % Fin cálculo en todos los nucleos
 
@@ -631,4 +664,4 @@ end % Fin funcion
 
 %% Pendiente
 % Revisar potencia de saturacion y Area efectiva
-% Superposición entre señal/bombeo 
+% Superposición entre señal/bombeo y perfil de dopaje es muy bajo

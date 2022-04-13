@@ -27,6 +27,7 @@ eta_fun = @(lambda)interp1(f,magg,lambda);
 h = 6.6260*10^(-34) ;           % Constante de Planck
 k = 1.380649*10^(-23) ;         % Constante de Boltzmann
 T = In.Fibra.T + 273.15 ;       % Temperatura absoluta de la fibra       
+Gamma = 1/In.Fibra.PolarizationFactor;
 
 ModoS                           = fieldnames(In.Signal);
 ModoP                           = fieldnames(In.Pump);
@@ -164,9 +165,9 @@ for l = 1:(length(Z)-1)
             end
 
             Ps.(ModoS{ms})(wS,l+1) = Ps.(ModoS{ms})(wS,l) + deltaZ*( -alphaS.(ModoS{ms})*Ps.(ModoS{ms})(wS,l) + p_sum*Ps.(ModoS{ms})(wS,l) ) + ...
-                                        ase_sum * h * ( 3e8/lambdaS.(ModoS{ms})(wS) ) + eta_sum;
+                                        ase_sum * h * Gamma * ( 3e8/lambdaS.(ModoS{ms})(wS) ) + eta_sum;
             Ps.Rayleigh.(ModoS{ms})(wS,l+1) = eta_sum;
-            Ps.ASE.(ModoS{ms})(wS,l+1) = ase_sum * h * ( 3e8/lambdaS.(ModoS{ms})(wS) );
+            Ps.ASE.(ModoS{ms})(wS,l+1) = ase_sum * h * Gamma * ( 3e8/lambdaS.(ModoS{ms})(wS) );
         end
     end
 
