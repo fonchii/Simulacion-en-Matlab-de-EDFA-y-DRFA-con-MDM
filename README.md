@@ -3,4 +3,4 @@
 
 SoyReManco
 
-![Modos LP](MMF.PNG)
+![Modos LP](MMF.png)
