@@ -11,21 +11,19 @@ In.Fibra.RamanMethod            = 'Forward&Backward';     % 'Forward', 'Backward
 In.Fibra.n1=1.46;  In.Fibra.n2=1.450; In.Fibra.radio=25e-6;
 
 % BOMBEOS : 
-    % LP01
 In.Pump.LP01.Wavelengths        = [1450 ] ;                                             % [nm]
 In.Pump.LP01.Powers             = 300*1e-3*ones( 1,length(In.Pump.LP01.Wavelengths) );      % [mW]
 In.Pump.LP01.Alpha              = [0.28]; 
-    % LP11
+%In.Pump.LP01.Wavelengths        = [1400 1420 1440 1460] ;                                  % [nm]
 %In.Pump.LP11.Wavelengths        = [1460 1470] ;                                            % [nm]
 %In.Pump.LP11.Powers             = 100*1e-3*ones( 1,length(In.Pump.LP11.Wavelengths) );             % [mW]
 %In.Pump.LP11.Alpha              = [0.25];                                                  % [dB/km]
 
 % SEÑALES : 
-    % LP01
+
 In.Signal.LP01.Wavelengths      = [1500:10:1600];%[1500 1540 1550 1560 1600];
 In.Signal.LP01.Powers           = -15*ones( 1,length(In.Signal.LP01.Wavelengths) );           %[dBm]
 In.Signal.LP01.Alpha            = 0.25;                          % Fibre attenuation @Signal WL (dB/km)
-    % LP11
 In.Signal.LP11.Wavelengths      = [1560 1580 1600 ];
 In.Signal.LP11.Powers           = -15*ones( 1,length(In.Signal.LP11.Wavelengths) );           %[dBm]
 In.Signal.LP11.Alpha            = 0.2;                          % Fibre attenuation @Signal WL (dB/km)

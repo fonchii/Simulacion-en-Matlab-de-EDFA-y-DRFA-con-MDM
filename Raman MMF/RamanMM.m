@@ -19,14 +19,14 @@ magg = [mag eta(:,2)' mag2];
 % % Raman Responce Function
 Gr_fun              = @(f)interp1(FF_gR,C_R,f);
 eta_fun = @(lambda)interp1(f,magg,lambda);
-%figure(3) ; plot( FF_gR,Gr_fun(FF_gR) ) , xlabel("Δ F [Hz]") ; ylabel("Magnitude") ; title("RamanResponce")
-%figure(3) ; plot(eta(:,1),eta(:,2)) , xlabel("λ [nm]") ; ylabel("Magnitude") ; title("Rayleigh Coeficient")
+%figure(1) ; plot( FF_gR,Gr_fun(FF_gR) ) , xlabel("Δ F [Hz]") ; ylabel("Magnitude") ; title("RamanResponce")
+%figure(2) ; plot(eta(:,1),eta(:,2)) , xlabel("λ [nm]") ; ylabel("Magnitude") ; title("Rayleigh Coeficient")
 
 
     % Datos de Fibra y Constantes
-h = 6.6260*10^(-34) ;           % Constante de Planck
-k = 1.380649*10^(-23) ;         % Constante de Boltzmann
-T = In.Fibra.T + 273.15 ;       % Temperatura absoluta de la fibra       
+h = 6.6260*10^(-34) ;                                                       % Constante de Planck
+k = 1.380649*10^(-23) ;                                                     % Constante de Boltzmann
+T = In.Fibra.T + 273.15 ;                                                   % Temperatura absoluta de la fibra       
 Gamma = 1/In.Fibra.PolarizationFactor;
 
 ModoS                           = fieldnames(In.Signal);
@@ -37,9 +37,9 @@ Z                               = (0 : deltaZ : L);
 % --- Bombeos --- %
 for i=1:length(ModoP)
   % Alphas
-    %alphaP.(ModoP{i})         = In.Pump.(ModoP{i}).Alpha;                                 % fibre loss at the Pump frequency (np/km)
-    alphaP.(ModoP{i})         = In.Pump.(ModoP{i}).Alpha .* log(10)/10;                    % fibre loss at the Pump frequency (np/km)
-    alphaPb.(ModoP{i})         = alphaP.(ModoP{i})*-1;                                   % fibre loss at the pump frequency Backward propagation np/km)
+    %alphaP.(ModoP{i})         = In.Pump.(ModoP{i}).Alpha;                                   % fibre loss at the Pump frequency (dB/km)
+    alphaP.(ModoP{i})         = In.Pump.(ModoP{i}).Alpha .* log(10)/10;                     % fibre loss at the Pump frequency (np/km)
+    alphaPb.(ModoP{i})         = alphaP.(ModoP{i})*-1;                                      % fibre loss at the pump frequency Backward propagation np/km)
   % Frecuencias y Wavelengths
     PumpWavelengths.(ModoP{i})  = In.Pump.(ModoP{i}).Wavelengths;
     lambdaP.(ModoP{i})          = ( PumpWavelengths.(ModoP{i}) ) .*1e-9 ;
@@ -101,7 +101,6 @@ for mp = 1:length(ModoP)
     end
 end
 
-%fmn = 1;
 
 %% % Calculo potencias
 
@@ -125,6 +124,7 @@ end
 
 
 % Backward pump se calcula en ausencia de señales
+
 for i = length(ModoP)
     if sum( Pb.(ModoP{i})(:,end) ) ~= 0
         for l=1:(length(Z)-1)
@@ -135,6 +135,7 @@ for i = length(ModoP)
         end
     end
 end
+
 %% Forward y Signal se calculan tomando en cuenta Backward
 
 for l = 1:(length(Z)-1)
@@ -147,13 +148,13 @@ for l = 1:(length(Z)-1)
             for mp = 1:length(ModoP)
                 p_sum = p_sum + sum( fmn.Signal.(ModoS{ms}).(ModoP{mp})(:,wS) .* gR.Signal.(ModoS{ms}).(ModoP{mp})(:,wS)...
                                     .* ( Pf.(ModoP{mp})(:,l)+Pb.(ModoP{mp})(:,l) ) );
-                % Contribución ASE
+            % Contribución ASE
                 deltaV = abs( 3e8/lambdaP.(ModoP{mp})(:) - 3e8/lambdaS.(ModoS{ms})(wS) ) ;
                 ase_sum = ase_sum + sum( ( fmn.Signal.(ModoS{ms}).(ModoP{mp})(:,wS) .* gR.Signal.(ModoS{ms}).(ModoP{mp})(:,wS)...
                                     .* ( Pf.(ModoP{mp})(:,l)+Pb.(ModoP{mp})(:,l) ) ) .* deltaV ) ;
             end
-            % Aporte Rayleigh Scattering
-                % Revisar si algún canal Pump en otro modo tiene igual frecuencia
+            % Contribución Rayleigh Scattering
+                % Revisar si otro Modo tiene algún canal de frecuencia
             for mms = 1:length(ModoS)
                 if string(ModoS{ms}) ~= string(ModoS{mms}) 
                     for wwS = 1:length(lambdaS.(ModoS{mms}))
@@ -182,7 +183,7 @@ for l = 1:(length(Z)-1)
             end
 
             % Aporte Rayleigh Scattering
-                % Revisar si algún canal Pump en otro modo tiene igual frecuencia
+                % Revisar si otro Modo tiene algún canal de frecuencia
             for mmp = 1:length(ModoP)
                 if string(ModoP{mp}) ~= string(ModoP{mmp}) 
                     for wwP = 1:length(lambdaP.(ModoP{mmp}))
@@ -205,9 +206,9 @@ for ms = 1:length(ModoS)
 end
  
 Raman.z = Z;
-Raman.Pump.forward = Pf;            %pump;
+Raman.Pump.forward = Pf;            
 Raman.Pump.backward = Pb;
-Raman.Sig.Power = Ps;               %sig ;
+Raman.Sig.Power = Ps;               
 Raman.Sig.Gain = Gain ;
 Raman.ModoS = ModoS; Raman.ModoP = ModoP;
 Raman.fmn = fmn;

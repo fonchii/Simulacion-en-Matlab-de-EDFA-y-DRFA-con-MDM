@@ -121,8 +121,8 @@ for s = 1:1:Smod
     end
 end
 allwavelengths = sort(allwavelengths);
-%if(isfield(fibra,'ASEFlag')) % retorna [0,0,0], evita calcular espectro ASE
-if fibra.ASEFlag == 1
+
+if fibra.ASEFlag == 1  % retorna [0,0,0], evita calcular espectro ASE
     lambda_ase = ase_lambdas(allwavelengths,1);
 else
     lambda_ase = ase_lambdas(allwavelengths);
