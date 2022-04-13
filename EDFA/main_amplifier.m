@@ -12,7 +12,7 @@ signal.modos = ["01" "11_a" "11_b" "02" "21_a" "21_b"] ;
 %signal.lambda.LP_01     = [1555e-9 1560e-9 1570e-9];                P0_signal.LP_01     = [-15 -15 -15];
 %signal.lambda.LP_11_a   = [1550e-9 1560e-9 1570e-9];                P0_signal.LP_11_a   = [-15 -15 -15];
 %signal.lambda.LP_01     = [1520e-9:2.5e-9:1570e-9];                 P0_signal.LP_01     = -15*ones(1,length(signal.lambda.LP_01));
-signal.lambda.LP_01     = [1520e-9:1e-9:1570e-9];                                  P0_signal.LP_01     = -15*ones(1,length(signal.lambda.LP_01));
+signal.lambda.LP_01     = [1520e-9:10e-9:1570e-9];                                  P0_signal.LP_01     = -15*ones(1,length(signal.lambda.LP_01));
 signal.lambda.LP_11_a   = 1550e-9;                                  P0_signal.LP_11_a   = -15*ones(1,length(signal.lambda.LP_11_a));
 signal.lambda.LP_11_b   = [1550e-9];                                P0_signal.LP_11_b   = -15*ones(1,length(signal.lambda.LP_11_b));
 signal.lambda.LP_11     = [1550e-9];                                P0_signal.LP_11     = -15*ones(1,length(signal.lambda.LP_11));
@@ -70,7 +70,7 @@ fibra.largo = 3     ; fibra.radio = 15e-6   ; fibra.N = 7e24; % fibra.N = 3e24;
 fibra.AN = 0.185;   %fibra.AN = 0.2 ; 
 fibra.n1 = 1.45 ;   fibra.n2 = sqrt((fibra.n1^2-fibra.AN^2));
 %fibra.dvk= P.OpticalBW; % diferencia : max_lambda - min_lambda 
-fibra.WaitBar = 1; fibra.Avance = 0;    % Despliegue de info
+fibra.WaitBar = 1; fibra.Avance = 1;    % Despliegue de info
 fibra.ASEFlag = 1; % EVITA CALCULO DE ESPECTRO ASE
 
 

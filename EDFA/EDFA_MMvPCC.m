@@ -121,7 +121,8 @@ for s = 1:1:Smod
     end
 end
 allwavelengths = sort(allwavelengths);
-if(isfield(fibra,'ASEFlag')) % retorna [0,0,0], evita calcular espectro ASE
+%if(isfield(fibra,'ASEFlag')) % retorna [0,0,0], evita calcular espectro ASE
+if fibra.ASEFlag == 1
     lambda_ase = ase_lambdas(allwavelengths,1);
 else
     lambda_ase = ase_lambdas(allwavelengths);
@@ -358,11 +359,19 @@ for n = 1:1:Sch     % Iteración en nucleos
                 end
                 % Mostrar avance como prints en pantalla:
                 if fibra.Avance
-                    clc ; fprintf("Cálculo a lo largo del EDFA: \n") ; fprintf('%.2f %% \n' ,  (z/Nz)*(1/QQ)* 100 + ((Q-1)/QQ) * 100  ) % Mostrar % de avance del cálculo
+                    if fibra.ASEFlag == 0
+                        clc ; fprintf("Cálculo a lo largo del EDFA: \n") ; fprintf('%.2f %% \n' ,  (z/Nz)*(1/QQ)* 100 + ((Q-1)/QQ) * 50  ) % Mostrar % de avance del cálculo
+                    else
+                        clc ; fprintf("Cálculo a lo largo del EDFA: \n") ; fprintf('%.2f %% \n' ,  (z/Nz)*(1/QQ)* 100 + ((Q-1)/QQ) * 100  ) % Mostrar % de avance del cálculo
+                    end
                 end
                 % Mostrar avance como WaitBar:
                 if fibra.WaitBar
-                    avance = (z/Nz)*(1/QQ) + ((Q-1)/QQ) ; waitbar(avance, z_waitbar ,  sprintf("Cálculo a lo largo del EDFA: \n %.2f %%",avance*100 ) ) ; set(z_waitbar,'Visible', 'on');
+                    if fibra.ASEFlag == 0
+                        avance = ((z/Nz)*(1/QQ) + ((Q-1)/QQ))/2 ; waitbar(avance, z_waitbar ,  sprintf("Cálculo a lo largo del EDFA: \n %.2f %%",avance*100 ) ) ; set(z_waitbar,'Visible', 'on');
+                    else
+                        avance = (z/Nz)*(1/QQ) + ((Q-1)/QQ) ; waitbar(avance, z_waitbar ,  sprintf("Cálculo a lo largo del EDFA: \n %.2f %%",avance*100 ) ) ; set(z_waitbar,'Visible', 'on');
+                    end
                 end
             end   % Fin de calculo en fibra
 
@@ -553,13 +562,22 @@ for n = 1:1:Sch     % Iteración en nucleos
                         end
                     end
                 end
-                % Mostrar solo % de avance como prints en pantalla:
+                % Mostrar % de avance como prints en pantalla:
                 if fibra.Avance
-                    clc ; fprintf("Cálculo a lo largo del EDFA: \n") ; fprintf('%.2f %% \n' ,  (z/Nz)*(1/QQ)* 100 + ((Q-1)/QQ) * 100 ) % Mostrar % de avance del cálculo
+                    if fibra.ASEFlag == 0
+                        clc ; fprintf("Cálculo a lo largo del EDFA: \n") ; fprintf('%.2f %% \n' ,  (z/Nz)*(1/QQ)* 50 + ((Q-1)/QQ) * 50 ) % Mostrar % de avance del cálculo
+                    else
+                        clc ; fprintf("Cálculo a lo largo del EDFA: \n") ; fprintf('%.2f %% \n' ,  (z/Nz)*(1/QQ)* 100 + ((Q-1)/QQ) * 100 ) % Mostrar % de avance del cálculo
+                    end
+                    
                 end
-                % Mostrar solo % de avance como WaitBar:
+                % Mostrar % de avance como WaitBar:
                 if fibra.WaitBar
-                    avance = (z/Nz)*(1/QQ) + ((Q-1)/QQ) ; waitbar(avance , z_waitbar ,  sprintf("Cálculo a lo largo del EDFA: \n %.2f %%",avance*100 ) ) ; set(z_waitbar,'Visible', 'on');
+                    if fibra.ASEFlag == 0
+                        avance = ((z/Nz)*(1/QQ) + ((Q-1)/QQ))/2 ; waitbar(avance , z_waitbar ,  sprintf("Cálculo a lo largo del EDFA: \n %.2f %%",avance*100 ) ) ; set(z_waitbar,'Visible', 'on');
+                    else
+                        avance = (z/Nz)*(1/QQ) + ((Q-1)/QQ) ; waitbar(avance , z_waitbar ,  sprintf("Cálculo a lo largo del EDFA: \n %.2f %%",avance*100 ) ) ; set(z_waitbar,'Visible', 'on');
+                    end
                 end
             end % fin iteraciones en largo de fibra
 
@@ -602,6 +620,14 @@ for n = 1:1:Sch     % Iteración en nucleos
                 end
             end
         end
+        % Mostrar % de avance como prints en pantalla:
+        if fibra.Avance && fibra.ASEFlag == 0
+            clc ; fprintf("Cálculo Espectro ASE: \n") ; fprintf('%.2f %% \n' ,  ( 50 + ((z/Nz)*50 )) ) % Mostrar % de avance del cálculo
+        end
+        % Mostrar % de avance como WaitBar:
+        if fibra.WaitBar && fibra.ASEFlag == 0
+            avance = 0.50 + ((z/Nz))/2 ; waitbar(avance , z_waitbar ,  sprintf("Cálculo Espectro ASE: \n %.2f %%",avance*100 ) ) ; set(z_waitbar,'Visible', 'on');
+        end
     end % Fin calculo ASE en posicion z
 
 
@@ -611,7 +637,9 @@ for n = 1:1:Sch     % Iteración en nucleos
         end
     end
 
-
+    if fibra.WaitBar
+        close(z_waitbar)
+    end
 
 
 
