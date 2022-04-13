@@ -4,6 +4,7 @@ close all ; clc ; clear all
 %% Datos Entrada
 
 In.Fibra.Length                 = 50;                                                       % fibre length (km)
+In.Fibra.T                      = 25;                                                       % Temperatura Fibra (ambiente)
 In.Fibra.PolarizationFactor     = 0.5;                                                      % C_R_max
 %In.Pump.LP01.Wavelengths        = [1400 1420 1440 1460] ;                                  % [nm]
 %In.Pump.LP11.Wavelengths        = [1460 1470] ;                                            % [nm]
