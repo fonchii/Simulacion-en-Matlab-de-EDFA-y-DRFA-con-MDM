@@ -42,7 +42,7 @@ Z                               = (0 : deltaZ : L);
 for i=1:length(ModoP)
   % Alphas
     %alphaP.(ModoP{i})           = In.Pump.(ModoP{i}).Alpha;                                   % fibre loss at the Pump frequency (dB/km)
-    alphaP.(ModoP{i})           = In.Pump.(ModoP{i}).Alpha .* log(10)/10;                     % fibre loss at the Pump frequency (np/km)
+    %alphaP.(ModoP{i})           = In.Pump.(ModoP{i}).Alpha .* log(10)/10;                     % fibre loss at the Pump frequency (np/km)
   % Frecuencias y Wavelengths
     PumpWavelengths.(ModoP{i})  = In.Pump.(ModoP{i}).Wavelengths;
     lambdaP.(ModoP{i})          = ( PumpWavelengths.(ModoP{i}) ) .*1e-9 ;
@@ -50,7 +50,7 @@ for i=1:length(ModoP)
   % Potencias
     Ppf0.(ModoP{i})             = In.Pump.(ModoP{i}).Powers;                                % Pump forward powers (W)
     PpbL.(ModoP{i})             = In.Pump.(ModoP{i}).Powers;                                % Pump backward powers (W)
-    Ppb0.(ModoP{i})             = (PpbL.(ModoP{i})) .*exp((-alphaP.(ModoP{i})) .*L);       % backward pump power at z = 0 km
+    %Ppb0.(ModoP{i})             = (PpbL.(ModoP{i})) .*exp((-alphaP.(ModoP{i})) .*L);       % backward pump power at z = 0 km
     Pb.(ModoP{i})               = zeros( length(lambdaP.(ModoP{i})), length(Z) );
     Pf.(ModoP{i})               = zeros( length(lambdaP.(ModoP{i})), length(Z) );
 
@@ -61,7 +61,7 @@ end
 for i=1:length(ModoS)
   % Alphas
     %alphaS.(ModoS{i})           = (In.Signal.(ModoS{i}).Alpha);                             % fibre loss at the signal frequency (np/km)
-    alphaS.(ModoS{i})           = In.Signal.(ModoS{i}).Alpha .* log(10)/10;                             % fibre loss at the signal frequency (np/km)
+    %alphaS.(ModoS{i})           = In.Signal.(ModoS{i}).Alpha .* log(10)/10;                             % fibre loss at the signal frequency (np/km)
   % Frecuencias y Wavelengths
     lambdaS.(ModoS{i})          = (In.Signal.(ModoS{i}).Wavelengths) .*1e-9;
     F_s.(ModoS{i})              = 3e8./( lambdaS.(ModoS{i})); 
@@ -77,6 +77,27 @@ for i=1:length(ModoS)
     
 end
 
+if In.Fibra.AttenuationMethod == 'Dynamic'
+    alp = load('RADynamic_Attenuation.dat');
+    alp1 = alp(:,1).*1e-9 ; alp2 = alp(:,2).* log(10)/10;
+    for ms=1:length(ModoS)
+        alphaS.(ModoS{ms}) = @(f) interp1(alp1,alp2,f);
+    end
+    for mp=1:length(ModoP)
+        alphaP.(ModoP{mp}) = @(f) interp1(alp1,alp2,f);
+    end
+elseif In.Fibra.AttenuationMethod == 'Static'
+    alp = load('RADynamic_Attenuation.dat');
+    alp1 = alp(:,1).*1e-9 ;  
+    for ms=1:length(ModoS)
+        alp2 = ones( 1,length(alp1 ) ).* ( In.Signal.(ModoS{ms}).Alpha .* log(10)/10) ;
+        alphaS.(ModoS{ms}) = @(f) interp1(alp1,alp2,f);
+    end
+    for mp=1:length(ModoP)
+        alp2 = ones( 1,length(alp1 ) ).* ( In.Pump.(ModoP{mp}).Alpha.* log(10)/10) ;
+        alphaP.(ModoP{mp}) = @(f) interp1(alp1,alp2,f);
+    end
+end
 
 % Estructura de gR:
 %   Tanto para gr.pump como para gr.signal se guardan en filas los modos de bombeo
@@ -160,10 +181,11 @@ end
 % end
 
 for mp = length(ModoP)
-    if sum( Pb.(ModoP{i})(:,end) ) ~= 0
+    if sum( Pb.(ModoP{mp})(:,end) ) ~= 0
         for l=(length(Z)-1):-1:1
             for wP = 1:length(lambdaP.(ModoP{i}))
-                Pb.(ModoP{mp})(wP,l) = Pb.(ModoP{i})(wP,l+1) + deltaZ*( -alphaP.(ModoP{mp})*Pb.(ModoP{mp})(wP,l+1) ) ;
+                lambda = lambdaP.(ModoP{mp})(wP); alpP = alphaP.(ModoP{mp})(lambda);
+                Pb.(ModoP{mp})(wP,l) = Pb.(ModoP{i})(wP,l+1) + deltaZ*( -alpP*Pb.(ModoP{mp})(wP,l+1) ) ;
             end
         end
     end
@@ -197,14 +219,14 @@ for l = 1:(length(Z)-1)
                     end
                 end
             end
-            
-            Ps.(ModoS{ms})(wS,l+1) = Ps.(ModoS{ms})(wS,l) + deltaZ*( -alphaS.(ModoS{ms})*Ps.(ModoS{ms})(wS,l) + p_sum*Ps.(ModoS{ms})(wS,l) ) + ...
+            lambda = lambdaS.(ModoS{ms})(wS); alpS = alphaS.(ModoS{ms})(lambda);
+            Ps.(ModoS{ms})(wS,l+1) = Ps.(ModoS{ms})(wS,l) + deltaZ*( -alpS*Ps.(ModoS{ms})(wS,l) + p_sum*Ps.(ModoS{ms})(wS,l) ) + ...
                                         ase_sum * h * Gamma * ( 3e8/lambdaS.(ModoS{ms})(wS) ) + eta_sum;
             Ps.Rayleigh.(ModoS{ms})(wS,l+1) = eta_sum;
             Ps.ASE.(ModoS{ms})(wS,l+1) = ase_sum * h * Gamma * ( 3e8/lambdaS.(ModoS{ms})(wS) );
 
             % Potncia Off - Sin amplificacion:
-            Psoff.(ModoS{ms})(wS,l+1) =  Psoff.(ModoS{ms})(wS,l) + deltaZ*( -alphaS.(ModoS{ms})*Psoff.(ModoS{ms})(wS,l) ) ;
+            Psoff.(ModoS{ms})(wS,l+1) =  Psoff.(ModoS{ms})(wS,l) + deltaZ*( -alpS*Psoff.(ModoS{ms})(wS,l) ) ;
             
                 
         end
@@ -232,8 +254,9 @@ for l = 1:(length(Z)-1)
                         end
                     end
                 end
-    
-                Pf.(ModoP{mp})(wP,l+1) = Pf.(ModoP{mp})(wP,l) + deltaZ*( -alphaP.(ModoP{mp})*Pf.(ModoP{mp})(wP,l) - (1/lambdaP.(ModoP{mp})(wP))*s_sum*Pf.(ModoP{mp})(wP,l) )...
+                lambda = lambdaP.(ModoP{mp})(wP); alpP = alphaP.(ModoP{mp})(lambda);
+
+                Pf.(ModoP{mp})(wP,l+1) = Pf.(ModoP{mp})(wP,l) + deltaZ*( -alpP*Pf.(ModoP{mp})(wP,l) - (1/lambdaP.(ModoP{mp})(wP))*s_sum*Pf.(ModoP{mp})(wP,l) )...
                                         + eta_sum; 
                 Pf.Rayleigh.(ModoP{mp})(wP,l+1) = eta_sum;
             end

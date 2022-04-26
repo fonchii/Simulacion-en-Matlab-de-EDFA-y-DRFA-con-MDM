@@ -8,7 +8,10 @@ function [Raman] = RamanMM(In)
 % Max_g_R           = P.gR;                                         % max Raman gain coeffiencit (G_R/Aeff)
 %C_R                 = In.Fibra.PolarizationFactor*(g_R/max(g_R));
 %FF_gR               = A(:,1)*1e12;
-A                   = load('RamanResponse.txt');
+A                   = load('RamanGainEfficiency_SMF28.dat');
+g_R                 = smooth(A(:,2),10);
+C_R                 = In.Fibra.PolarizationFactor*(g_R);
+FF_gR               = A(:,1);
 eta = load('RADynamic_Rayleigh.dat');                               % Rayleigh coeficient
 freq = [100 : 10 : 1390];
 mag = zeros(1,length(freq));
@@ -39,7 +42,7 @@ Z                               = (0 : deltaZ : L);
 for i=1:length(ModoP)
   % Alphas
     %alphaP.(ModoP{i})           = In.Pump.(ModoP{i}).Alpha;                                   % fibre loss at the Pump frequency (dB/km)
-    alphaP.(ModoP{i})           = In.Pump.(ModoP{i}).Alpha .* log(10)/10;                     % fibre loss at the Pump frequency (np/km)
+    %alphaP.(ModoP{i})           = In.Pump.(ModoP{i}).Alpha .* log(10)/10;                     % fibre loss at the Pump frequency (np/km)
   % Frecuencias y Wavelengths
     PumpWavelengths.(ModoP{i})  = In.Pump.(ModoP{i}).Wavelengths;
     lambdaP.(ModoP{i})          = ( PumpWavelengths.(ModoP{i}) ) .*1e-9 ;
@@ -58,7 +61,7 @@ end
 for i=1:length(ModoS)
   % Alphas
     %alphaS.(ModoS{i})           = (In.Signal.(ModoS{i}).Alpha);                             % fibre loss at the signal frequency (np/km)
-    alphaS.(ModoS{i})           = In.Signal.(ModoS{i}).Alpha .* log(10)/10;                             % fibre loss at the signal frequency (np/km)
+    %alphaS.(ModoS{i})           = In.Signal.(ModoS{i}).Alpha .* log(10)/10;                             % fibre loss at the signal frequency (np/km)
   % Frecuencias y Wavelengths
     lambdaS.(ModoS{i})          = (In.Signal.(ModoS{i}).Wavelengths) .*1e-9;
     F_s.(ModoS{i})              = 3e8./( lambdaS.(ModoS{i})); 
@@ -74,6 +77,27 @@ for i=1:length(ModoS)
     
 end
 
+if In.AttenuationMethod == 'Dynamic'
+    alp = load('RADynamic_Attenuation.dat');
+    alp1 = aS(:,1).*1e-9 ; alp2 = aS(:,2).* log(10)/10;
+    for ms=1:length(ModoS)
+        alphaS.(ModoS{ms}) = @(f) interp1(alp1,alp2,f);
+    end
+    for mp=1:length(ModoP)
+        alphaP.(ModoP{mp}) = @(f) interp1(alp1,alp2,f);
+    end
+elseif In.AttenuationMethod == 'Static'
+    alp = load('RADynamic_Attenuation.dat');
+    alp1 = aS(:,1).*1e-9 ;  aS(:,2).* log(10)/10;
+    for ms=1:length(ModoS)
+        alp2 = ones( 1,length(alp1 ) ).* ( In.Signal.(ModoS{ms}).Alpha .* log(10)/10) ;
+        alphaS.(ModoS{ms}) = @(f) interp1(alp1,alp2,f);
+    end
+    for mp=1:length(ModoP)
+        alp2 = ones( 1,length(alp1 ) ).* ( In.Pump.(ModoP{mp}).Alpha.* log(10)/10) ;
+        alphaP.(ModoP{mp}) = @(f) interp1(alp1,alp2,f);
+    end
+end
 
 % Estructura de gR:
 %   Tanto para gr.pump como para gr.signal se guardan en filas los modos de bombeo
@@ -160,6 +184,7 @@ for mp = length(ModoP)
     if sum( Pb.(ModoP{i})(:,end) ) ~= 0
         for l=(length(Z)-1):-1:1
             for wP = 1:length(lambdaP.(ModoP{i}))
+                lambda = lambdaP.(ModoP{i})(wP); alphaP = 
                 Pb.(ModoP{mp})(wP,l) = Pb.(ModoP{i})(wP,l+1) + deltaZ*( -alphaP.(ModoP{mp})*Pb.(ModoP{mp})(wP,l+1) ) ;
             end
         end
@@ -201,7 +226,7 @@ for l = 1:(length(Z)-1)
             Ps.ASE.(ModoS{ms})(wS,l+1) = ase_sum * h * Gamma * ( 3e8/lambdaS.(ModoS{ms})(wS) );
 
             % Potncia Off - Sin amplificacion:
-            Psoff.(ModoS{ms})(wS,l+1) =  Psoff.(ModoS{ms})(wS,l) + deltaZ*( -alphaS.(ModoS{ms})*Ps.(ModoS{ms})(wS,l) ) ;
+            Psoff.(ModoS{ms})(wS,l+1) =  Psoff.(ModoS{ms})(wS,l) + deltaZ*( -alphaS.(ModoS{ms})*Psoff.(ModoS{ms})(wS,l) ) ;
             
                 
         end
@@ -241,6 +266,7 @@ end
 for ms = 1:length(ModoS)
     Gain.(ModoS{ms}) =  10*log10( Ps.(ModoS{ms})(:,end) ./ Ps.(ModoS{ms})(:,1) );
     OSNR.(ModoS{ms}) = 10*log10( Ps.(ModoS{ms})(:,end)./Ps.ASE.(ModoS{ms})(:,end) );
+    GainOnOFF.(ModoS{ms}) =  10*log10( Ps.(ModoS{ms})(:,end) ./ Psoff.(ModoS{ms})(:,end) );
 end
 
 
@@ -250,7 +276,8 @@ Raman.Pump.forward = Pf;
 Raman.Pump.backward = Pb;
 Raman.Sig.Power = Ps;               
 Raman.Sig.Gain = Gain;
-Raman.Sig.Off = Psoff;
+Raman.Sig.GainOnOFF = GainOnOFF;
+Raman.Sig.Power.Off = Psoff;
 Raman.ModoS = ModoS; Raman.ModoP = ModoP;
 Raman.fmn = fmn;
 Raman.gR = gR;
