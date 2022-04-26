@@ -1,6 +1,6 @@
 function modos = modesparam(modes,wavelength,fibra)
 % fibra.AN = 0.185;   fibra.AN = 0.2 ; fibra.n1 = 1.45 ; fibra.n2 = sqrt((fibra.n1^2-fibra.AN^2)); fibra.radio = 15e-6
-% signal.modos = ["01"] ; 
+% signal.modos = ['01'] ; 
 % modos = modesparam(signal.modos,1550e-9,fibra)
 
     coreRadius   = fibra.radio*1e6 ;

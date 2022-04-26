@@ -8,10 +8,7 @@ function [Raman] = RamanMM(In)
 % Max_g_R           = P.gR;                                         % max Raman gain coeffiencit (G_R/Aeff)
 %C_R                 = In.Fibra.PolarizationFactor*(g_R/max(g_R));
 %FF_gR               = A(:,1)*1e12;
-A                   = load('RamanGainEfficiency_SMF28.dat');
-g_R                 = smooth(A(:,2),10);
-C_R                 = In.Fibra.PolarizationFactor*(g_R);
-FF_gR               = A(:,1);
+A                   = load('RamanResponse.txt');
 eta = load('RADynamic_Rayleigh.dat');                               % Rayleigh coeficient
 freq = [100 : 10 : 1390];
 mag = zeros(1,length(freq));
@@ -204,7 +201,7 @@ for l = 1:(length(Z)-1)
             Ps.ASE.(ModoS{ms})(wS,l+1) = ase_sum * h * Gamma * ( 3e8/lambdaS.(ModoS{ms})(wS) );
 
             % Potncia Off - Sin amplificacion:
-            Psoff.(ModoS{ms})(wS,l+1) =  Psoff.(ModoS{ms})(wS,l) + deltaZ*( -alphaS.(ModoS{ms})*Psoff.(ModoS{ms})(wS,l) ) ;
+            Psoff.(ModoS{ms})(wS,l+1) =  Psoff.(ModoS{ms})(wS,l) + deltaZ*( -alphaS.(ModoS{ms})*Ps.(ModoS{ms})(wS,l) ) ;
             
                 
         end
@@ -244,7 +241,6 @@ end
 for ms = 1:length(ModoS)
     Gain.(ModoS{ms}) =  10*log10( Ps.(ModoS{ms})(:,end) ./ Ps.(ModoS{ms})(:,1) );
     OSNR.(ModoS{ms}) = 10*log10( Ps.(ModoS{ms})(:,end)./Ps.ASE.(ModoS{ms})(:,end) );
-    GainOnOFF.(ModoS{ms}) =  10*log10( Ps.(ModoS{ms})(:,end) ./ Psoff.(ModoS{ms})(:,end) );
 end
 
 
@@ -254,8 +250,7 @@ Raman.Pump.forward = Pf;
 Raman.Pump.backward = Pb;
 Raman.Sig.Power = Ps;               
 Raman.Sig.Gain = Gain;
-Raman.Sig.GainOnOFF = GainOnOFF;
-Raman.Sig.Power.Off = Psoff;
+Raman.Sig.Off = Psoff;
 Raman.ModoS = ModoS; Raman.ModoP = ModoP;
 Raman.fmn = fmn;
 Raman.gR = gR;

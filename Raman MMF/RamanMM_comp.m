@@ -1,17 +1,14 @@
 % evaluates the Raman gain for given signal structure assuming a pumpt at 1445 nm
-function [Raman] = RamanMM(In)
+% Comparación con Optimization of Mode-Dependent Gain Efficiency based on Intermodal Raman Scattering for Few-Mode Distributed Raman Amplifier
+function [Raman] = RamanMM_comp(In)
 
 
 % % Load Raman and Rayleigh responce 
-%A                   = load('RamanResponse.txt');
-%g_R                 = smooth(A(:,2),20);
+A                   = load('RamanResponse.txt');
+g_R                 = smooth(A(:,2),20);
 % Max_g_R           = P.gR;                                         % max Raman gain coeffiencit (G_R/Aeff)
-%C_R                 = In.Fibra.PolarizationFactor*(g_R/max(g_R));
-%FF_gR               = A(:,1)*1e12;
-A                   = load('RamanGainEfficiency_SMF28.dat');
-g_R                 = smooth(A(:,2),10);
-C_R                 = In.Fibra.PolarizationFactor*(g_R);
-FF_gR               = A(:,1);
+C_R                 = In.Fibra.PolarizationFactor*(g_R/max(g_R));
+FF_gR               = A(:,1)*1e12;
 eta = load('RADynamic_Rayleigh.dat');                               % Rayleigh coeficient
 freq = [100 : 10 : 1390];
 mag = zeros(1,length(freq));
@@ -41,8 +38,9 @@ Z                               = (0 : deltaZ : L);
 % --- Bombeos --- %
 for i=1:length(ModoP)
   % Alphas
-    %alphaP.(ModoP{i})           = In.Pump.(ModoP{i}).Alpha;                                   % fibre loss at the Pump frequency (dB/km)
-    alphaP.(ModoP{i})           = In.Pump.(ModoP{i}).Alpha .* log(10)/10;                     % fibre loss at the Pump frequency (np/km)
+    %alphaP.(ModoP{i})         = In.Pump.(ModoP{i}).Alpha;                                   % fibre loss at the Pump frequency (dB/km)
+    alphaP.(ModoP{i})         = In.Pump.(ModoP{i}).Alpha .* log(10)/10;                     % fibre loss at the Pump frequency (np/km)
+    alphaPb.(ModoP{i})         = alphaP.(ModoP{i})*-1;                                      % fibre loss at the pump frequency Backward propagation np/km)
   % Frecuencias y Wavelengths
     PumpWavelengths.(ModoP{i})  = In.Pump.(ModoP{i}).Wavelengths;
     lambdaP.(ModoP{i})          = ( PumpWavelengths.(ModoP{i}) ) .*1e-9 ;
@@ -67,14 +65,11 @@ for i=1:length(ModoS)
     F_s.(ModoS{i})              = 3e8./( lambdaS.(ModoS{i})); 
   % Potencias
     Ps0.(ModoS{i})              = 10.^( ((In.Signal.(ModoS{i}).Powers) -30)/10 ) ;          % Total Signal input power (W)
-    Ps.(ModoS{i})               = zeros( length(lambdaS.(ModoS{i})), length(Z) );
-    Ps.(ModoS{i})(:,1)          = Ps0.(ModoS{i}); 
-    Psoff.(ModoS{i})            = zeros( length(lambdaS.(ModoS{i})), length(Z) );
-    Psoff.(ModoS{i})(:,1)       = Ps0.(ModoS{i}); 
+    Ps.(ModoS{i}) = zeros( length(lambdaS.(ModoS{i})), length(Z) );
+    Ps.(ModoS{i})(:,1) = Ps0.(ModoS{i}); 
 
     Ps.Rayleigh.(ModoS{i})      = zeros( length(lambdaS.(ModoS{i})), length(Z) );
     Ps.ASE.(ModoS{i})           = zeros( length(lambdaS.(ModoS{i})), length(Z) );
-    
 end
 
 
@@ -92,22 +87,7 @@ end
 %   gR.Signal.a.b -> guarda valores gR del modo a de señal con modo b de bombeo 
 %                 -> tiene length(F_s(b)) filas x length(F_p(a)) columnas
 %                   λs1 ... λsn
-% Forma Numerica
-% norm =  int_overlap_numerical(In.Fibra , '01' , 1450e-9 , '01' , 1550e-9);
-% for mp = 1:length(ModoP)
-%     for ms = 1:length(ModoS)
-%         for p = 1:length( F_p.(ModoP{mp}) )
-%             for s = 1:length( F_s.(ModoS{ms}) )
-%                 lambdas = 3e8 /(F_s.(ModoS{ms})(s)) ; lambdap = 3e8/(F_p.(ModoP{mp})(p)) ;
-%                 gR.Pump.(ModoP{mp}).(ModoS{ms})(p,s) = Gr_fun( abs(F_p.(ModoP{mp})(p)- F_s.(ModoS{ms})(s)) ) ;
-%                 gR.Signal.(ModoS{ms}).(ModoP{mp})(p,s) = Gr_fun( abs(F_p.(ModoP{mp})(p)-F_s.(ModoS{ms})(s)) ) ;
-%                 fmn.Signal.(ModoS{ms}).(ModoP{mp})(p,s) = int_overlap_numerical(In.Fibra , ModoP{mp} , lambdap , ModoS{ms} , lambdas ) / norm ;
-%                 fmn.Pump.(ModoP{mp}).(ModoS{ms})(p,s) = int_overlap_numerical(In.Fibra , ModoS{ms} , lambdas , ModoP{mp} , lambdap ) / norm ;
-%             end
-%         end
-%     end
-% end
-norm =  int_overlapv2(In.Fibra , '01' , 1450e-9 , '01' , 1550e-9);
+
 for mp = 1:length(ModoP)
     for ms = 1:length(ModoS)
         for p = 1:length( F_p.(ModoP{mp}) )
@@ -115,12 +95,23 @@ for mp = 1:length(ModoP)
                 lambdas = 3e8 /(F_s.(ModoS{ms})(s)) ; lambdap = 3e8/(F_p.(ModoP{mp})(p)) ;
                 gR.Pump.(ModoP{mp}).(ModoS{ms})(p,s) = Gr_fun( abs(F_p.(ModoP{mp})(p)- F_s.(ModoS{ms})(s)) ) ;
                 gR.Signal.(ModoS{ms}).(ModoP{mp})(p,s) = Gr_fun( abs(F_p.(ModoP{mp})(p)-F_s.(ModoS{ms})(s)) ) ;
-                fmn.Signal.(ModoS{ms}).(ModoP{mp})(p,s) = int_overlapv2(In.Fibra , ModoP{mp} , lambdap , ModoS{ms} , lambdas ) / norm ;
-                fmn.Pump.(ModoP{mp}).(ModoS{ms})(p,s) = int_overlapv2(In.Fibra , ModoS{ms} , lambdas , ModoP{mp} , lambdap ) / norm ;
+                %fmn.Signal.(ModoS{ms}).(ModoP{mp})(p,s) = int_overlap_numerical(In.Fibra , ModoP{mp} , lambdap , ModoS{ms} , lambdas ) ;
+                %fmn.Pump.(ModoP{mp}).(ModoS{ms})(p,s) = int_overlap_numerical(In.Fibra , ModoS{ms} , lambdas , ModoP{mp} , lambdap ) ;
             end
         end
     end
 end
+
+% Valores de Integral de superposición con perfil usado en Paper
+fmn.Signal.('LP01').('LP01') = 1; fmn.Signal.('LP01').('LP11') = 0.161; fmn.Signal.('LP01').('LP21') = 0.1165; fmn.Signal.('LP01').('LP02') = 0.2688;
+fmn.Signal.('LP11').('LP01') = 0.161; fmn.Signal.('LP11').('LP11') = 1; fmn.Signal.('LP11').('LP21') = 0.2386; fmn.Signal.('LP11').('LP02') = 0.0873;
+fmn.Signal.('LP21').('LP01') = 0.1165; fmn.Signal.('LP21').('LP11') = 0.2386; fmn.Signal.('LP21').('LP21') = 1; fmn.Signal.('LP21').('LP02') = 0.0641;
+fmn.Signal.('LP02').('LP01') = 0.2688; fmn.Signal.('LP02').('LP11') = 0.0873; fmn.Signal.('LP02').('LP21') = 0.0641; fmn.Signal.('LP02').('LP02') = 1;
+% fmn.Signal.('LP01').('LP01') = 0.98; fmn.Signal.('LP01').('LP11') = 0.93; fmn.Signal.('LP01').('LP21') = 0.78; fmn.Signal.('LP01').('LP02') = 0.7;
+% fmn.Signal.('LP11').('LP01') = 0.9; fmn.Signal.('LP11').('LP11') = 0.96; fmn.Signal.('LP11').('LP21') = 0.85; fmn.Signal.('LP11').('LP02') = 0.87;
+% fmn.Signal.('LP21').('LP01') = 0.77; fmn.Signal.('LP21').('LP11') = 0.88; fmn.Signal.('LP21').('LP21') = 0.91; fmn.Signal.('LP21').('LP02') = 0.88;
+% fmn.Signal.('LP02').('LP01') = 0.69; fmn.Signal.('LP02').('LP11') = 0.84; fmn.Signal.('LP02').('LP21') = 0.9; fmn.Signal.('LP02').('LP02') = 1;
+fmn.Pump = fmn.Signal;
 
 %% % Calculo potencias
 
@@ -129,41 +120,28 @@ switch In.Fibra.RamanMethod
         for i = 1:length(ModoP)
             Pf.(ModoP{i})(:,1) = Ppf0.(ModoP{i});
             Pb.(ModoP{i})(:,end) = 0;
-            Ppbcalc = 1;
         end
     case 'Backward'
         for i = 1:length(ModoP)
             Pf.(ModoP{i})(:,1) = 0;
             Pb.(ModoP{i})(:,end) = PpbL.(ModoP{i});
-            Ppbcalc = 0;
         end
     case 'Forward&Backward'
         for i = 1:length(ModoP)
             Pf.(ModoP{i})(:,1) = Ppf0.(ModoP{i});
             Pb.(ModoP{i})(:,end) = PpbL.(ModoP{i});
-            Ppbcalc = 1;
         end
 end
 
 
 % Backward pump se calcula en ausencia de señales
 
-% for i = length(ModoP)
-%     if sum( Pb.(ModoP{i})(:,end) ) ~= 0
-%         for l=1:(length(Z)-1)
-%             z = Z(l);
-%             for wP = 1:length(lambdaP.(ModoP{i}))
-%                 Pb.(ModoP{i})(wP,end-l) = Pb.(ModoP{i})(wP,end)*(exp(-alphaP.(ModoP{i})*z) );
-%             end
-%         end
-%     end
-% end
-
-for mp = length(ModoP)
+for i = length(ModoP)
     if sum( Pb.(ModoP{i})(:,end) ) ~= 0
-        for l=(length(Z)-1):-1:1
+        for l=1:(length(Z)-1)
+            z = Z(l);
             for wP = 1:length(lambdaP.(ModoP{i}))
-                Pb.(ModoP{mp})(wP,l) = Pb.(ModoP{i})(wP,l+1) + deltaZ*( -alphaP.(ModoP{mp})*Pb.(ModoP{mp})(wP,l+1) ) ;
+                Pb.(ModoP{i})(wP,end-l) = Pb.(ModoP{i})(wP,end)*(exp(-alphaP.(ModoP{i})*z) );
             end
         end
     end
@@ -179,12 +157,13 @@ for l = 1:(length(Z)-1)
             eta_sum = 0;
             ase_sum = 0;
             for mp = 1:length(ModoP)
-                p_sum = p_sum + sum( fmn.Signal.(ModoS{ms}).(ModoP{mp})(:,wS) .* gR.Signal.(ModoS{ms}).(ModoP{mp})(:,wS)...
+                p_sum = p_sum + sum( fmn.Signal.(ModoS{ms}).(ModoP{mp}) * gR.Signal.(ModoS{ms}).(ModoP{mp})(:,wS)...
                                     .* ( Pf.(ModoP{mp})(:,l)+Pb.(ModoP{mp})(:,l) ) );
             % Contribución ASE
                 deltaV = abs( 3e8/lambdaP.(ModoP{mp})(:) - 3e8/lambdaS.(ModoS{ms})(wS) ) ;
-                ase_sum = ase_sum + sum( sum( ( fmn.Signal.(ModoS{ms}).(ModoP{mp})(:,wS) .* gR.Signal.(ModoS{ms}).(ModoP{mp})(:,wS)...
+                ase_sum = ase_sum + sum( sum( ( fmn.Signal.(ModoS{ms}).(ModoP{mp}) .* gR.Signal.(ModoS{ms}).(ModoP{mp})(:,wS)...
                                     .* ( Pf.(ModoP{mp})(:,l)+Pb.(ModoP{mp})(:,l) ) ) .* deltaV ) ) ;
+                
             end
             % Contribución Rayleigh Scattering
                 % Revisar si otro Modo tiene algún canal de frecuencia
@@ -202,41 +181,34 @@ for l = 1:(length(Z)-1)
                                         ase_sum * h * Gamma * ( 3e8/lambdaS.(ModoS{ms})(wS) ) + eta_sum;
             Ps.Rayleigh.(ModoS{ms})(wS,l+1) = eta_sum;
             Ps.ASE.(ModoS{ms})(wS,l+1) = ase_sum * h * Gamma * ( 3e8/lambdaS.(ModoS{ms})(wS) );
-
-            % Potncia Off - Sin amplificacion:
-            Psoff.(ModoS{ms})(wS,l+1) =  Psoff.(ModoS{ms})(wS,l) + deltaZ*( -alphaS.(ModoS{ms})*Psoff.(ModoS{ms})(wS,l) ) ;
-            
-                
         end
     end
 
     % Bombeo Forward
-    if Ppbcalc
-        for mp = 1:length(ModoP)
-            for wP = 1:length(lambdaP.(ModoP{mp}))
-                s_sum = 0;
-                eta_sum = 0;
-                for ms = 1:length(ModoS)
-                    s_sum = sum( fmn.Pump.(ModoP{mp}).(ModoS{ms})(wP,:) * gR.Pump.(ModoP{mp}).(ModoS{ms})(wP,:)'...
-                                    .* lambdaS.(ModoS{ms})(:).*Ps.(ModoS{ms})(:,l) ) ;
-                end
-    
-                % Aporte Rayleigh Scattering
-                    % Revisar si otro Modo tiene algún canal de frecuencia
-                for mmp = 1:length(ModoP)
-                    if string(ModoP{mp}) ~= string(ModoP{mmp}) 
-                        for wwP = 1:length(lambdaP.(ModoP{mmp}))
-                            if lambdaP.(ModoP{mmp})(wwP) == lambdaP.(ModoP{mp})(wP)
-                                eta_sum = eta_sum + eta_fun(lambdaP.(ModoP{mp})(wP)) * ( Pf.(ModoP{mmp})(wwP,l) + Pb.(ModoP{mmp})(wwP,l) );
-                            end
+    for mp = 1:length(ModoP)
+        for wP = 1:length(lambdaP.(ModoP{mp}))
+            s_sum = 0;
+            eta_sum = 0;
+            for ms = 1:length(ModoS)
+                s_sum = sum( fmn.Pump.(ModoP{mp}).(ModoS{ms}) * gR.Pump.(ModoP{mp}).(ModoS{ms})(wP,:)'...
+                                .* lambdaS.(ModoS{ms})(:).*Ps.(ModoS{ms})(:,l) ) ;
+            end
+
+            % Aporte Rayleigh Scattering
+                % Revisar si otro Modo tiene algún canal de frecuencia
+            for mmp = 1:length(ModoP)
+                if string(ModoP{mp}) ~= string(ModoP{mmp}) 
+                    for wwP = 1:length(lambdaP.(ModoP{mmp}))
+                        if lambdaP.(ModoP{mmp})(wwP) == lambdaP.(ModoP{mp})(wP)
+                            eta_sum = eta_sum + eta_fun(lambdaP.(ModoP{mp})(wP)) * ( Pf.(ModoP{mmp})(wwP,l) + Pb.(ModoP{mmp})(wwP,l) );
                         end
                     end
                 end
-    
-                Pf.(ModoP{mp})(wP,l+1) = Pf.(ModoP{mp})(wP,l) + deltaZ*( -alphaP.(ModoP{mp})*Pf.(ModoP{mp})(wP,l) - (1/lambdaP.(ModoP{mp})(wP))*s_sum*Pf.(ModoP{mp})(wP,l) )...
-                                        + eta_sum; 
-                Pf.Rayleigh.(ModoP{mp})(wP,l+1) = eta_sum;
             end
+
+            Pf.(ModoP{mp})(wP,l+1) = Pf.(ModoP{mp})(wP,l) + deltaZ*( -alphaP.(ModoP{mp})*Pf.(ModoP{mp})(wP,l) - (1/lambdaP.(ModoP{mp})(wP))*s_sum*Pf.(ModoP{mp})(wP,l) )...
+                                    + eta_sum; 
+            Pf.Rayleigh.(ModoP{mp})(wP,l+1) = eta_sum;
         end
     end
     
@@ -244,7 +216,6 @@ end
 for ms = 1:length(ModoS)
     Gain.(ModoS{ms}) =  10*log10( Ps.(ModoS{ms})(:,end) ./ Ps.(ModoS{ms})(:,1) );
     OSNR.(ModoS{ms}) = 10*log10( Ps.(ModoS{ms})(:,end)./Ps.ASE.(ModoS{ms})(:,end) );
-    GainOnOFF.(ModoS{ms}) =  10*log10( Ps.(ModoS{ms})(:,end) ./ Psoff.(ModoS{ms})(:,end) );
 end
 
 
@@ -253,9 +224,7 @@ Raman.z = Z;
 Raman.Pump.forward = Pf;            
 Raman.Pump.backward = Pb;
 Raman.Sig.Power = Ps;               
-Raman.Sig.Gain = Gain;
-Raman.Sig.GainOnOFF = GainOnOFF;
-Raman.Sig.Power.Off = Psoff;
+Raman.Sig.Gain = Gain ;
 Raman.ModoS = ModoS; Raman.ModoP = ModoP;
 Raman.fmn = fmn;
 Raman.gR = gR;

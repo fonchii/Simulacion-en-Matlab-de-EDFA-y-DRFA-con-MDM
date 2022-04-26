@@ -54,7 +54,7 @@ if modoi( strlength(modoi) ) == modoi(2)
 
     else
         Ii = ( abs(modeCosi) + abs(modeSini) ) ;
-
+        
     end
 
 else
@@ -64,6 +64,7 @@ else
 
     if pola=="a"
         Ii = ( abs(modeCosi) ) ;
+
 
     elseif pola=="b"
         Ii = ( abs(modeSini) ) ;
@@ -80,6 +81,7 @@ if modoj(strlength(modoj)) == modoj(2)
     if l_j == 0
         Ij = ( abs(modeCosj) ) ;
 
+        
     else
         Ij = ( abs(modeCosj) + abs(modeSinj) ) ;
 
@@ -100,6 +102,12 @@ else
 
 end
 
-num = sum( sum(Ii.*Ij) ) ; den = a*sum( sum(Ii) )* sum( sum(Ij) ) ;
+num = sum( sum(Ii.*Ij) ) ; den = a*sum( sum(Ii) ).* sum( sum(Ij) ) ;
 fij = num/den;
- %close all; subplot(2,1,1);imagesc(Ii);subplot(2,1,2);imagesc(Ij)
+
+% % Graficar
+% centers = [gridSize/2,gridSize/2] ; radii = gridSize/4; 
+% close all; subplot(2,1,1);imagesc(Ii);hold on; viscircles(centers,125,'Color','black') ;
+% subplot(2,1,2);imagesc(Ij);hold on; viscircles(centers,radii,'Color','black')
+
+
