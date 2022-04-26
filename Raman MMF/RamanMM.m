@@ -169,23 +169,23 @@ end
 
 % Backward pump se calcula en ausencia de señales
 
-% for i = length(ModoP)
+% for i = 1:length(ModoP)
 %     if sum( Pb.(ModoP{i})(:,end) ) ~= 0
 %         for l=1:(length(Z)-1)
 %             z = Z(l);
 %             for wP = 1:length(lambdaP.(ModoP{i}))
-%                 Pb.(ModoP{i})(wP,end-l) = Pb.(ModoP{i})(wP,end)*(exp(-alphaP.(ModoP{i})*z) );
+%                 Pb.(ModoP{i})(wP,end-l) = Pb.(ModoP{mp})(wP,end)*(exp(-alphaP.(ModoP{i})*z) );
 %             end
 %         end
 %     end
 % end
 
-for mp = length(ModoP)
+for mp = 1:length(ModoP)
     if sum( Pb.(ModoP{mp})(:,end) ) ~= 0
         for l=(length(Z)-1):-1:1
             for wP = 1:length(lambdaP.(ModoP{i}))
                 lambda = lambdaP.(ModoP{mp})(wP); alpP = alphaP.(ModoP{mp})(lambda);
-                Pb.(ModoP{mp})(wP,l) = Pb.(ModoP{i})(wP,l+1) + deltaZ*( -alpP*Pb.(ModoP{mp})(wP,l+1) ) ;
+                Pb.(ModoP{mp})(wP,l) = Pb.(ModoP{mp})(wP,l+1) + deltaZ*( -alpP*Pb.(ModoP{mp})(wP,l+1) ) ;
             end
         end
     end
