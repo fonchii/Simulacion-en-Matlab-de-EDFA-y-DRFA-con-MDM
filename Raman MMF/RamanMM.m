@@ -2,16 +2,20 @@
 function [Raman] = RamanMM(In)
 
 
-% % Load Raman and Rayleigh responce 
-%A                   = load('RamanResponse.txt');
-%g_R                 = smooth(A(:,2),20);
-% Max_g_R           = P.gR;                                         % max Raman gain coeffiencit (G_R/Aeff)
-%C_R                 = In.Fibra.PolarizationFactor*(g_R/max(g_R));
-%FF_gR               = A(:,1)*1e12;
+% % % Load Raman and Rayleigh responce 
+% % Implementación profe, g_R normalizado a 0.5
+% A                   = load('RamanResponse.txt');
+% g_R                 = smooth(A(:,2),20);
+% %%%Max_g_R           = P.gR;                                         % max Raman gain coeffiencit (G_R/Aeff)
+% C_R                 = In.Fibra.PolarizationFactor*(g_R/max(g_R));
+% FF_gR               = A(:,1)*1e12;
+
+% % Implementación sin normalizar
 A                   = load('RamanGainEfficiency_SMF28.dat');
 g_R                 = smooth(A(:,2),10);
-C_R                 = In.Fibra.PolarizationFactor*(g_R);
+C_R                 = In.Fibra.PolarizationFactor*(g_R)*1000;
 FF_gR               = A(:,1);
+
 eta = load('RADynamic_Rayleigh.dat');                               % Rayleigh coeficient
 freq = [100 : 10 : 1390];
 mag = zeros(1,length(freq));
@@ -35,7 +39,7 @@ Gamma = 1/In.Fibra.PolarizationFactor;
 
 ModoS                           = fieldnames(In.Signal);
 ModoP                           = fieldnames(In.Pump);
-deltaZ                          = 0.01;                                                     % Paso de iteracion en fibra [km]
+deltaZ                          = 0.02;                                                     % Paso de iteracion en fibra [km]
 L                               = In.Fibra.Length;
 Z                               = (0 : deltaZ : L);
 % --- Bombeos --- %
@@ -77,26 +81,48 @@ for i=1:length(ModoS)
     
 end
 
-if In.Fibra.AttenuationMethod == 'Dynamic'
-    alp = load('RADynamic_Attenuation.dat');
-    alp1 = alp(:,1).*1e-9 ; alp2 = alp(:,2).* log(10)/10;
-    for ms=1:length(ModoS)
-        alphaS.(ModoS{ms}) = @(f) interp1(alp1,alp2,f);
-    end
-    for mp=1:length(ModoP)
-        alphaP.(ModoP{mp}) = @(f) interp1(alp1,alp2,f);
-    end
-elseif In.Fibra.AttenuationMethod == 'Static'
-    alp = load('RADynamic_Attenuation.dat');
-    alp1 = alp(:,1).*1e-9 ;  
-    for ms=1:length(ModoS)
-        alp2 = ones( 1,length(alp1 ) ).* ( In.Signal.(ModoS{ms}).Alpha .* log(10)/10) ;
-        alphaS.(ModoS{ms}) = @(f) interp1(alp1,alp2,f);
-    end
-    for mp=1:length(ModoP)
-        alp2 = ones( 1,length(alp1 ) ).* ( In.Pump.(ModoP{mp}).Alpha.* log(10)/10) ;
-        alphaP.(ModoP{mp}) = @(f) interp1(alp1,alp2,f);
-    end
+% if In.Fibra.AttenuationMethod == 'Dynamic'
+%     alp = load('RADynamic_Attenuation.dat');
+%     alp1 = alp(:,1).*1e-9 ; alp2 = alp(:,2).* log(10)/10;
+%     for ms=1:length(ModoS)
+%         alphaS.(ModoS{ms}) = @(f) interp1(alp1,alp2,f);
+%     end
+%     for mp=1:length(ModoP)
+%         alphaP.(ModoP{mp}) = @(f) interp1(alp1,alp2,f);
+%     end
+% elseif In.Fibra.AttenuationMethod == 'Static'
+%     alp = load('RADynamic_Attenuation.dat');
+%     alp1 = alp(:,1).*1e-9 ;  
+%     for ms=1:length(ModoS)
+%         alp2 = ones( 1,length(alp1 ) ).* ( In.Signal.(ModoS{ms}).Alpha .* log(10)/10) ;
+%         alphaS.(ModoS{ms}) = @(f) interp1(alp1,alp2,f);
+%     end
+%     for mp=1:length(ModoP)
+%         alp2 = ones( 1,length(alp1 ) ).* ( In.Pump.(ModoP{mp}).Alpha.* log(10)/10) ;
+%         alphaP.(ModoP{mp}) = @(f) interp1(alp1,alp2,f);
+%     end
+% end
+switch In.Fibra.AttenuationMethod
+    case 'Dynamic'
+        alp = load('RADynamic_Attenuation.dat');
+        alp1 = alp(:,1).*1e-9 ; alp2 = alp(:,2).* log(10)/10;
+        for ms=1:length(ModoS)
+            alphaS.(ModoS{ms}) = @(f) interp1(alp1,alp2,f);
+        end
+        for mp=1:length(ModoP)
+            alphaP.(ModoP{mp}) = @(f) interp1(alp1,alp2,f);
+        end
+    case 'Static'
+        alp = load('RADynamic_Attenuation.dat');
+        alp1 = alp(:,1).*1e-9 ;  
+        for ms=1:length(ModoS)
+            alp2 = ones( 1,length(alp1 ) ).* ( In.Signal.(ModoS{ms}).Alpha .* log(10)/10) ;
+            alphaS.(ModoS{ms}) = @(f) interp1(alp1,alp2,f);
+        end
+        for mp=1:length(ModoP)
+            alp2 = ones( 1,length(alp1 ) ).* ( In.Pump.(ModoP{mp}).Alpha.* log(10)/10) ;
+            alphaP.(ModoP{mp}) = @(f) interp1(alp1,alp2,f);
+        end
 end
 
 % Estructura de gR:
@@ -128,7 +154,7 @@ end
 %         end
 %     end
 % end
-norm =  int_overlapv2(In.Fibra , '01' , 1450e-9 , '01' , 1550e-9);
+norm =  int_overlapv2(In.Fibra , '01' , 1450e-9 , '01' , 1550e-9); % Superposiciones de modos se normalizan respecto a superposicion de LP01 con LP01
 for mp = 1:length(ModoP)
     for ms = 1:length(ModoS)
         for p = 1:length( F_p.(ModoP{mp}) )
@@ -151,25 +177,40 @@ switch In.Fibra.RamanMethod
             Pf.(ModoP{i})(:,1) = Ppf0.(ModoP{i});
             Pb.(ModoP{i})(:,end) = 0;
             Ppbcalc = 1;
+            Poff = 0;
         end
     case 'Backward'
         for i = 1:length(ModoP)
             Pf.(ModoP{i})(:,1) = 0;
             Pb.(ModoP{i})(:,end) = PpbL.(ModoP{i});
             Ppbcalc = 0;
+            Poff = 1;
         end
     case 'Forward&Backward'
         for i = 1:length(ModoP)
             Pf.(ModoP{i})(:,1) = Ppf0.(ModoP{i});
             Pb.(ModoP{i})(:,end) = PpbL.(ModoP{i});
             Ppbcalc = 1;
+            Poff = 1;
         end
 end
 
 
+% Calculo Psoff - Potencia de señal sin amplificacion
+if Poff == 1
+    for l = 1:(length(Z)-1)
+        for ms = 1:length(ModoS)
+            for wS = 1:length(lambdaS.(ModoS{ms}))
+                lambda = lambdaS.(ModoS{ms})(wS); alpS = alphaS.(ModoS{ms})(lambda);
+                Psoff.(ModoS{ms})(wS,l+1) =  Psoff.(ModoS{ms})(wS,l) + deltaZ*( -alpS*Psoff.(ModoS{ms})(wS,l) ) ;
+            end
+        end
+    end
+end
+
 % Backward pump se calcula en ausencia de señales
 
-% for i = 1:length(ModoP)
+% for i = 1:length(ModoP) % Método 1
 %     if sum( Pb.(ModoP{i})(:,end) ) ~= 0
 %         for l=1:(length(Z)-1)
 %             z = Z(l);
@@ -180,12 +221,30 @@ end
 %     end
 % end
 
-for mp = 1:length(ModoP)
+% for mp = 1:length(ModoP) % Método 2
+%     if sum( Pb.(ModoP{mp})(:,end) ) ~= 0
+%         for l=(length(Z)-1):-1:1
+%             for wP = 1:length(lambdaP.(ModoP{i}))
+%                 lambda = lambdaP.(ModoP{mp})(wP); alpP = alphaP.(ModoP{mp})(lambda);
+%                 Pb.(ModoP{mp})(wP,l) = Pb.(ModoP{mp})(wP,l+1) + deltaZ*( -alpP*Pb.(ModoP{mp})(wP,l+1) ) ;
+%             end
+%         end
+%     end
+% end
+
+for mp = 1:length(ModoP) % Método 3 - Tomando en cuenta Psoff
     if sum( Pb.(ModoP{mp})(:,end) ) ~= 0
         for l=(length(Z)-1):-1:1
-            for wP = 1:length(lambdaP.(ModoP{i}))
+            for wP = 1:length(lambdaP.(ModoP{mp}))
+                s_sumOff = 0;
+                for ms = 1:length(ModoS)
+                    s_sumOff = s_sumOff + sum( fmn.Pump.(ModoP{mp}).(ModoS{ms})(wP,:) * gR.Pump.(ModoP{mp}).(ModoS{ms})(wP,:)'...
+                                    .* lambdaS.(ModoS{ms})(:).*Psoff.(ModoS{ms})(:,l) ) ;
+                end
+
                 lambda = lambdaP.(ModoP{mp})(wP); alpP = alphaP.(ModoP{mp})(lambda);
-                Pb.(ModoP{mp})(wP,l) = Pb.(ModoP{mp})(wP,l+1) + deltaZ*( -alpP*Pb.(ModoP{mp})(wP,l+1) ) ;
+                Pb.(ModoP{mp})(wP,l) = Pb.(ModoP{mp})(wP,l+1) + deltaZ*( -alpP*Pb.(ModoP{mp})(wP,l+1) - (1/lambda)*s_sumOff*Pb.(ModoP{mp})(wP,l+1) ) ;
+
             end
         end
     end
@@ -204,9 +263,11 @@ for l = 1:(length(Z)-1)
                 p_sum = p_sum + sum( fmn.Signal.(ModoS{ms}).(ModoP{mp})(:,wS) .* gR.Signal.(ModoS{ms}).(ModoP{mp})(:,wS)...
                                     .* ( Pf.(ModoP{mp})(:,l)+Pb.(ModoP{mp})(:,l) ) );
             % Contribución ASE
-                deltaV = abs( 3e8/lambdaP.(ModoP{mp})(:) - 3e8/lambdaS.(ModoS{ms})(wS) ) ;
-                ase_sum = ase_sum + sum( sum( ( fmn.Signal.(ModoS{ms}).(ModoP{mp})(:,wS) .* gR.Signal.(ModoS{ms}).(ModoP{mp})(:,wS)...
-                                    .* ( Pf.(ModoP{mp})(:,l)+Pb.(ModoP{mp})(:,l) ) ) .* deltaV ) ) ;
+                deltaV = abs( 3e8/lambdaP.(ModoP{mp})(:) - 3e8/lambdaS.(ModoS{ms})(wS) ) ; BW = 6*10^12; %THz "paper: RAMAN amplifier gain dynamics with ASE"
+                %ase_sum = ase_sum + sum( sum( ( fmn.Signal.(ModoS{ms}).(ModoP{mp})(:,wS) .* gR.Signal.(ModoS{ms}).(ModoP{mp})(:,wS)...
+                %                    .* ( Pf.(ModoP{mp})(:,l)+Pb.(ModoP{mp})(:,l) ) ) .* deltaV ) ) ;
+                ase_sum = ase_sum + sum(    sum( ( fmn.Signal.(ModoS{ms}).(ModoP{mp})(:,wS) .* gR.Signal.(ModoS{ms}).(ModoP{mp})(:,wS)...
+                                    .* ( Pf.(ModoP{mp})(:,l)+Pb.(ModoP{mp})(:,l) ) ) .* (1+(exp(h*deltaV/(k*T))-1).^-1 ) .* BW ) ) ;
             end
             % Contribución Rayleigh Scattering
                 % Revisar si otro Modo tiene algún canal de frecuencia
@@ -220,15 +281,16 @@ for l = 1:(length(Z)-1)
                 end
             end
             lambda = lambdaS.(ModoS{ms})(wS); alpS = alphaS.(ModoS{ms})(lambda);
-            Ps.(ModoS{ms})(wS,l+1) = Ps.(ModoS{ms})(wS,l) + deltaZ*( -alpS*Ps.(ModoS{ms})(wS,l) + p_sum*Ps.(ModoS{ms})(wS,l) ) + ...
-                                        ase_sum * h * Gamma * ( 3e8/lambdaS.(ModoS{ms})(wS) ) + eta_sum;
+            Ps.(ModoS{ms})(wS,l+1) = Ps.(ModoS{ms})(wS,l) + deltaZ*( -alpS*Ps.(ModoS{ms})(wS,l) + p_sum*Ps.(ModoS{ms})(wS,l)  + ...
+                                        ase_sum * h * Gamma * ( 3e8/lambdaS.(ModoS{ms})(wS) ) + eta_sum);
             Ps.Rayleigh.(ModoS{ms})(wS,l+1) = eta_sum;
             Ps.ASE.(ModoS{ms})(wS,l+1) = ase_sum * h * Gamma * ( 3e8/lambdaS.(ModoS{ms})(wS) );
 
-            % Potncia Off - Sin amplificacion:
-            Psoff.(ModoS{ms})(wS,l+1) =  Psoff.(ModoS{ms})(wS,l) + deltaZ*( -alpS*Psoff.(ModoS{ms})(wS,l) ) ;
-            
-                
+            % Potencia Off - Sin amplificacion:
+            if Poff == 0
+                Psoff.(ModoS{ms})(wS,l+1) =  Psoff.(ModoS{ms})(wS,l) + deltaZ*( -alpS*Psoff.(ModoS{ms})(wS,l) ) ;
+            end
+
         end
     end
 
@@ -239,7 +301,7 @@ for l = 1:(length(Z)-1)
                 s_sum = 0;
                 eta_sum = 0;
                 for ms = 1:length(ModoS)
-                    s_sum = sum( fmn.Pump.(ModoP{mp}).(ModoS{ms})(wP,:) * gR.Pump.(ModoP{mp}).(ModoS{ms})(wP,:)'...
+                    s_sum = s_sum + sum( fmn.Pump.(ModoP{mp}).(ModoS{ms})(wP,:) * gR.Pump.(ModoP{mp}).(ModoS{ms})(wP,:)'...
                                     .* lambdaS.(ModoS{ms})(:).*Ps.(ModoS{ms})(:,l) ) ;
                 end
     
@@ -256,8 +318,8 @@ for l = 1:(length(Z)-1)
                 end
                 lambda = lambdaP.(ModoP{mp})(wP); alpP = alphaP.(ModoP{mp})(lambda);
 
-                Pf.(ModoP{mp})(wP,l+1) = Pf.(ModoP{mp})(wP,l) + deltaZ*( -alpP*Pf.(ModoP{mp})(wP,l) - (1/lambdaP.(ModoP{mp})(wP))*s_sum*Pf.(ModoP{mp})(wP,l) )...
-                                        + eta_sum; 
+                Pf.(ModoP{mp})(wP,l+1) = Pf.(ModoP{mp})(wP,l) + deltaZ*( -alpP*Pf.(ModoP{mp})(wP,l) - (1/lambdaP.(ModoP{mp})(wP))*s_sum*Pf.(ModoP{mp})(wP,l) ...
+                                        + eta_sum); 
                 Pf.Rayleigh.(ModoP{mp})(wP,l+1) = eta_sum;
             end
         end
@@ -283,6 +345,11 @@ Raman.ModoS = ModoS; Raman.ModoP = ModoP;
 Raman.fmn = fmn;
 Raman.gR = gR;
 Raman.OSNR = OSNR;
+Raman.functions.gr = Gr_fun ;
+Raman.functions.eta = eta_fun ;
+Raman.LambdasS = lambdaS ;
+Raman.LambdasP = lambdaP ;
+
 
 end
 

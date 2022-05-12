@@ -4,41 +4,44 @@ close all ; clc ; clear all
 %% Datos Entrada
 
 % FIBRA
-In.Fibra.RamanMethod            = 'Backward';     % 'Forward', 'Backward', 'Forward&Backward'
+In.Fibra.RamanMethod            = 'Forward&Backward';     % 'Forward', 'Backward', 'Forward&Backward'
 In.Fibra.AttenuationMethod      = 'Dynamic';        % 'Dynamic' , 'Static'
-In.Fibra.Length                 = 100;                                                              % fibre length (km)
+In.Fibra.Length                 = 54.4;                                                              % fibre length (km)
 In.Fibra.T                      = 25;                                                               % Temperatura Fibra (ambiente)
-In.Fibra.PolarizationFactor     = 0.5;                              % C_R_max
+In.Fibra.PolarizationFactor     = 1;% 0.5;                              % C_R_max
 In.Fibra.n1=1.46;  In.Fibra.n2=1.450; In.Fibra.radio=25e-6;
 
 % BOMBEOS : 
     % LP01
- In.Pump.LP01.Wavelengths       = [1430 1450 1470 ] ;                                                        % [nm]
- In.Pump.LP01.Powers            = [200 20 80]*1e-3;             % [mW]
- In.Pump.LP01.Alpha             = [0.29]; 
-    % LP11
-In.Pump.LP11.Wavelengths        = [1430 1450 1470 ] ;                                                         % [nm]
-In.Pump.LP11.Powers             = [50 20 80]*1e-3;                                                     % [mW]
-In.Pump.LP11.Alpha              = [0.29];                                                           % [dB/km]
-    % LP21
-In.Pump.LP21.Wavelengths        = [1430 1470 ] ;                                                         % [nm]
-In.Pump.LP21.Powers             = 50 *1e-3*ones( 1,length(In.Pump.LP21.Wavelengths) );                                                     % [mW]
-In.Pump.LP21.Alpha              = [0.29];                                                           % [dB/km]
-%     % LP02
-% In.Pump.LP02.Wavelengths        = [1430 1470 ] ;                                                         % [nm]
-% In.Pump.LP02.Powers             = 50.*1e-3*ones( 1,length(In.Pump.LP02.Wavelengths) );                                                     % [mW]
-% In.Pump.LP02.Alpha              = [0.29];                                                           % [dB/km]
+%  In.Pump.LP01.Wavelengths       = [1430 1450 1470 ] ;                                                        % [nm]
+%  In.Pump.LP01.Powers            = [50 20 80]*1e-3;             % [mW]
+%  In.Pump.LP01.Alpha             = [0.29]; 
+    % LP11_a
+In.Pump.LP11_a.Wavelengths        = linspace(1410 , 1502 , 12) ;                                  % [nm]
+In.Pump.LP11_a.Powers             = (10)*ones(1,12);%[80 40 40 40 40 40 40 40 40 40 40 80]*1e-3;                     % [mW]
+In.Pump.LP11_a.Alpha              = [0.29];                                                         % [dB/km]
+    % LP11_b
+In.Pump.LP11_b.Wavelengths        = linspace(1410 , 1502 , 12) ;                                  % [nm]
+In.Pump.LP11_b.Powers             = (1)*ones(1,12);%[80 40 40 40 40 40 40 40 40 40 40 80]*1e-3;                     % [mW]
+In.Pump.LP11_b.Alpha              = [0.29];                                                         % [dB/km]
+
 
 
 % SEÑALES : 
     % LP01
-In.Signal.LP01.Wavelengths      = [1530:10:1570];%[1500 1540 1550 1560 1600];
-In.Signal.LP01.Powers           = -15*ones( 1,length(In.Signal.LP01.Wavelengths) );                 %[dBm]
+In.Signal.LP01.Wavelengths      = [1527:3:1608];%[1500 1540 1550 1560 1600];
+In.Signal.LP01.Powers           = 0*ones( 1,length(In.Signal.LP01.Wavelengths) );                 %[dBm]
 In.Signal.LP01.Alpha            = 0.2;                          % Fibre attenuation @Signal WL (dB/km)
-    % LP11
-In.Signal.LP11.Wavelengths      = [1530:10:1570];
-In.Signal.LP11.Powers           = -15*ones( 1,length(In.Signal.LP11.Wavelengths) );           %[dBm]
-In.Signal.LP11.Alpha            = 0.2;                          % Fibre attenuation @Signal WL (dB/km)
+    % LP11_a
+In.Signal.LP11_a.Wavelengths      = [1527:3:1608];
+In.Signal.LP11_a.Powers           = 0*ones( 1,length(In.Signal.LP11_a.Wavelengths) );           %[dBm]
+In.Signal.LP11_a.Alpha            = 0.2;                          % Fibre attenuation @Signal WL (dB/km)
+
+    % LP11_b
+In.Signal.LP11_b.Wavelengths      = [1527:3:1608];
+In.Signal.LP11_b.Powers           = 0*ones( 1,length(In.Signal.LP11_b.Wavelengths) );           %[dBm]
+In.Signal.LP11_b.Alpha            = 0.2;                          % Fibre attenuation @Signal WL (dB/km)
+
 %     % LP21
 % In.Signal.LP21.Wavelengths      = [1530:5:1565];
 % In.Signal.LP21.Powers           = -15*ones( 1,length(In.Signal.LP21.Wavelengths) );           %[dBm]
@@ -51,8 +54,8 @@ In.Signal.LP11.Alpha            = 0.2;                          % Fibre attenuat
 
 %% Calculo de amplificación
 tic;
-%Raman = RamanMM_comp(In) ; tend = toc; fprintf("Tiempo de cómputo: %.2f",tend);
-Raman = RamanMMv2(In) ; tend = toc; fprintf("Tiempo de cómputo: %.2f",tend);
+Raman = RamanMM_comp(In) ; tend = toc; fprintf("Tiempo de cómputo: %.2f",tend);
+
 
 
 %% Graficar
@@ -105,7 +108,7 @@ end
 
 for ms = 1:length(Raman.ModoS)% Ganancias
     figure(3)
-    plot(In.Signal.(Raman.ModoS{ms}).Wavelengths , gain.(Raman.ModoS{ms}), '-o')  ; hold on
+    plot(In.Signal.(Raman.ModoS{ms}).Wavelengths , gain.(Raman.ModoS{ms}), '-o')  ; hold on ; ylim([1 7])
     %plot(In.Signal.(Raman.ModoS{ms}).Wavelengths(i) , gain.(Raman.ModoS{ms})(i) ) ,ylabel("Potencia [mW]"); hold on
 end
     figure(3) ; xlabel("Longitud de Onda nm") ,ylabel("Ganancia [dB]") ; title("Ganancias On-Off") ; legend(Raman.ModoS{:},"Location","best")

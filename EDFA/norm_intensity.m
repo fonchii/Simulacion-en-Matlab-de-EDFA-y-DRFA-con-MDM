@@ -53,14 +53,11 @@ else
 
 end
 
-den = ( integral2( @(r,phi) abs( Core(r,phi).*r ) , 0, a, 0, 2*pi) + ...
-    integral2( @(r,phi) abs( Clad(r,phi).*r ) , a, inf, 0, 2*pi) ) ; %/ (pi*a^2) ;
+den = ( integral2( @(r,phi) abs( Core(r,phi).^2.*r ) , 0, a, 0, 2*pi) + ...
+    integral2( @(r,phi) abs( Clad(r,phi).^2.*r ) , a, inf, 0, 2*pi) ) ; %/ (pi*a^2) ;
 
 
-num = integral2 ( @(r,phi) abs( Core(r,phi).*r ) , 0, a, 0, 2*pi )  ;
+num = integral2 ( @(r,phi) abs( Core(r,phi).^2.*r ) , 0, a, 0, 2*pi )  ;
 
 Gamma = num / den;
-
-
-
 

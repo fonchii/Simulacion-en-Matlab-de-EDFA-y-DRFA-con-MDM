@@ -105,7 +105,6 @@ warning('on')
 
 
 
-
 % ASE Spectrum
 % Crear vector de longitudes de onda para ruido ase
 allwavelengths = [];
