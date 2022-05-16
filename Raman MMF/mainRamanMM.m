@@ -4,7 +4,7 @@ close all ; clc ; clear all
 %% Datos Entrada
 
 % FIBRA
-In.Fibra.RamanMethod            = 'Backward';     % 'Forward', 'Backward', 'Forward&Backward'
+In.Fibra.RamanMethod            = 'Forward&Backward';     % 'Forward', 'Backward', 'Forward&Backward'
 In.Fibra.AttenuationMethod      = 'Dynamic';        % 'Dynamic' , 'Static'
 In.Fibra.Length                 = 100;                                                              % fibre length (km)
 In.Fibra.T                      = 25;                                                               % Temperatura Fibra (ambiente)
