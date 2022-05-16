@@ -49,7 +49,7 @@ for i=1:length(Signal.modos)        % Potencia: W -> mW
 end ;clear i j;
 Signal.P0 = P0_signal; 
 Pump.P0 = P0_pump;
-ASE = -50;                                                  %dBm
+ASE = -41;                                                  %dBm  -50
 
 %h=6.626*10^(-34);
 %ASE= 10*log10(P.Np*h*P.Fc*P.OpticalBW*1e3); % [dBm] % thesis 2016-Phd Thesis Spatially Integrated Erbium-Doped 

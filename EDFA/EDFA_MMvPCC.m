@@ -627,7 +627,7 @@ for n = 1:1:Sch     % Iteración en nucleos
                 Gamma_s = gamma_s.(ModoS(s)){w};
                 if(z == 1)
                     for i = 1:1:Nch_ase
-                        Pan_sp.(ModoS(s))(i,Nz-z+1) = 0+(((N2(Nz-z+1))*sigma_ems(lambda_ase(i)) - (N1(Nz-z+1))*sigma_abs(lambda_ase(i)))*Gamma_s*0 + 2*(N2(Nz-z+1))*sigma_ems(lambda_ase(i))*Gamma_s*h*v_s_sp(i)*d_vk)*del_z;
+                        Pan_sp.(ModoS(s))(i,Nz-z+1) = P_ase0_sp+(((N2(Nz-z+1))*sigma_ems(lambda_ase(i)) - (N1(Nz-z+1))*sigma_abs(lambda_ase(i)))*Gamma_s*P_ase0_sp + 2*(N2(Nz-z+1))*sigma_ems(lambda_ase(i))*Gamma_s*h*v_s_sp(i)*d_vk)*del_z;
                     end
                 else
                     for i = 1:1:Nch_ase
@@ -711,7 +711,8 @@ for n = 1:1:Sch     % Iteración en nucleos
     sdm.(ch).ASE_Spectrum.lambdas = lambda_ase;
     sdm.(ch).Gamma.Gamma_p = gamma_p;
     sdm.(ch).Gamma.Gamma_s = gamma_s;
-    
+    sdm.(ch).ASE_Spectrum.Pap_sp = Pap_sp;
+    sdm.(ch).ASE_Spectrum.Pan_sp = Pan_sp;
 
 end % Fin cálculo en todos los nucleos
 
