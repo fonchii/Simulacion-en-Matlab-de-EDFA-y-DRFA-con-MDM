@@ -588,49 +588,56 @@ for n = 1:1:Sch     % Iteración en nucleos
     % Ecuacion diferencial para ASE en direccion +z
     v_s_sp = c./lambda_ase;
     Nch_ase = length(lambda_ase);
-    d_vk = abs(c/lambda_ase(1) - c/lambda_ase(2));
     for z = 1:Nz
         for s = 1:1:Smod
             Nwl = length(signal.lambda.(ModoS(s)));
             for w = 1:1:Nwl
                 P_ase0_sp = P_ase0;
                 Gamma_s = gamma_s.(ModoS(s)){w};
+
                 if(z == 1)
                     for i = 1:1:Nch_ase
+                        if i<Nch_ase
+                            d_vk = abs(c/lambda_ase(i) - c/lambda_ase(i+1));
+                        else
+                            d_vk = abs(c/lambda_ase(i-1) - c/lambda_ase(i));
+                        end
                         Pap_sp.(ModoS(s))(i,z) = P_ase0_sp + (((N2(z))*sigma_ems(lambda_ase(i)) - (N1(z))*sigma_abs(lambda_ase(i)))*Gamma_s*P_ase0_sp + 2*(N2(z))*sigma_ems(lambda_ase(i))*Gamma_s*h*v_s_sp(i)*d_vk)*del_z/(1+P_ase0_sp/Psat);
                     end
                 else
                     for i = 1:1:Nch_ase
-%                         if i<Nch_ase
-%                             d_vk = abs(c/lambda_ase(i) - c/lambda_ase(i+1));
-%                         else
-%                             d_vk = abs(c/lambda_ase(i-1) - c/lambda_ase(i));
-%                         end
+                        if i<Nch_ase
+                            d_vk = abs(c/lambda_ase(i) - c/lambda_ase(i+1));
+                        else
+                            d_vk = abs(c/lambda_ase(i-1) - c/lambda_ase(i));
+                        end
                         Pap_sp.(ModoS(s))(i,z) = Pap_sp.(ModoS(s))(i,z-1) + (((N2(z))*sigma_ems(lambda_ase(i)) - (N1(z))*sigma_abs(lambda_ase(i)))*Gamma_s*Pap_sp.(ModoS(s))(i,z-1) + 2*(N2(z))*sigma_ems(lambda_ase(i))*Gamma_s*h*v_s_sp(i)*d_vk)*del_z/(1+Pap_sp.(ModoS(s))(i,z-1)/Psat);
                     end
                 end
             end
         end
 
-        if fibra.Avance && fibra.ASEFlag == 0
-            clc ; fprintf("Cálculo Espectro ASE: \n") ; fprintf('%.2f %% \n' ,  ( 50 + (((z-0.5)/Nz)*50 )) ) % Mostrar % de avance del cálculo
-        end
-        % Mostrar % de avance como WaitBar:
-        if fibra.WaitBar && fibra.ASEFlag == 0
-            avance = 0.50 + (((z-0.5)/Nz))/2 ; waitbar(avance , z_waitbar ,  sprintf("Cálculo Espectro ASE: \n %.2f %%",avance*100 ) ) ; set(z_waitbar,'Visible', 'on');
-        end
-
         % Ecuacion diferencial para ASE en direccion -z
         for s = 1:1:Smod
-            Nwl = length(signal.lambda.(ModoS(s)));
             for w = 1:1:Nwl
+                Nch_ase = length(lambda_ase);
                 Gamma_s = gamma_s.(ModoS(s)){w};
                 if(z == 1)
                     for i = 1:1:Nch_ase
+                        if i<Nch_ase
+                            d_vk = abs(c/lambda_ase(i) - c/lambda_ase(i+1));
+                        else
+                            d_vk = abs(c/lambda_ase(i-1) - c/lambda_ase(i));
+                        end
                         Pan_sp.(ModoS(s))(i,Nz-z+1) = 0+(((N2(Nz-z+1))*sigma_ems(lambda_ase(i)) - (N1(Nz-z+1))*sigma_abs(lambda_ase(i)))*Gamma_s*0 + 2*(N2(Nz-z+1))*sigma_ems(lambda_ase(i))*Gamma_s*h*v_s_sp(i)*d_vk)*del_z;
                     end
                 else
                     for i = 1:1:Nch_ase
+                        if i<Nch_ase
+                            d_vk = abs(c/lambda_ase(i) - c/lambda_ase(i+1));
+                        else
+                            d_vk = abs(c/lambda_ase(i-1) - c/lambda_ase(i));
+                        end
                         Pan_sp.(ModoS(s))(i,Nz-z+1) = Pan_sp.(ModoS(s))(i,Nz-z+1+1) + (((N2(Nz-z+1))*sigma_ems(lambda_ase(i)) - (N1(Nz-z+1))*sigma_abs(lambda_ase(i)))*Gamma_s*Pan_sp.(ModoS(s))(i,Nz-z+1+1) + 2*(N2(Nz-z+1))*sigma_ems(lambda_ase(i))*Gamma_s*h*v_s_sp(i)*d_vk)*del_z/(1+Pan_sp.(ModoS(s))(i,Nz-z+1+1)/Psat);
                     end
                 end
@@ -649,7 +656,7 @@ for n = 1:1:Sch     % Iteración en nucleos
 
     for s = 1:1:Smod
         for i = 1:1:Nch_ase
-            ASE_Spectrum.(ModoS(s))(i,1) = 10*log10( (Pap_sp.(ModoS(s))(i,end) + Pan_sp.(ModoS(s))(i,end))/1e-3 );
+            ASE_Spectrum.(ModoS(s))(i,1) = 10*log10( (Pap_sp.(ModoS(s))(i,end) + Pan_sp.(ModoS(s))(i,end)));
         end
     end
 
@@ -679,8 +686,7 @@ for n = 1:1:Sch     % Iteración en nucleos
             for i = 1:length(lambda_ase)
                 if abs(lambda_ase(i)*1e9 - lambda_s(w)*1e9) < 1/11
                     %ASE_Spectrum(i,2,s) = gain(1,w,s);
-                    %ASE_Spectrum.(ModoS(s))(i,2) = 10*log10( (1e-3*10.^(ASE_Spectrum.(ModoS(s))(i,1)/10) + Psp.(ModoS(s))(w,end)) ./1e-3);
-                    ASE_Spectrum.(ModoS(s))(i,2) = 10*log10( Psp.(ModoS(s))(w,end) / 1e-3 );
+                    ASE_Spectrum.(ModoS(s))(i,2) = 10*log10( (1e-3*10.^(ASE_Spectrum.(ModoS(s))(i,1)/10) + Psp.(ModoS(s))(w,end)) ./1e-3);
                     %ASE_Spectrum(i,2,s) = 10*log10( (( Psp(w,end,s)) ./1e-3) );
                 end
             end
