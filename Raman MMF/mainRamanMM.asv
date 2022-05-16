@@ -122,11 +122,11 @@ switch In.Fibra.RamanMethod
             for i = 1:length(In.Pump.(Raman.ModoP{mp}).Wavelengths)
                 DispName1 = strcat("Forward " ,  num2str( In.Pump.(Raman.ModoP{mp}).Wavelengths(i)) , "nm" );
                 subplot(1,length(Raman.ModoP),fp) ; plot(z,pump.(Raman.ModoP{mp}).forward(i,:),"DisplayName",DispName1) ,ylabel("Potencia [W]") , hold on
+                subplot(1,length(Raman.ModoP),fp) ; plot(z,pump.(Raman.ModoP{mp}).backward(i,:),"DisplayName",DispName2) ,ylabel("Potencia [W]")
                 xlabel("Largo [km]") ; title(strcat("Pump Modo ", Raman.ModoP{mp})) , legend("Location","best")
             end
             fp = fp+1;
         end
-end
 
 for ms = 1:length(Raman.ModoS)% Ganancias
     figure(3)
