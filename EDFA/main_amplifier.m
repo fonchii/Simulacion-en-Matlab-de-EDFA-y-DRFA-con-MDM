@@ -67,7 +67,7 @@ Fibra.n1 = 1.45 ;   Fibra.n2 = sqrt((Fibra.n1^2-Fibra.AN^2));
 %Fibra.dvk= P.OpticalBW; % diferencia : max_lambda - min_lambda 
 
 Fibra.WaitBar = 1; Fibra.Avance = 1;    % Despliegue de info
-Fibra.ASEFlag = 0;                      % 1 : Evita Calculo Espectro ASE ; 0 : Lo Calcula (lento)
+Fibra.ASEFlag = 1;                      % 1 : Evita Calculo Espectro ASE ; 0 : Lo Calcula (lento)
 
 
 %%

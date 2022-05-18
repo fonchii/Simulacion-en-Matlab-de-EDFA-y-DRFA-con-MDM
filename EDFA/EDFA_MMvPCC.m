@@ -551,7 +551,7 @@ for n = 1:1:Sch     % Iteración en nucleos
                             lambda_s = signal.lambda.(ModoS(s));
                             v_s = c./lambda_s;
                             Gamma_s = gamma_s.(ModoS(s)){i};
-                            Pan.(ModoS(s))(i,Nz-z+1) = 0+(((N2(Nz-z+1))*sigma_ems(lambda_s(i))-(N1(Nz-z+1))*sigma_abs(lambda_s(i)))*Gamma_s*0 + 2*(N2(Nz-z+1))*sigma_ems(lambda_s(i))*Gamma_s*h*v_s(i)*d_vk)*del_z;
+                            Pan.(ModoS(s))(i,Nz-z+1) = P_ase0+(((N2(Nz-z+1))*sigma_ems(lambda_s(i))-(N1(Nz-z+1))*sigma_abs(lambda_s(i)))*Gamma_s*P_ase0 + 2*(N2(Nz-z+1))*sigma_ems(lambda_s(i))*Gamma_s*h*v_s(i)*d_vk)*del_z;
                         end
                     else
                         for i = 1:1:Nwl

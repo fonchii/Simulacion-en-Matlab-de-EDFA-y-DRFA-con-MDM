@@ -96,7 +96,7 @@ for s = 1:1:length(signal.modos) % Mode overlap factor for signal entre modo y p
     Nwl = length(signal.lambda.(ModoS(s)));
     for i=1:1:Nwl % Cada longitud de onda del modo s
         lambda_s = signal.lambda.(ModoS(s));
-        gamma_s.(ModoS(s)){i} = norm_intensity(fibra,signal.modos(s),lambda_s(i)) ; ; % *CoupCoef ;
+        gamma_s.(ModoS(s)){i} = norm_intensity(fibra,signal.modos(s),lambda_s(i)) ;  % *CoupCoef ;
     end
 end
 warning('on')
