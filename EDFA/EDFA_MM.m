@@ -435,81 +435,91 @@ for n = 1:1:Sch     % Iteración en nucleos
 
                 % Ecuacion diferencial para bombeo en direccion +z
                 for p = 1:1:Pmod      % Iteracion en cada modo de bombeo
+                    lambda_p = pump.lambda.(ModoP(p));
                     Nwlp = length(pump.lambda.(ModoP(p)));
                     if(z == 1)
-                        for i = 1:1:Nwlp
-                            lambda_p = pump.lambda.(ModoP(p));
+                        parfor i = 1:Nwlp
                             Gamma_p = gamma_p.(ModoP(p)){i};
                             Pp0 = P_p0.(ModoP(p))(i);
-                            Ppp.(ModoP(p))(i,z) = Pp0 + ((N2(z))*sigma_ems(lambda_p(i)) - (N1(z))*sigma_abs(lambda_p(i)))*Gamma_p*Pp0*del_z;
+                            %Ppp.(ModoP(p))(i,z) = Pp0 + ((N2(z))*sigma_ems(lambda_p(i)) - (N1(z))*sigma_abs(lambda_p(i)))*Gamma_p*Pp0*del_z;
+                            PppAux(i) = Pp0 + ((N2(z))*sigma_ems(lambda_p(i)) - (N1(z))*sigma_abs(lambda_p(i)))*Gamma_p*Pp0*del_z;
                         end
+                        Ppp.(ModoP(p))(:,z) = PppAux(:);
                     else
-                        for i = 1:1:Nwlp
-                            lambda_p = pump.lambda.(ModoP(p));
+                        parfor i = 1:Nwlp
                             Gamma_p = gamma_p.(ModoP(p)){i};
-                            Ppp.(ModoP(p))(i,z) = Ppp.(ModoP(p))(i,z-1) + ((N2(z))*sigma_ems(lambda_p(i)) - (N1(z))*sigma_abs(lambda_p(i)))*Gamma_p*Ppp.(ModoP(p))(i,z-1)*del_z;
+                            %Ppp.(ModoP(p))(i,z) = Ppp.(ModoP(p))(i,z-1) + ((N2(z))*sigma_ems(lambda_p(i)) - (N1(z))*sigma_abs(lambda_p(i)))*Gamma_p*Ppp.(ModoP(p))(i,z-1)*del_z;
+                            PppAux(i) = Ppp.(ModoP(p))(i,z-1) + ((N2(z))*sigma_ems(lambda_p(i)) - (N1(z))*sigma_abs(lambda_p(i)))*Gamma_p*Ppp.(ModoP(p))(i,z-1)*del_z;
                         end
+                        Ppp.(ModoP(p))(:,z) = PppAux(:);
                     end
                 end
 
                 % Ecuacion diferencial para señal en direccion +z 
                 for s = 1:1:Smod
                     Nwl = length(signal.lambda.(ModoS(s)));
+                    lambda_s = signal.lambda.(ModoS(s));
                     if(z == 1)
-                        for i = 1:1:Nwl
-                            lambda_s = signal.lambda.(ModoS(s));
+                        parfor i = 1:Nwl
                             Gamma_s = gamma_s.(ModoS(s)){i};
                             Ps0 = P_s0.(ModoS(s))(i);
                             %Psp.(ModoS(s))(i,z) = Ps0 + (sum(N2(z,:))*sigma_ems(lambda_s(i)) - sum(N1(z,:))*sigma_abs(lambda_s(i)))*Gamma_s*Ps0*del_z/(1+Ps0/Psat);
-                            Psp.(ModoS(s))(i,z) = Ps0 + ((N2(z))*sigma_ems(lambda_s(i)) - (N1(z))*sigma_abs(lambda_s(i)))*Gamma_s*Ps0*del_z/(1+Ps0/Psat);
+                            %Psp.(ModoS(s))(i,z) = Ps0 + ((N2(z))*sigma_ems(lambda_s(i)) - (N1(z))*sigma_abs(lambda_s(i)))*Gamma_s*Ps0*del_z/(1+Ps0/Psat);
+                            PspAux(i) = Ps0 + ((N2(z))*sigma_ems(lambda_s(i)) - (N1(z))*sigma_abs(lambda_s(i)))*Gamma_s*Ps0*del_z/(1+Ps0/Psat);
                         end
+                        Psp.(ModoS(s))(:,z) = PspAux(:);
                     else
-                        for i = 1:1:Nwl
-                            lambda_s = signal.lambda.(ModoS(s));
+                        parfor i = 1:Nwl
                             Gamma_s = gamma_s.(ModoS(s)){i};
                             %Psp.(ModoS(s))(i,z) = Psp.(ModoS(s))(i,z-1) + (sum(N2(z,:))*sigma_ems(lambda_s(i))-sum(N1(z,:))*sigma_abs(lambda_s(i)))*Gamma_s*Psp.(ModoS(s))(i,z-1)*del_z/(1+Psp.(ModoS(s))(i,z-1)/Psat);
-                            Psp.(ModoS(s))(i,z) = Psp.(ModoS(s))(i,z-1) + ((N2(z))*sigma_ems(lambda_s(i))-(N1(z))*sigma_abs(lambda_s(i)))*Gamma_s*Psp.(ModoS(s))(i,z-1)*del_z/(1+Psp.(ModoS(s))(i,z-1)/Psat);
+                            %Psp.(ModoS(s))(i,z) = Psp.(ModoS(s))(i,z-1) + ((N2(z))*sigma_ems(lambda_s(i))-(N1(z))*sigma_abs(lambda_s(i)))*Gamma_s*Psp.(ModoS(s))(i,z-1)*del_z/(1+Psp.(ModoS(s))(i,z-1)/Psat);
+                            pspAux(i) = Psp.(ModoS(s))(i,z-1) + ((N2(z))*sigma_ems(lambda_s(i))-(N1(z))*sigma_abs(lambda_s(i)))*Gamma_s*Psp.(ModoS(s))(i,z-1)*del_z/(1+Psp.(ModoS(s))(i,z-1)/Psat);
                         end
+                        Psp.(ModoS(s))(:,z) = pspAux(:);
                     end
                 end
 
                 % Ecuacion diferencial para ASE en direccion +z
                 for s = 1:1:Smod
                     Nwl = length(signal.lambda.(ModoS(s)));
+                    lambda_s = signal.lambda.(ModoS(s));
+                    v_s = c./lambda_s;
                     if(z == 1)
-                        for i = 1:1:Nwl
-                            lambda_s = signal.lambda.(ModoS(s));
-                            v_s = c./lambda_s;
+                        parfor i = 1:Nwl                            
                             Gamma_s = gamma_s.(ModoS(s)){i};
-                            Pap.(ModoS(s))(i,z) = P_ase0 + (((N2(z))*sigma_ems(lambda_s(i)) - (N1(z))*sigma_abs(lambda_s(i)))*Gamma_s*P_ase0 + 2*(N2(z))*sigma_ems(lambda_s(i))*Gamma_s*h*v_s(i)*d_vk)*del_z/(1+P_ase0/Psat);
+                            %Pap.(ModoS(s))(i,z) = P_ase0 + (((N2(z))*sigma_ems(lambda_s(i)) - (N1(z))*sigma_abs(lambda_s(i)))*Gamma_s*P_ase0 + 2*(N2(z))*sigma_ems(lambda_s(i))*Gamma_s*h*v_s(i)*d_vk)*del_z/(1+P_ase0/Psat);
+                            PapAux(i) = P_ase0 + (((N2(z))*sigma_ems(lambda_s(i)) - (N1(z))*sigma_abs(lambda_s(i)))*Gamma_s*P_ase0 + 2*(N2(z))*sigma_ems(lambda_s(i))*Gamma_s*h*v_s(i)*d_vk)*del_z/(1+P_ase0/Psat);
                         end
+                        Pap.(ModoS(s))(:,z) = PapAux(:);
                     else
-                        for i = 1:1:Nwl
-                            lambda_s = signal.lambda.(ModoS(s));
-                            v_s = c./lambda_s;
+                        parfor i = 1:Nwl
                             Gamma_s = gamma_s.(ModoS(s)){i};
-                            Pap.(ModoS(s))(i,z) = Pap.(ModoS(s))(i,z-1) + (((N2(z))*sigma_ems(lambda_s(i)) - (N1(z))*sigma_abs(lambda_s(i)))*Gamma_s*Pap.(ModoS(s))(i,z-1) + 2*(N2(z))*sigma_ems(lambda_s(i))*Gamma_s*h*v_s(i)*d_vk)*del_z/(1+Pap.(ModoS(s))(i,z-1)/Psat);
+                            %Pap.(ModoS(s))(i,z) = Pap.(ModoS(s))(i,z-1) + (((N2(z))*sigma_ems(lambda_s(i)) - (N1(z))*sigma_abs(lambda_s(i)))*Gamma_s*Pap.(ModoS(s))(i,z-1) + 2*(N2(z))*sigma_ems(lambda_s(i))*Gamma_s*h*v_s(i)*d_vk)*del_z/(1+Pap.(ModoS(s))(i,z-1)/Psat);
+                            PapAux(i) = Pap.(ModoS(s))(i,z-1) + (((N2(z))*sigma_ems(lambda_s(i)) - (N1(z))*sigma_abs(lambda_s(i)))*Gamma_s*Pap.(ModoS(s))(i,z-1) + 2*(N2(z))*sigma_ems(lambda_s(i))*Gamma_s*h*v_s(i)*d_vk)*del_z/(1+Pap.(ModoS(s))(i,z-1)/Psat);
                         end
+                        Pap.(ModoS(s))(:,z) = PapAux(:);
                     end
                 end
 
                 % Ecuacion diferencial para ASE en direccion -z
                 for s = 1:1:Smod
                     Nwl = length(signal.lambda.(ModoS(s)));
+                    lambda_s = signal.lambda.(ModoS(s));
+                    v_s = c./lambda_s;
                     if(z == 1)
-                        for i = 1:1:Nwl
-                            lambda_s = signal.lambda.(ModoS(s));
-                            v_s = c./lambda_s;
+                        parfor i = 1:1:Nwl
                             Gamma_s = gamma_s.(ModoS(s)){i};
-                            Pan.(ModoS(s))(i,Nz-z+1) = 0+(((N2(Nz-z+1))*sigma_ems(lambda_s(i))-(N1(Nz-z+1))*sigma_abs(lambda_s(i)))*Gamma_s*0 + 2*(N2(Nz-z+1))*sigma_ems(lambda_s(i))*Gamma_s*h*v_s(i)*d_vk)*del_z;
+                            %Pan.(ModoS(s))(i,Nz-z+1) = 0+(((N2(Nz-z+1))*sigma_ems(lambda_s(i))-(N1(Nz-z+1))*sigma_abs(lambda_s(i)))*Gamma_s*0 + 2*(N2(Nz-z+1))*sigma_ems(lambda_s(i))*Gamma_s*h*v_s(i)*d_vk)*del_z;
+                            PanAux(i) = P_ase0 + (((N2(Nz-z+1))*sigma_ems(lambda_s(i))-(N1(Nz-z+1))*sigma_abs(lambda_s(i)))*Gamma_s*P_ase0 + 2*(N2(Nz-z+1))*sigma_ems(lambda_s(i))*Gamma_s*h*v_s(i)*d_vk)*del_z;
                         end
+                        Pan.(ModoS(s))(:,Nz-z+1) = PanAux(:);
                     else
-                        for i = 1:1:Nwl
-                            lambda_s = signal.lambda.(ModoS(s));
-                            v_s = c./lambda_s;
+                        parfor i = 1:1:Nwl
                             Gamma_s = gamma_s.(ModoS(s)){i};
-                            Pan.(ModoS(s))(i,Nz-z+1) = Pan.(ModoS(s))(i,Nz-z+1+1) + (((N2(Nz-z+1))*sigma_ems(lambda_s(i)) - (N1(Nz-z+1))*sigma_abs(lambda_s(i)))*Gamma_s*Pan.(ModoS(s))(i,Nz-z+1+1) + 2*(N2(Nz-z+1))*sigma_ems(lambda_s(i))*Gamma_s*h*v_s(i)*d_vk)*del_z/(1+Pan.(ModoS(s))(i,Nz-z+1+1)/Psat);
+                            %Pan.(ModoS(s))(i,Nz-z+1) = Pan.(ModoS(s))(i,Nz-z+1+1) + (((N2(Nz-z+1))*sigma_ems(lambda_s(i)) - (N1(Nz-z+1))*sigma_abs(lambda_s(i)))*Gamma_s*Pan.(ModoS(s))(i,Nz-z+1+1) + 2*(N2(Nz-z+1))*sigma_ems(lambda_s(i))*Gamma_s*h*v_s(i)*d_vk)*del_z/(1+Pan.(ModoS(s))(i,Nz-z+1+1)/Psat);
+                            PanAux(i) = Pan.(ModoS(s))(i,Nz-z+1+1) + (((N2(Nz-z+1))*sigma_ems(lambda_s(i)) - (N1(Nz-z+1))*sigma_abs(lambda_s(i)))*Gamma_s*Pan.(ModoS(s))(i,Nz-z+1+1) + 2*(N2(Nz-z+1))*sigma_ems(lambda_s(i))*Gamma_s*h*v_s(i)*d_vk)*del_z/(1+Pan.(ModoS(s))(i,Nz-z+1+1)/Psat);
                         end
+                        Pan.(ModoS(s))(:,Nz-z+1) = PanAux(:);
                     end
                 end
                 %clc

@@ -32,11 +32,11 @@ In.Pump.LP21.Alpha              = [0.29];                                       
 
 % SEÑALES : 
     % LP01
-In.Signal.LP01.Wavelengths      = [1530:10:1570];%[1500 1540 1550 1560 1600];
+In.Signal.LP01.Wavelengths      = [1530:1:1570];%[1500 1540 1550 1560 1600];
 In.Signal.LP01.Powers           = -15*ones( 1,length(In.Signal.LP01.Wavelengths) );                 %[dBm]
 In.Signal.LP01.Alpha            = 0.2;                          % Fibre attenuation @Signal WL (dB/km)
     % LP11
-In.Signal.LP11.Wavelengths      = [1530:10:1570];
+In.Signal.LP11.Wavelengths      = [1530:1:1570];
 In.Signal.LP11.Powers           = -15*ones( 1,length(In.Signal.LP11.Wavelengths) );           %[dBm]
 In.Signal.LP11.Alpha            = 0.2;                          % Fibre attenuation @Signal WL (dB/km)
 %     % LP21

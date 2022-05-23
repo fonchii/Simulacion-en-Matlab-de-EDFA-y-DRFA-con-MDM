@@ -17,9 +17,9 @@ C_R                 = In.Fibra.PolarizationFactor*(g_R)*1000; % Ajuste de polari
 FF_gR               = A(:,1);
 
 eta = load('RADynamic_Rayleigh.dat');                               % Rayleigh coeficient
-freq = [100 : 10 : 1390];
+freq = 100 : 10 : 1390;
 mag = zeros(1,length(freq));
-freq2 = [1650 : 10 : 1800];
+freq2 = 1650 : 10 : 1800;
 mag2 =  zeros(1,length(freq2));
 f = [freq eta(:,1)' freq2]*1e-9;
 magg = [mag eta(:,2)' mag2];
@@ -131,13 +131,22 @@ norm =  int_overlapv2(In.Fibra , '01' , 1450e-9 , '01' , 1550e-9); % Superposici
 for mp = 1:length(ModoP)
     for ms = 1:length(ModoS)
         for p = 1:length( F_p.(ModoP{mp}) )
-            for s = 1:length( F_s.(ModoS{ms}) )
+            parfor s = 1:length( F_s.(ModoS{ms}) )
                 lambdas = 3e8 /(F_s.(ModoS{ms})(s)) ; lambdap = 3e8/(F_p.(ModoP{mp})(p)) ;
-                gR.Pump.(ModoP{mp}).(ModoS{ms})(p,s) = Gr_fun( abs(F_p.(ModoP{mp})(p)- F_s.(ModoS{ms})(s)) ) ;
-                gR.Signal.(ModoS{ms}).(ModoP{mp})(p,s) = Gr_fun( abs(F_p.(ModoP{mp})(p)-F_s.(ModoS{ms})(s)) ) ;
-                fmn.Signal.(ModoS{ms}).(ModoP{mp})(p,s) = int_overlapv2(In.Fibra , ModoP{mp} , lambdap , ModoS{ms} , lambdas ) / norm ;
-                fmn.Pump.(ModoP{mp}).(ModoS{ms})(p,s) = int_overlapv2(In.Fibra , ModoS{ms} , lambdas , ModoP{mp} , lambdap ) / norm ;
+                %lambdas = lambdaS.(ModoS{ms})(s) ; lambdap = lambdaP.(ModoP{mp})(p) ;
+                %gR.Pump.(ModoP{mp}).(ModoS{ms})(p,s) = Gr_fun( abs(F_p.(ModoP{mp})(p)- F_s.(ModoS{ms})(s)) ) ;
+                gRPumpAux(p,s) = Gr_fun( abs(F_p.(ModoP{mp})(p)- F_s.(ModoS{ms})(s)) ) ;
+                %gR.Signal.(ModoS{ms}).(ModoP{mp})(p,s) = Gr_fun( abs(F_p.(ModoP{mp})(p)-F_s.(ModoS{ms})(s)) ) ;
+                gRSignalAux(p,s) = Gr_fun( abs(F_p.(ModoP{mp})(p)-F_s.(ModoS{ms})(s)) ) ;
+                %fmn.Signal.(ModoS{ms}).(ModoP{mp})(p,s) = int_overlapv2(In.Fibra , ModoP{mp} , lambdap , ModoS{ms} , lambdas ) / norm ;
+                fmnSignalAux(p,s) = int_overlapv2(In.Fibra , ModoP{mp} , lambdap , ModoS{ms} , lambdas ) / norm ;
+                %fmn.Pump.(ModoP{mp}).(ModoS{ms})(p,s) = int_overlapv2(In.Fibra , ModoS{ms} , lambdas , ModoP{mp} , lambdap ) / norm ;
+                fmnPumpAux(p,s) = int_overlapv2(In.Fibra , ModoS{ms} , lambdas , ModoP{mp} , lambdap ) / norm ;
             end
+            gR.Pump.(ModoP{mp}).(ModoS{ms})(p,:) = gRPumpAux(p,:);
+            gR.Signal.(ModoS{ms}).(ModoP{mp})(p,:) = gRSignalAux(p,:);
+            fmn.Signal.(ModoS{ms}).(ModoP{mp})(p,:) = fmnSignalAux(p,:);
+            fmn.Pump.(ModoP{mp}).(ModoS{ms})(p,:) = fmnPumpAux(p,:);
         end
     end
 end
@@ -186,7 +195,7 @@ for mp = 1:length(ModoP) % Método 3 - Tomando en cuenta Psoff
         for l=(length(Z)-1):-1:1
             for wP = 1:length(lambdaP.(ModoP{mp}))
                 s_sumOff = 0;
-                for ms = 1:length(ModoS)
+                parfor ms = 1:length(ModoS)
                     s_sumOff = s_sumOff + sum( fmn.Pump.(ModoP{mp}).(ModoS{ms})(wP,:) * gR.Pump.(ModoP{mp}).(ModoS{ms})(wP,:)'...
                                     .* lambdaS.(ModoS{ms})(:).*Psoff.(ModoS{ms})(:,l) ) ;
                 end
@@ -232,10 +241,17 @@ for l = 1:(length(Z)-1)
             lambda = lambdaS.(ModoS{ms})(wS); alpS = alphaS.(ModoS{ms})(lambda);
             Ps.(ModoS{ms})(wS,l+1) = Ps.(ModoS{ms})(wS,l) + deltaZ*( -alpS*Ps.(ModoS{ms})(wS,l) + p_sum*Ps.(ModoS{ms})(wS,l)  + ...
                                         ase_sum * h * Gamma * ( 3e8/lambdaS.(ModoS{ms})(wS) ) + eta_sum);
+            %PsAux(wS) = Ps.(ModoS{ms})(wS,l) + deltaZ*( -alpS*Ps.(ModoS{ms})(wS,l) + p_sum*Ps.(ModoS{ms})(wS,l)  + ...
+            %                ase_sum * h * Gamma * ( 3e8/lambdaS.(ModoS{ms})(wS) ) + eta_sum);
             Ps.Rayleigh.(ModoS{ms})(wS,l+1) = eta_sum;
+            %PsRayAux(wS) = eta_sum;
             Ps.ASE.(ModoS{ms})(wS,l+1) = ase_sum * h * Gamma * ( 3e8/lambdaS.(ModoS{ms})(wS) );
+            %PsAseAux(wS) = ase_sum * h * Gamma * ( 3e8/lambdaS.(ModoS{ms})(wS) );
 
         end
+%         Ps.(ModoS{ms})(:,l+1) = PsAux(:);
+%         Ps.Rayleigh.(ModoS{ms})(:,l+1) = PsRayAux(:);
+%         Ps.ASE.(ModoS{ms})(:,l+1) = PsAseAux(:);
     end
 
     % Bombeo Forward
@@ -264,8 +280,13 @@ for l = 1:(length(Z)-1)
 
                 Pf.(ModoP{mp})(wP,l+1) = Pf.(ModoP{mp})(wP,l) + deltaZ*( -alpP*Pf.(ModoP{mp})(wP,l) - (1/lambdaP.(ModoP{mp})(wP))*s_sum*Pf.(ModoP{mp})(wP,l) ...
                                         + eta_sum); 
+                %PfPowerAux(wP) = Pf.(ModoP{mp})(wP,l) + deltaZ*( -alpP*Pf.(ModoP{mp})(wP,l) - (1/lambdaP.(ModoP{mp})(wP))*s_sum*Pf.(ModoP{mp})(wP,l) ...
+                %                        + eta_sum); 
                 Pf.Rayleigh.(ModoP{mp})(wP,l+1) = eta_sum;
+                %PfRayAux(wP) = eta_sum;
             end
+            %Pf.(ModoP{mp})(:,l+1) = PfPowerAux(:);
+            %Pf.Rayleigh.(ModoP{mp})(:,l+1) = PfRayAux(:);
         end
     end
     
@@ -292,8 +313,9 @@ if AdjIter
                         end
                         lambda = lambdaP.(ModoP{mp})(wP); alpP = alphaP.(ModoP{mp})(lambda);
                         Pb.(ModoP{mp})(wP,l) = Pb.(ModoP{mp})(wP,l+1) + deltaZ*( -alpP*Pb.(ModoP{mp})(wP,l+1) - (1/lambda)*s_sumOn*Pb.(ModoP{mp})(wP,l+1) ) ;
-        
+                        %PbAux(wP) = Pb.(ModoP{mp})(wP,l+1) + deltaZ*( -alpP*Pb.(ModoP{mp})(wP,l+1) - (1/lambda)*s_sumOn*Pb.(ModoP{mp})(wP,l+1) ) ;
                     end
+                    %Pb.(ModoP{mp})(:,l) = PbAux(:);
                 end
             end
         end
@@ -331,10 +353,16 @@ if AdjIter
                     lambda = lambdaS.(ModoS{ms})(wS); alpS = alphaS.(ModoS{ms})(lambda);
                     Ps.(ModoS{ms})(wS,l+1) = Ps.(ModoS{ms})(wS,l) + deltaZ*( -alpS*Ps.(ModoS{ms})(wS,l) + p_sum*Ps.(ModoS{ms})(wS,l)  + ...
                                                 ase_sum * h * Gamma * ( 3e8/lambdaS.(ModoS{ms})(wS) ) + eta_sum);
+                    %PsAux(wS) = Ps.(ModoS{ms})(wS,l) + deltaZ*( -alpS*Ps.(ModoS{ms})(wS,l) + p_sum*Ps.(ModoS{ms})(wS,l)  + ...
+                    %                            ase_sum * h * Gamma * ( 3e8/lambdaS.(ModoS{ms})(wS) ) + eta_sum);
                     Ps.Rayleigh.(ModoS{ms})(wS,l+1) = eta_sum;
+                    %PsRayAux(wS) = eta_sum;
                     Ps.ASE.(ModoS{ms})(wS,l+1) = ase_sum * h * Gamma * ( 3e8/lambdaS.(ModoS{ms})(wS) );
-        
+                    %PsAseAux(wS) = ase_sum * h * Gamma * ( 3e8/lambdaS.(ModoS{ms})(wS) );
                 end
+%                 Ps.(ModoS{ms})(:,l+1) = PsAux(:);
+%                 Ps.Rayleigh.(ModoS{ms})(:,l+1) = PsRayAux(:);
+%                 Ps.ASE.(ModoS{ms})(:,l+1) = PsAseAux(:);
             end
         
             % Bombeo Forward
@@ -363,8 +391,13 @@ if AdjIter
         
                         Pf.(ModoP{mp})(wP,l+1) = Pf.(ModoP{mp})(wP,l) + deltaZ*( -alpP*Pf.(ModoP{mp})(wP,l) - (1/lambdaP.(ModoP{mp})(wP))*s_sum*Pf.(ModoP{mp})(wP,l) ...
                                                 + eta_sum); 
+                        %PfAux(wP) = Pf.(ModoP{mp})(wP,l) + deltaZ*( -alpP*Pf.(ModoP{mp})(wP,l) - (1/lambdaP.(ModoP{mp})(wP))*s_sum*Pf.(ModoP{mp})(wP,l) ...
+                        %                        + eta_sum); 
                         Pf.Rayleigh.(ModoP{mp})(wP,l+1) = eta_sum;
+                        %PfAux(wP) = eta_sum;
                     end
+                    %Pf.(ModoP{mp})(:,l+1) = PfAux(:);
+                    %Pf.Rayleigh.(ModoP{mp})(:,l+1) = PfAux(:);
                 end
             end
             

@@ -15,6 +15,7 @@ if nargin<2
         ase = lambda_s(end)-0.5*1e-9 : 0.1*1e-9 : lambda_s(end)+0.5*1e-9;
         ase2 = ase(end):1*1e-9:1600e-9;
         ase_wl =  [lambda_ase lambdas ase ase2];
+        %ase_wl = 1520e-9 : 1*1e-9: 1600e-9;
         
     else
         
