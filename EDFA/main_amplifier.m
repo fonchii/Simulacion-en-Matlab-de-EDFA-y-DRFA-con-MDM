@@ -5,13 +5,13 @@ clear all; clc
 %% Parámetros de entrada
 
     % Señal : Modos y Canales
-
+NCh = 30;
 %Signal.modos = ["01" "11_a" "11_b" "02" "21_a" "21_b" "32"] ;
 Signal.modos = ["01" "11_a" "11_b"] ;
 
-Signal.lambda.LP_01     = linspace(1524.6e-9,1570.1e-9,30);         P0_signal.LP_01     = -15*ones(1,length(Signal.lambda.LP_01));
-Signal.lambda.LP_11_a   = linspace(1524.6e-9,1570.1e-9,30);         P0_signal.LP_11_a   = -15*ones(1,length(Signal.lambda.LP_11_a));
-Signal.lambda.LP_11_b   = linspace(1524.6e-9,1570.1e-9,30);         P0_signal.LP_11_b   = -15*ones(1,length(Signal.lambda.LP_11_b));
+Signal.lambda.LP_01     = linspace(1524.6e-9,1570.1e-9,NCh);         P0_signal.LP_01     = -15*ones(1,length(Signal.lambda.LP_01));
+Signal.lambda.LP_11_a   = linspace(1524.6e-9,1570.1e-9,NCh);         P0_signal.LP_11_a   = -15*ones(1,length(Signal.lambda.LP_11_a));
+Signal.lambda.LP_11_b   = linspace(1524.6e-9,1570.1e-9,NCh);         P0_signal.LP_11_b   = -15*ones(1,length(Signal.lambda.LP_11_b));
 Signal.lambda.LP_11     = [1550e-9];                                P0_signal.LP_11     = -15*ones(1,length(Signal.lambda.LP_11));
 Signal.lambda.LP_02     = [1550e-9];                                P0_signal.LP_02     = -15*ones(1,length(Signal.lambda.LP_02));
 Signal.lambda.LP_21_a   = [1550e-9];                                P0_signal.LP_21_a   = -15*ones(1,length(Signal.lambda.LP_21_a));
@@ -54,14 +54,14 @@ end ;clear i j;
 Signal.P0 = P0_signal; 
 Pump.P0 = P0_pump;
 ASE = -41;                                                  %dBm  -50
-
+Signal.NumberOfChannels=NCh;
 %h=6.626*10^(-34);
 %ASE= 10*log10(P.Np*h*P.Fc*P.OpticalBW*1e3); % [dBm] % thesis 2016-Phd Thesis Spatially Integrated Erbium-Doped 
 
     % Datos de la fibra
 
 Fibra.nucleos = 1;                                           % Numero de nucleos
-Fibra.largo = 3     ; Fibra.radio = 5e-6   ; Fibra.N = 7e24; % fibra.N = 3e24; 
+Fibra.largo = 15     ; Fibra.radio = 5e-6   ; Fibra.N = 7e24; % fibra.N = 3e24; 
 %Fibra.n1 = 1.47    ; Fibra.n2 = 1.44       ; % PAPER
 %Fibra.AN = 0.2     ;  % Se prioriza el uso de AN en caso de entregar n1,n2,AN
 %Fibra.n1 = 1.44959 ; Fibra.n2 = 1.43502    ; %VPI
@@ -80,7 +80,7 @@ Fibra.ASEFlag = 0;                      % 1 : Evita Calculo Espectro ASE ; 0 : L
 %%
 tic;
 %EDFA = EDFA_MM(fibra,signal,pump,ASE);         % Sin efecto acomplamiento de Potencia intermodal
-EDFA = EDFA_MMvPCCv2(Fibra,Signal,Pump,ASE);      % Con efecto acomplamiento de Potencia intermodal
+EDFA = EDFA_MMvPCCv3(Fibra,Signal,Pump,ASE);      % Con efecto acomplamiento de Potencia intermodal
 t_end = toc; fprintf('Tiempo de cómputo: %.2f segundos\n', t_end);
 
 

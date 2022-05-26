@@ -4,7 +4,7 @@ close all ; clc ; clear all
 %% Datos Entrada
 
 % FIBRA
-In.Fibra.RamanMethod              = 'Backward';                   % 'Forward', 'Backward', 'Forward&Backward'
+In.Fibra.RamanMethod              = 'Forward';                   % 'Forward', 'Backward', 'Forward&Backward'
 In.Fibra.AttenuationMethod        = 'Dynamic';                    % 'Dynamic' , 'Static'
 In.Fibra.Length                   = 100;                          % fibre length (km)
 In.Fibra.T                        = 25;                           % Temperatura Fibra (ambiente)
@@ -77,7 +77,7 @@ for mp = 1:length(Raman.ModoP)
 end
 signal = Raman.Sig.Power;
 gain = Raman.Sig.GainOnOFF;
-osnr = Raman.OSNR;
+
 
 fs = 1; fp =1;
 
@@ -148,11 +148,11 @@ end
     figure(3) ; xlabel("Longitud de Onda nm") ,ylabel("Ganancia [dB]") ; title("Ganancias On-Off") ; legend(Raman.ModoS{:},"Location","best")
 
 for ms = 1:length(Raman.ModoS)% OSNR
-    figure(4)
-    plot(In.Signal.(Raman.ModoS{ms}).Wavelengths , osnr.(Raman.ModoS{ms}), '-o')  ; hold on
-    %plot(In.Signal.(Raman.ModoS{ms}).Wavelengths(i) , osnr.(Raman.ModoS{ms})(i) ) ,ylabel("Potencia [mW]"); hold on
+    figure(3)
+    plot(In.Signal.(Raman.ModoS{ms}).Wavelengths , gain.(Raman.ModoS{ms}), '-o')  ; hold on
+    %plot(In.Signal.(Raman.ModoS{ms}).Wavelengths(i) , gain.(Raman.ModoS{ms})(i) ) ,ylabel("Potencia [mW]"); hold on
 end
-    figure(4) ; xlabel("Longitud de Onda nm") ,ylabel("Magnitud [dB]") ; title("OSNR") ; legend(Raman.ModoS{:},"Location","best")
+    figure(3) ; xlabel("Longitud de Onda nm") ,ylabel("Ganancia [dB]") ; title("Ganancias On-Off") ; legend(Raman.ModoS{:},"Location","best")
 
 
 clear fs fp ms mp i strlambda DispName1 DispName2;
