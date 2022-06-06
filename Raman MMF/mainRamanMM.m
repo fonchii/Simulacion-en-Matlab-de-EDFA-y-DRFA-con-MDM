@@ -4,7 +4,7 @@ close all ; clc ; clear all
 %% Datos Entrada
 
 % FIBRA
-In.Fibra.RamanMethod              = 'Backward';                   % 'Forward', 'Backward', 'Forward&Backward'
+In.Fibra.RamanMethod              = 'Forward';                   % 'Forward', 'Backward', 'Forward&Backward'
 In.Fibra.AttenuationMethod        = 'Dynamic';                    % 'Dynamic' , 'Static'
 In.Fibra.Length                   = 100;                          % fibre length (km)
 In.Fibra.T                        = 25;                           % Temperatura Fibra (ambiente)
@@ -33,7 +33,7 @@ In.Pump.LP21.Alpha                = 0.29;                                       
 
 % SEÑALES : 
 Nch = 20;
-    % LP01
+    % LP01  
 In.Signal.LP01.Wavelengths        = linspace(1525,1570,Nch);
 In.Signal.LP01.Powers             = -15*ones( 1,length(In.Signal.LP01.Wavelengths) );                 %[dBm]
 In.Signal.LP01.Alpha              = 0.2;                                                              % [dB/km]

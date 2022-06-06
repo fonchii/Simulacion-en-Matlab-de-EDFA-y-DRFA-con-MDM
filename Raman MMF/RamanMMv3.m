@@ -221,22 +221,12 @@ for l = 1:(length(Z)-1)
                 ase_sum = ase_sum + sum(    sum( ( fmn.Signal.(ModoS{ms}).(ModoP{mp})(:,wS) .* gR.Signal.(ModoS{ms}).(ModoP{mp})(:,wS)...
                                     .* ( Pf.(ModoP{mp})(:,l)+Pb.(ModoP{mp})(:,l) ) ) .* (1+(exp(h*deltaV/(k*T))-1).^-1 ) .* BW ) ) ;
             end
-            % Contribución Rayleigh Scattering
-                % Revisar si otro Modo tiene algún canal de frecuencia
-            for mms = 1:length(ModoS)
-                if string(ModoS{ms}) ~= string(ModoS{mms}) 
-                    for wwS = 1:length(lambdaS.(ModoS{mms}))
-                        if lambdaS.(ModoS{mms})(wwS) == lambdaS.(ModoS{ms})(wS)
-                            eta_sum = eta_sum + eta_fun(lambdaS.(ModoS{mms})(wwS)) * Ps.(ModoS{mms})(wwS,l);
-                        end
-                    end
-                end
-            end
+
             lambda = lambdaS.(ModoS{ms})(wS); alpS = alphaS.(ModoS{ms})(lambda);
             Ps.(ModoS{ms})(wS,l+1) = Ps.(ModoS{ms})(wS,l) + deltaZ*( -alpS*Ps.(ModoS{ms})(wS,l) + p_sum*Ps.(ModoS{ms})(wS,l)  + ...
-                                        ase_sum * h * Gamma * ( 3e8/lambdaS.(ModoS{ms})(wS) ) + eta_sum);
+                                        ase_sum * h  * ( 3e8/lambdaS.(ModoS{ms})(wS) ) + eta_sum);
             Ps.Rayleigh.(ModoS{ms})(wS,l+1) = eta_sum;
-            Ps.ASE.(ModoS{ms})(wS,l+1) = ase_sum * h * Gamma * ( 3e8/lambdaS.(ModoS{ms})(wS) );
+            Ps.ASE.(ModoS{ms})(wS,l+1) = ase_sum * h  * ( 3e8/lambdaS.(ModoS{ms})(wS) );
             
         end
     end
@@ -247,26 +237,26 @@ for l = 1:(length(Z)-1)
             for wP = 1:length(lambdaP.(ModoP{mp}))
                 s_sum = 0;
                 eta_sum = 0;
+                ase_sum = 0;
                 for ms = 1:length(ModoS)
                     s_sum = s_sum + sum( fmn.Pump.(ModoP{mp}).(ModoS{ms})(wP,:) * gR.Pump.(ModoP{mp}).(ModoS{ms})(wP,:)'...
                                     .* lambdaS.(ModoS{ms})(:).*Ps.(ModoS{ms})(:,l) ) ;
+
+                    deltaV = abs( 3e8/lambdaP.(ModoP{mp})(wP) - 3e8/lambdaS.(ModoS{ms})(:) ) ; BW = 6*10^12; %THz "paper: RAMAN amplifier gain dynamics with ASE"
+                    lam = lambdaS.(ModoS{ms})(:)' ;
+                    ase_sum = ase_sum + sum(    sum( ( fmn.Pump.(ModoP{mp}).(ModoS{ms})(:,wP) .* gR.Pump.(ModoP{mp}).(ModoS{ms})(:,wP)...
+                                        .* ( Pf.(ModoP{mp})(wP,l) )  )  .* (1+(exp(h*deltaV/(k*T))-1).^-1 ) .* lam .* BW ) ) ;
                 end
-    
-                % Aporte Rayleigh Scattering
-                    % Revisar si otro Modo tiene algún canal de frecuencia
-                for mmp = 1:length(ModoP)
-                    if string(ModoP{mp}) ~= string(ModoP{mmp}) 
-                        for wwP = 1:length(lambdaP.(ModoP{mmp}))
-                            if lambdaP.(ModoP{mmp})(wwP) == lambdaP.(ModoP{mp})(wP)
-                                eta_sum = eta_sum + eta_fun(lambdaP.(ModoP{mp})(wP)) * ( Pf.(ModoP{mmp})(wwP,l) + Pb.(ModoP{mmp})(wwP,l) );
-                            end
-                        end
-                    end
-                end
+
                 lambda = lambdaP.(ModoP{mp})(wP); alpP = alphaP.(ModoP{mp})(lambda);
+                
+                % Aporte Rayleigh BackScattering , cuando hay bombeo bidireccional
+                if Ppbcalc == 1 && AdjIter == true
+                    eta_sum = eta_fun(lambda) * ( Pb.(ModoP{mp})(wP,l) );
+                end
 
                 Pf.(ModoP{mp})(wP,l+1) = Pf.(ModoP{mp})(wP,l) + deltaZ*( -alpP*Pf.(ModoP{mp})(wP,l) - (1/lambdaP.(ModoP{mp})(wP))*s_sum*Pf.(ModoP{mp})(wP,l) ...
-                                        + eta_sum); 
+                                        + eta_sum - ase_sum*(1/lambdaP.(ModoP{mp})(wP)) * h  * ( 3e8/lambdaP.(ModoP{mp})(wP) ));  
                 Pf.Rayleigh.(ModoP{mp})(wP,l+1) = eta_sum;
                 
             end
@@ -289,12 +279,18 @@ if AdjIter
                 for l=(length(Z)-1):-1:1
                     for wP = 1:length(lambdaP.(ModoP{mp}))
                         s_sumOn = 0;
+                        eta_sum = 0;
                         for ms = 1:length(ModoS)
                             s_sumOn = s_sumOn + sum( fmn.Pump.(ModoP{mp}).(ModoS{ms})(wP,:) * gR.Pump.(ModoP{mp}).(ModoS{ms})(wP,:)'...
                                             .* lambdaS.(ModoS{ms})(:).*Ps.(ModoS{ms})(:,l) ) ;
                         end
                         lambda = lambdaP.(ModoP{mp})(wP); alpP = alphaP.(ModoP{mp})(lambda);
-                        Pb.(ModoP{mp})(wP,l) = Pb.(ModoP{mp})(wP,l+1) + deltaZ*( -alpP*Pb.(ModoP{mp})(wP,l+1) - (1/lambda)*s_sumOn*Pb.(ModoP{mp})(wP,l+1) ) ;
+                        % Aporte Rayleigh BackScattering , cuando hay bombeo bidireccional
+                        if Ppbcalc == 1 && AdjIter == true
+                            eta_sum = eta_fun(lambda) * ( Pf.(ModoP{mp})(wP,l) );
+                        end
+                        Pb.(ModoP{mp})(wP,l) = Pb.(ModoP{mp})(wP,l+1) + deltaZ*( -alpP*Pb.(ModoP{mp})(wP,l+1) - (1/lambda)*s_sumOn*Pb.(ModoP{mp})(wP,l+1) ) ...
+                            + eta_sum;
                     end
                 end
             end
@@ -317,22 +313,12 @@ if AdjIter
                         ase_sum = ase_sum + sum(    sum( ( fmn.Signal.(ModoS{ms}).(ModoP{mp})(:,wS) .* gR.Signal.(ModoS{ms}).(ModoP{mp})(:,wS)...
                                             .* ( Pf.(ModoP{mp})(:,l)+Pb.(ModoP{mp})(:,l) ) ) .* (1+(exp(h*deltaV/(k*T))-1).^-1 ) .* BW ) ) ;
                     end
-                    % Contribución Rayleigh Scattering
-                        % Revisar si otro Modo tiene algún canal de frecuencia
-                    for mms = 1:length(ModoS)
-                        if string(ModoS{ms}) ~= string(ModoS{mms}) 
-                            for wwS = 1:length(lambdaS.(ModoS{mms}))
-                                if lambdaS.(ModoS{mms})(wwS) == lambdaS.(ModoS{ms})(wS)
-                                    eta_sum = eta_sum + eta_fun(lambdaS.(ModoS{mms})(wwS)) * Ps.(ModoS{mms})(wwS,l);
-                                end
-                            end
-                        end
-                    end
+
                     lambda = lambdaS.(ModoS{ms})(wS); alpS = alphaS.(ModoS{ms})(lambda);
                     Ps.(ModoS{ms})(wS,l+1) = Ps.(ModoS{ms})(wS,l) + deltaZ*( -alpS*Ps.(ModoS{ms})(wS,l) + p_sum*Ps.(ModoS{ms})(wS,l)  + ...
-                                                ase_sum * h * Gamma * ( 3e8/lambdaS.(ModoS{ms})(wS) ) + eta_sum);
+                                                ase_sum * h  * ( 3e8/lambdaS.(ModoS{ms})(wS) ) + eta_sum);
                     Ps.Rayleigh.(ModoS{ms})(wS,l+1) = eta_sum;
-                    Ps.ASE.(ModoS{ms})(wS,l+1) = ase_sum * h * Gamma * ( 3e8/lambdaS.(ModoS{ms})(wS) );
+                    Ps.ASE.(ModoS{ms})(wS,l+1) = ase_sum * h  * ( 3e8/lambdaS.(ModoS{ms})(wS) );
                 end
             end
         
@@ -342,26 +328,27 @@ if AdjIter
                     for wP = 1:length(lambdaP.(ModoP{mp}))
                         s_sum = 0;
                         eta_sum = 0;
+                        ase_sum = 0;
                         for ms = 1:length(ModoS)
                             s_sum = s_sum + sum( fmn.Pump.(ModoP{mp}).(ModoS{ms})(wP,:) * gR.Pump.(ModoP{mp}).(ModoS{ms})(wP,:)'...
                                             .* lambdaS.(ModoS{ms})(:).*Ps.(ModoS{ms})(:,l) ) ;
+                            
+                            deltaV = abs( 3e8/lambdaP.(ModoP{mp})(wP) - 3e8/lambdaS.(ModoS{ms})(:) ) ; BW = 6*10^12; %THz "paper: RAMAN amplifier gain dynamics with ASE"
+                            lam = lambdaS.(ModoS{ms})(:)';
+                            ase_sum = ase_sum + sum(    sum( ( fmn.Signal.(ModoP{mp}).(ModoS{ms})(:,wP) .* gR.Signal.(ModoP{mp}).(ModoS{ms})(:,wP)...
+                                            .* ( Pf.(ModoP{mp})(wP,l) ) ) .* lam .* (1+(exp(h*deltaV/(k*T))-1).^-1 ) .* BW ) ) ;
+
                         end
             
-                        % Aporte Rayleigh Scattering
-                            % Revisar si otro Modo tiene algún canal de frecuencia
-                        for mmp = 1:length(ModoP)
-                            if string(ModoP{mp}) ~= string(ModoP{mmp}) 
-                                for wwP = 1:length(lambdaP.(ModoP{mmp}))
-                                    if lambdaP.(ModoP{mmp})(wwP) == lambdaP.(ModoP{mp})(wP)
-                                        eta_sum = eta_sum + eta_fun(lambdaP.(ModoP{mp})(wP)) * ( Pf.(ModoP{mmp})(wwP,l) + Pb.(ModoP{mmp})(wwP,l) );
-                                    end
-                                end
-                            end
-                        end
                         lambda = lambdaP.(ModoP{mp})(wP); alpP = alphaP.(ModoP{mp})(lambda);
-        
+                        % Aporte Rayleigh BackScattering , cuando hay bombeo bidireccional
+                        if Ppbcalc == 1 && AdjIter == true
+                            eta_sum = eta_fun(lambda) * ( Pb.(ModoP{mp})(wP,l) );
+                        end
+                        
+
                         Pf.(ModoP{mp})(wP,l+1) = Pf.(ModoP{mp})(wP,l) + deltaZ*( -alpP*Pf.(ModoP{mp})(wP,l) - (1/lambdaP.(ModoP{mp})(wP))*s_sum*Pf.(ModoP{mp})(wP,l) ...
-                                                + eta_sum); 
+                                                + eta_sum - ase_sum*(1/lambdaP.(ModoP{mp})(wP)) * h  * ( 3e8/lambdaP.(ModoP{mp})(wP) )); 
                         Pf.Rayleigh.(ModoP{mp})(wP,l+1) = eta_sum;
                     end
                 end
