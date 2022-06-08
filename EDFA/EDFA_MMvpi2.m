@@ -126,7 +126,7 @@ end
 %frequency_ase=c./lambda_ase';
 
 %if(isfield(fibra,'ASEFlag')) % retorna [0,0,0], evita calcular espectro ASE
-if Fibra.ASEFlag == 1  % retorna [0,0,0], evita calcular espectro ASE
+if fibra.ASEFlag == 1  % retorna [0,0,0], evita calcular espectro ASE
     [lambda_ase,frequency_ase] = ase_freqVPI(c,1);
 else
     [lambda_ase,frequency_ase]= ase_freqVPI(c);
@@ -340,7 +340,7 @@ for n = 1:1:Sch     % Iteración en nucleos
                         parfor i = 1:1:Nwl
                             Gamma_s = gamma_s.(ModoS(s)){i};
                             %Psp.(ModoS(s))(i,z) = Psp.(ModoS(s))(i,z-1) + (N2(z,:)*sigma_ems(lambda_s(i))-N1(z,:)*sigma_abs(lambda_s(i)))*Gamma_s*Psp.(ModoS(s))(i,z-1)*del_z/(1+Psp.(ModoS(s))(i,z-1)/Psat);
-                            PspAux(i) = Psp.(ModoS(s))(i,z-1) + (N2(z,:)*sigma_ems(lambda_s(i))-N1(z,:)*sigma_abs(lambda_s(i)))*Gamma_s*Psp.(ModoS(s))(i,z-1)*del_z/(1+Psp.(ModoS(s))(i,z-1)/Psat);
+                            PspAux(i) = Psp.(ModoS(s))(i,z-1) + (N2(z,:)*sigma_ems(lambda_s(i))-N1(z,:)*sigma_abs(lambda_s(i)))*Gamma_s*Psp.(ModoS(s))(i,z-1)*del_z;
                         end
                         Psp.(ModoS(s))(:,z) = PspAux(:);
                     end
@@ -371,7 +371,7 @@ for n = 1:1:Sch     % Iteración en nucleos
                             Gamma_s = gamma_s.(ModoS(s)){i};
                             v_s = c./lambda_s;
                             %Pap.(ModoS(s))(i,z) = Pap.(ModoS(s))(i,z-1) + ((N2(z,:)*sigma_ems(lambda_s(i))-N1(z,:)*sigma_abs(lambda_s(i)))*Gamma_s*Pap.(ModoS(s))(i,z-1) + 2*N2(z,:)*sigma_ems(lambda_s(i))*Gamma_s*h*v_s(i)*d_vk)*del_z/(1+Pap.(ModoS(s))(i,z-1)/Psat);
-                            PapAux(i) = Pap.(ModoS(s))(i,z-1) + ((N2(z,:)*sigma_ems(lambda_s(i))-N1(z,:)*sigma_abs(lambda_s(i)))*Gamma_s*Pap.(ModoS(s))(i,z-1) + 2*N2(z,:)*sigma_ems(lambda_s(i))*Gamma_s*h*v_s(i)*d_vk)*del_z/(1+Pap.(ModoS(s))(i,z-1)/Psat);
+                            PapAux(i) = Pap.(ModoS(s))(i,z-1) + ((N2(z,:)*sigma_ems(lambda_s(i))-N1(z,:)*sigma_abs(lambda_s(i)))*Gamma_s*Pap.(ModoS(s))(i,z-1) + 2*N2(z,:)*sigma_ems(lambda_s(i))*Gamma_s*h*v_s(i)*d_vk)*del_z;
                         end
                         Pap.(ModoS(s))(:,z) = PapAux(:);
                     end
@@ -562,7 +562,7 @@ for n = 1:1:Sch     % Iteración en nucleos
                         parfor i = 1:1:Nwl
                             Gamma_s = gamma_s.(ModoS(s)){i};
                             %Psp.(ModoS(s))(i,z) = Psp.(ModoS(s))(i,z-1) + ((N2(z,:)*sigma_ems(lambda_s(i))- N1(z,:)*sigma_abs(lambda_s(i)))*Gamma_s*Psp.(ModoS(s))(i,z-1))*del_z/(1+Psp.(ModoS(s))(i,z-1)/Psat);
-                            PspAux(i) = Psp.(ModoS(s))(i,z-1) + ((N2(z,:)*sigma_ems(lambda_s(i))- N1(z,:)*sigma_abs(lambda_s(i)))*Gamma_s*Psp.(ModoS(s))(i,z-1))*del_z/(1+Psp.(ModoS(s))(i,z-1)/Psat);
+                            PspAux(i) = Psp.(ModoS(s))(i,z-1) + ((N2(z,:)*sigma_ems(lambda_s(i))- N1(z,:)*sigma_abs(lambda_s(i)))*Gamma_s*Psp.(ModoS(s))(i,z-1))*del_z;
                         end
                         Psp.(ModoS(s))(:,z) = PspAux(:);
                     end
@@ -593,7 +593,7 @@ for n = 1:1:Sch     % Iteración en nucleos
                             v_s = c./lambda_s;
                             Gamma_s = gamma_s.(ModoS(s)){i};
                             %Pap.(ModoS(s))(i,z) = Pap.(ModoS(s))(i,z-1) + ((N2(z,:)*sigma_ems(lambda_s(i)) - N1(z,:)*sigma_abs(lambda_s(i)))*Gamma_s*Pap.(ModoS(s))(i,z-1) + 2*N2(z,:)*sigma_ems(lambda_s(i))*Gamma_s*h*v_s(i)*d_vk)*del_z/(1+Pap.(ModoS(s))(i,z-1)/Psat);
-                            PapAux(i) = Pap.(ModoS(s))(i,z-1) + ((N2(z,:)*sigma_ems(lambda_s(i)) - N1(z,:)*sigma_abs(lambda_s(i)))*Gamma_s*Pap.(ModoS(s))(i,z-1) + 2*N2(z,:)*sigma_ems(lambda_s(i))*Gamma_s*h*v_s(i)*d_vk)*del_z/(1+Pap.(ModoS(s))(i,z-1)/Psat);
+                            PapAux(i) = Pap.(ModoS(s))(i,z-1) + ((N2(z,:)*sigma_ems(lambda_s(i)) - N1(z,:)*sigma_abs(lambda_s(i)))*Gamma_s*Pap.(ModoS(s))(i,z-1) + 2*N2(z,:)*sigma_ems(lambda_s(i))*Gamma_s*h*v_s(i)*d_vk)*del_z;
                         end
                         Pap.(ModoS(s))(:,z) = PapAux(:);
                     end
@@ -625,7 +625,7 @@ for n = 1:1:Sch     % Iteración en nucleos
                             v_s = c./lambda_s;
                             Gamma_s = gamma_s.(ModoS(s)){i};
                             %Pan.(ModoS(s))(i,Nz-z+1) = Pan.(ModoS(s))(i,Nz-z+1+1) + ((N2(Nz-z+1,:)*sigma_ems(lambda_s(i)) - N1(Nz-z+1,:)*sigma_abs(lambda_s(i)))*Gamma_s*Pan.(ModoS(s))(i,Nz-z+1+1) + 2*N2(Nz-z+1,:)*sigma_ems(lambda_s(i))*Gamma_s*h*v_s(i)*d_vk)*(-1*del_z)/(1+Pan.(ModoS(s))(i,Nz-z+1+1)/Psat);
-                            PanAux(i) = Pan.(ModoS(s))(i,Nz-z+1+1) + ((N2(Nz-z+1,:)*sigma_ems(lambda_s(i)) - N1(Nz-z+1,:)*sigma_abs(lambda_s(i)))*Gamma_s*Pan.(ModoS(s))(i,Nz-z+1+1) + 2*N2(Nz-z+1,:)*sigma_ems(lambda_s(i))*Gamma_s*h*v_s(i)*d_vk)*(-1*del_z)/(1+Pan.(ModoS(s))(i,Nz-z+1+1)/Psat);
+                            PanAux(i) = Pan.(ModoS(s))(i,Nz-z+1+1) + ((N2(Nz-z+1,:)*sigma_ems(lambda_s(i)) - N1(Nz-z+1,:)*sigma_abs(lambda_s(i)))*Gamma_s*Pan.(ModoS(s))(i,Nz-z+1+1) + 2*N2(Nz-z+1,:)*sigma_ems(lambda_s(i))*Gamma_s*h*v_s(i)*d_vk)*(-1*del_z);
                         end
                         Pan.(ModoS(s))(:,Nz-z+1) = PanAux(:);
                     end
@@ -653,7 +653,7 @@ for n = 1:1:Sch     % Iteración en nucleos
 
     %% ASE SPECTRUM :
     % Ecuacion diferencial para ASE en direccion +z
-    if Fibra.ASEFlag == 0 
+    if fibra.ASEFlag == 0 
         Nch_ase=length(lambda_ase);
         for z = 1:Nz
             for s = 1:1:Smod
@@ -678,7 +678,7 @@ for n = 1:1:Sch     % Iteración en nucleos
                         else
                             d_vk_sp=abs(v_s_sp(i)-v_s_sp(i+1));
                         end
-                        AuxMatrix(i) = Pap_sp.(ModoS(s))(i,z-1) + (((N2(z))*sigma_ems(lambda_ase(i)) - (N1(z))*sigma_abs(lambda_ase(i)))*Gamma_s*Pap_sp.(ModoS(s))(i,z-1) + 2*(N2(z))*sigma_ems(lambda_ase(i))*Gamma_s*h*v_s_sp(i)*d_vk_sp)*del_z/(1+Pap_sp.(ModoS(s))(i,z-1)/Psat);
+                        AuxMatrix(i) = Pap_sp.(ModoS(s))(i,z-1) + (((N2(z))*sigma_ems(lambda_ase(i)) - (N1(z))*sigma_abs(lambda_ase(i)))*Gamma_s*Pap_sp.(ModoS(s))(i,z-1) + 2*(N2(z))*sigma_ems(lambda_ase(i))*Gamma_s*h*v_s_sp(i)*d_vk_sp)*del_z;
                     end
                     Pap_sp.(ModoS(s))(:,z) = AuxMatrix(:) ;
                 end
@@ -713,7 +713,7 @@ for n = 1:1:Sch     % Iteración en nucleos
                         else
                             d_vk_sp=abs(v_s_sp(i)-v_s_sp(i+1));
                         end
-                        AuxMatrix(i) = Pan_sp.(ModoS(s))(i,Nz-z+1+1) + (((N2(Nz-z+1))*sigma_ems(lambda_ase(i)) - (N1(Nz-z+1))*sigma_abs(lambda_ase(i)))*Gamma_s*Pan_sp.(ModoS(s))(i,Nz-z+1+1) + 2*(N2(Nz-z+1))*sigma_ems(lambda_ase(i))*Gamma_s*h*v_s_sp(i)*d_vk_sp)*(-1*del_z)/(1+Pan_sp.(ModoS(s))(i,Nz-z+1+1)/Psat)
+                        AuxMatrix(i) = Pan_sp.(ModoS(s))(i,Nz-z+1+1) + (((N2(Nz-z+1))*sigma_ems(lambda_ase(i)) - (N1(Nz-z+1))*sigma_abs(lambda_ase(i)))*Gamma_s*Pan_sp.(ModoS(s))(i,Nz-z+1+1) + 2*(N2(Nz-z+1))*sigma_ems(lambda_ase(i))*Gamma_s*h*v_s_sp(i)*d_vk_sp)*(-1*del_z);
                     end
                     Pan_sp.(ModoS(s))(:,Nz-z+1) = AuxMatrix(:) ;
                 end
