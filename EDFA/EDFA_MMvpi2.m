@@ -18,7 +18,7 @@ function edfa = EDFA_MMvpi2(fibra,signal,pump,ASE)
 %
 
 % % Parametros de la fibra y constantes
-
+%%
 c = 3e8;                                % Velocidad de la luz en el vacio m/s
 h = 6.626*10^(-34);                     % constante de planck
 L = fibra.largo ;                       % largo
@@ -77,7 +77,7 @@ for p = 1:1:Pmod % Mode overlap factor for pump; entre modo y perfil de dopaje (
     Nwlp = length(pump.lambda.(ModoP(p)));
     for i=1:1:Nwlp % Cada longitud de onda del modo p
         lambda_p = pump.lambda.(ModoP(p));
-        [gamma_p.(ModoP(p)){i},beta0_p.(ModoP(p)){i}] = norm_intensity(fibra,pump.modos(p),lambda_p(i));
+        [gamma_p.(ModoP(p)){i},beta0_p.(ModoP(p)){i}] = norm_intensity2(fibra,pump.modos(p),lambda_p(i));
     end
 end
 
@@ -85,7 +85,7 @@ for s = 1:1:Smod % Mode overlap factor for signal entre modo y perfil de dopaje
     Nwl = length(signal.lambda.(ModoS(s)));
     for i=1:1:Nwl % Cada longitud de onda del modo s
         lambda_s = signal.lambda.(ModoS(s));
-        [gamma_s.(ModoS(s)){i},beta0_s.(ModoS(s)){i}] = norm_intensity(fibra,signal.modos(s),lambda_s(i)) ; % *CoupCoef ;
+        [gamma_s.(ModoS(s)){i},beta0_s.(ModoS(s)){i}] = norm_intensity2(fibra,signal.modos(s),lambda_s(i)) ; % *CoupCoef ;
     end
 end
 warning('on')
@@ -610,6 +610,7 @@ for n = 1:1:Sch     % Iteración en nucleos
 %                 end
 
                 % Ecuacion diferencial para ASE en direccion -z
+                % VPI NO USA PAN
                 for s = 1:1:Smod
                     Nwl = length(signal.lambda.(ModoS(s)));
                     if(z == 1)
@@ -625,7 +626,7 @@ for n = 1:1:Sch     % Iteración en nucleos
                             v_s = c./lambda_s;
                             Gamma_s = gamma_s.(ModoS(s)){i};
                             %Pan.(ModoS(s))(i,Nz-z+1) = Pan.(ModoS(s))(i,Nz-z+1+1) + ((N2(Nz-z+1,:)*sigma_ems(lambda_s(i)) - N1(Nz-z+1,:)*sigma_abs(lambda_s(i)))*Gamma_s*Pan.(ModoS(s))(i,Nz-z+1+1) + 2*N2(Nz-z+1,:)*sigma_ems(lambda_s(i))*Gamma_s*h*v_s(i)*d_vk)*(-1*del_z)/(1+Pan.(ModoS(s))(i,Nz-z+1+1)/Psat);
-                            PanAux(i) = Pan.(ModoS(s))(i,Nz-z+1+1) + ((N2(Nz-z+1,:)*sigma_ems(lambda_s(i)) - N1(Nz-z+1,:)*sigma_abs(lambda_s(i)))*Gamma_s*Pan.(ModoS(s))(i,Nz-z+1+1) + 2*N2(Nz-z+1,:)*sigma_ems(lambda_s(i))*Gamma_s*h*v_s(i)*d_vk)*(-1*del_z);
+                            PanAux(i) = Pan.(ModoS(s))(i,Nz-z+1+1) + ((N2(Nz-z+1,:)*sigma_ems(lambda_s(i)) - N1(Nz-z+1,:)*sigma_abs(lambda_s(i)))*Gamma_s*Pan.(ModoS(s))(i,Nz-z+1+1) + 2*N2(Nz-z+1,:)*sigma_ems(lambda_s(i))*Gamma_s*h*v_s(i)*d_vk)*(del_z);
                         end
                         Pan.(ModoS(s))(:,Nz-z+1) = PanAux(:);
                     end
@@ -727,14 +728,16 @@ for n = 1:1:Sch     % Iteración en nucleos
     %            end
     %         end
         end % Fin calculo ASE en posicion z
-    end
 
-
-    for s = 1:1:Smod
-        for i = 1:1:Nch_ase
-            ASE_Spectrum.(ModoS(s))(i,1) = 10*log10( (Pap_sp.(ModoS(s))(i,end) + Pan_sp.(ModoS(s))(i,end))./1e-3);
+        for s = 1:1:Smod
+            for i = 1:1:Nch_ase
+                ASE_Spectrum.(ModoS(s))(i,1) = 10*log10( (Pap_sp.(ModoS(s))(i,end) + Pan_sp.(ModoS(s))(i,end))./1e-3);
+            end
         end
     end
+
+
+    
 
     
     %%
@@ -749,16 +752,18 @@ for n = 1:1:Sch     % Iteración en nucleos
     end
     
     % CALCULAR GRAFICO ASE SPECTRUM CON GANANCIAS DE SEÑAL
-    for s = 1:1:Smod
-        ASE_Spectrum.(ModoS(s))(:,2) = ASE_Spectrum.(ModoS(s))(:,1);
-
-        lambda_s = signal.lambda.(ModoS(s));
-        for w = 1:length(lambda_s)
-            for i = 1:length(lambda_ase)
-                if abs(lambda_ase(i)*1e9 - lambda_s(w)*1e9) < 1/11
-                    %ASE_Spectrum(i,2,s) = gain(1,w,s);
-                    ASE_Spectrum.(ModoS(s))(i,2) = 10*log10( (1e-3*10.^(ASE_Spectrum.(ModoS(s))(i,1)/10) + Psp.(ModoS(s))(w,end)) ./1e-3);
-                    %ASE_Spectrum(i,2,s) = 10*log10( (( Psp(w,end,s)) ./1e-3) );
+    if fibra.ASEFlag == 0 
+        for s = 1:1:Smod
+            ASE_Spectrum.(ModoS(s))(:,2) = ASE_Spectrum.(ModoS(s))(:,1);
+    
+            lambda_s = signal.lambda.(ModoS(s));
+            for w = 1:length(lambda_s)
+                for i = 1:length(lambda_ase)
+                    if abs(lambda_ase(i)*1e9 - lambda_s(w)*1e9) < 1/11
+                        %ASE_Spectrum(i,2,s) = gain(1,w,s);
+                        ASE_Spectrum.(ModoS(s))(i,2) = 10*log10( (1e-3*10.^(ASE_Spectrum.(ModoS(s))(i,1)/10) + Psp.(ModoS(s))(w,end)) ./1e-3);
+                        %ASE_Spectrum(i,2,s) = 10*log10( (( Psp(w,end,s)) ./1e-3) );
+                    end
                 end
             end
         end
@@ -777,7 +782,8 @@ for n = 1:1:Sch     % Iteración en nucleos
         sdm.(ch).salida.ASE.potencia_dBm.(ModoS(s)) = 10*log10(Pase.(ModoS(s))(:,end)./1e-3);
 
         sdm.(ch).salida.ganancias.(ModoS(s)) = gain.(ModoS(s));
-        sdm.(ch).NF.(ModoS(s)) = OSNR.(ModoS(s))(:,1)./OSNR.(ModoS(s))(:,end);
+        %sdm.(ch).NF.(ModoS(s)) = OSNR.(ModoS(s))(:,1)./OSNR.(ModoS(s))(:,end);
+        sdm.(ch).NF.(ModoS(s)) = OSNR.(ModoS(s))(:,1) - OSNR.(ModoS(s))(:,end);
     end
 
     sdm.(ch).signal.lambdas = lambda_s ; sdm.(ch).pump.lambdas = lambda_p;

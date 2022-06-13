@@ -185,7 +185,6 @@ for l = 1:(length(Z)-1)
     end
 end
 
-
 for mp = 1:length(ModoP) % Método 3 - Tomando en cuenta Psoff
     if sum( Pb.(ModoP{mp})(:,end) ) ~= 0
         for l=(length(Z)-1):-1:1
@@ -353,7 +352,7 @@ if AdjIter
                     end
                 end
             end
-            
+
         end
     end
 end

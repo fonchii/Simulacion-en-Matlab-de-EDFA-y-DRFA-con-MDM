@@ -1,0 +1,110 @@
+clear all; close all; clc
+
+set( gcf,'PaperSize',[29.7 21.0], 'PaperPosition',[0 0 29.7 21.0])
+
+
+% DAT = [lambdas Gain01 lambdas Gain11a frecuencias NF01 NF11a];
+load("MatlabSigGains.mat")
+load("ModeGainsandNFs.mat")
+load("AmplifiedSignals.mat");
+
+% %% GANANCIAS
+% figure(1)
+% plot(DAT(:,1).*1e9,DAT(:,2), "DisplayName","LP01 - Simulador Matlab" , Color= '#0072BD') ; hold on
+% plot(AmplifiedSignals(:,3),fliplr(ModeGainsandNFs(:,2)),"DisplayName","LP01 - VPIPhotonics" , LineStyle="--", Color= '#0072BD' ) ; 
+% plot(DAT(:,1).*1e9,DAT(:,4),  "DisplayName","LP11a - Simulador Matlab", "Color", '#D95319' )
+% plot(AmplifiedSignals(:,1),fliplr(ModeGainsandNFs(:,6)),"DisplayName","LP11a - VPIPhotonics", LineStyle="--" , Color='#D95319') 
+% xlabel('Longitud de Onda [nm]') ; ylabel('Magnitud [dB]') ; title("Comparación de ganancias obtenidas mediante Simulador y VPIphotonics") ; 
+% legend('Location', 'southoutside','Orientation','horizontal','Box','off')
+% 
+% DG01 =  abs(DAT(:,2) - fliplr(ModeGainsandNFs(:,2))) ;
+% DG11 = abs(DAT(:,4) - fliplr(ModeGainsandNFs(:,6))) ;
+%     % Diferencia de Ganancias
+% yyaxis right
+% ylabel('Diferencia de Ganancias')
+% plot(DAT(:,1).*1e9 , DG01 ,  "-o" , DisplayName = "DG - LP01" , Color='#0072BD')
+% plot(DAT(:,1).*1e9 , DG11 ,  "-o" , DisplayName = "DG - LP11a" , Color='#D95319')
+% ylim([0, 3])
+% 
+% %plot(AmplifiedSignals(:,1),AmplifiedSignals(:,2))
+
+
+
+
+%% NOISE FIGURE
+% figure(2)
+% 
+% plot(DAT(:,1).*1e9,DAT(:,6), "DisplayName","LP01 - Simulador" , Color= '#0072BD') ; 
+% hold on
+% plot(AmplifiedSignals(:,1),fliplr(ModeGainsandNFs(:,4)),"DisplayName","LP01 - VPIPhotonics" , LineStyle="--", Color= '#0072BD' ) ; 
+% plot(DAT(:,1).*1e9,DAT(:,7),  "DisplayName","LP11a - Simulador", "Color", '#D95319' )
+% plot(AmplifiedSignals(:,1),fliplr(ModeGainsandNFs(:,8)),"DisplayName","LP11a - VPIPhotonics", LineStyle="--" , Color='#D95319') 
+% xlabel('Longitud de Onda [nm]') ; ylabel('Noise Figure [dB]') ; title("Comparación de NF obtenidas mediante Simulador y VPIphotonics") ; 
+% legend('Location', 'southoutside','Orientation','horizontal','Box','off')
+
+
+
+% z = linspace(0,3,length(S01(1,:)));
+% VPISignal(end,1) = VPISignal(end,1)/1e10;
+% zVPI = VPISignal(:,1);
+% %lambda = DAT(1,1);  % ORDENADOS DE MAYOR A MENOR, IGUAL QE LOS DE VPISIGNAL
+% 
+% 
+% colors = ["#0072BD" , "#D95319" , "#EDB120" , "#7E2F8E" , "#77AC30" , "#4DBEEE" , "#A2142F"];
+% 
+% for i = 0
+%     lambda = DAT(1+i,1);
+%     plot(z,S01(1+i,:), "DisplayName",strcat("LP01 - Simulador @", int2str(lambda*1e9) , "nm"), Color= colors(i+1)) ; 
+%     hold on
+%     plot(zVPI,VPISignal_01(:,1+i),"DisplayName",strcat("LP01 - VPIPhotonics",int2str(lambda*1e9) , "nm" ) , LineStyle="--", Color= colors(i+1) ) ;
+% end
+% %plot(DAT(:,1).*1e9,DAT(:,7),  "DisplayName","LP11a - Simulador", "Color", '#D95319' )
+% %plot(AmplifiedSignals(:,1),fliplr(ModeGainsandNFs(:,8)),"DisplayName","LP11a - VPIPhotonics", LineStyle="--" , Color='#D95319') 
+% xlabel('Posición en EDFA [m]') ; ylabel('Potencia [dBm]') ; title("Comparación de Evolución Potencias obtenidas mediante Simulador y VPIphotonics") ; 
+% legend('Location', 'southoutside','Orientation','horizontal','Box','off')
+
+
+%% Propagación Bombeo LP01
+
+%figure(3)
+load('VPI_EDFAmm_axialdist.mat') % Bombeo LP01
+load("MatlabS01.mat")
+load("MatlabS11_a.mat")
+
+z = linspace(0,3,length(S01(1,:)));
+zvpi = linspace(0,3,length(vpiedfamm.axialdist.Sig.LP_01(:,1)));
+
+
+for i=0:6
+    plot(z , S01(1+4*i,:)) ; hold on
+    % plot(z , S01(2,:)) 
+    % plot(z , S01(3,:)) 
+end
+set(gca,'ColorOrderIndex',1)
+for i=0:6
+    plot(zvpi , vpiedfamm.axialdist.Sig.LP_01(:,1+4*i) , LineStyle="--" , ,"DisplayName","LP01 - VPIPhotonics" )
+    % plot(zvpi , vpiedfamm.axialdist.Sig.LP_01(:,2) , LineStyle="--")
+    % plot(zvpi , vpiedfamm.axialdist.Sig.LP_01(:,3) , LineStyle="--")
+end
+
+
+
+
+% Propagacion Bombeo LP12
+%load('VPI_EDFAmmDifPump_axialdist_Bombeo12.mat') % Bombeo LP12
+
+
+
+
+
+
+
+%% Cargar resultado vpi.. desde columna ec
+% VPISignal = resultadovpipropagacionaxial;
+% 
+% for i=0:19
+%     VPISignal_01(:,i+1) = VPISignal(:,2+4*i)/10e13;
+%     VPISignal_11a(:,i+1) = VPISignal(:,4+4*i)/10e13;
+% end
+% VPISignal_01([1,2],:) = VPISignal_01([1,2],:).*10e13;
+% VPISignal_11a([1,2],:) = VPISignal_11a([1,2],:).*10e13;

@@ -14,7 +14,7 @@ function modos = modesparam(modes,wavelength,fibra)
                 modos(i).u = solution(j).u ;
                 modos(i).w = solution(j).w ;
                 modos(i).beta = solution(j).beta ;
-                modos(i).allsolution = solution ;
+                modos(i).allsolution = solution(j); %solution ;
             end
         end
     end

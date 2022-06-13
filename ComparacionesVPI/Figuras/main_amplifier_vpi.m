@@ -1,5 +1,5 @@
 % close all; 
-clear all; clc ; close all
+clear all; clc
 
 % Parámetros de entrada
 
@@ -15,6 +15,7 @@ Pin=-10; %[dBm]
 signal.lambda.LP_01     = Wavelength_gridS;                                  P0_signal.LP_01     = Pin*ones(1,length(signal.lambda.LP_01));
 signal.lambda.LP_11_a   = Wavelength_gridS;                                  P0_signal.LP_11_a   = Pin*ones(1,length(signal.lambda.LP_11_a));
 
+
 pump.modos = "01" ;
 Wavelength_gridP=980e-9;
 Ppump= 250e-3; %[W]
@@ -24,9 +25,7 @@ pump.lambda.LP_01   = Wavelength_gridP;                         P0_pump.LP_01   
 ModoS=strcat("LP_",signal.modos(:));
 ModoP=strcat("LP_",pump.modos(:));
 
-
     % POTENCIAS
-
 for i=1:length(signal.modos)        % Potencia de señal a W
     for j=1:length(P0_signal.(ModoS(i)))
         P0_signal.(ModoS(i))(j) = 1e-3*10^(P0_signal.(ModoS(i))(j)/10);
@@ -46,15 +45,14 @@ fibra.largo = 3; fibra.radio = 5e-6 ; fibra.N = 7e24; % fibra.N = 3e24;
 fibra.n1 = 1.45 ;   fibra.IndexContrast=0.01;
 fibra.AN=fibra.n1*sqrt(2*fibra.IndexContrast);
 fibra.n2 =sqrt((fibra.n1^2-fibra.AN^2));
-%fibra.M = 10; fibra.Nalpha = inf; % Iteraciones Radiales.
+fibra.M = 10; fibra.Nalpha = inf;
+%fibra.ASEFlag = 1; % EVITA CALCULO DE ESPECTRO ASE
 fibra.dvk=P.Fb;
 
-fibra.WaitBar = 1; fibra.Avance = 1;    % Despliegue de info
-fibra.ASEFlag = 1;                      % 1 : Evita Calculo Espectro ASE ; 0 : Lo Calcula (lento)
 
 %%
 tic;
-EDFA = EDFA_MMvpi2(fibra,signal,pump,ASE);%EDFA_MMvPCCv3(fibra,signal,pump,ASE);
+EDFA = EDFA_MMvpi2(fibra,signal,pump,ASE); %21.45s
 % EDFA = EDFA_MM(fibra,signal,pump,ASE); %197.82 segundos
 t_end = toc; fprintf('Tiempo de cómputo: %.2f segundos\n', t_end);
 
@@ -74,7 +72,7 @@ for n = 1:graf.Nc
 %     for aux=1:length(EDFA.Nucleo1.ASE_Spectrum.lambdas)
 %         if (graf.ASE_Spectrum.(ModoS(ase))(aux,2)>0 && ase==1)
 %             aux1=stem(graf.freq_ase(aux),graf.ASE_Spectrum.(ModoS(ase))(aux,2)','^','BaseValue',-10,'Color',colorlist(ase,:)) ; hold on;
-%           
+%     
 %         else 
 %             if (graf.ASE_Spectrum.(ModoS(ase))(aux,2)>0 && ase==2)
 %                 aux2=stem(graf.freq_ase(aux),graf.ASE_Spectrum.(ModoS(ase))(aux,2)','^','BaseValue',-10,'Color',colorlist(ase,:)) ; hold on;
@@ -93,16 +91,16 @@ for n = 1:graf.Nc
 % legend([aux1 aux2],{'{LP}_{01}','{LP}_{11_a}'})
 % ylim([-60 12])
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%       
+%     
 %     % Señal
 %     for s = 1:length(signal.modos) % Grafico
 %         graf.signal.(ModoS(s)) = EDFA.(strcat("Nucleo",int2str(n))).signal.Potencia_dBm.(ModoS(s));
 %         subplot 221
 %         for f = 1:length(signal.lambda.(ModoS(s)))
 %             plot(graf.z,graf.signal.(ModoS(s))(f,:) , 'DisplayName',strcat(strcat(strcat("LP",signal.modos(s))," @"),strcat(int2str(signal.lambda.(strcat("LP_",signal.modos(s)))(f)*1e9) ,' nm')) ) ; hold on ; xlabel(xlab) ; ylabel(ylab); title('P_{Signal}') ; legend(); grid on ; legend('location', 'best');
-%         end 
+%         end
 %     end; clear s f ;
-%       
+%     
 % %     % Bombeo
 % %     for s = 1:length(pump.modos) % Grafico
 % %         graf.pump.(strcat("LP_",pump.modos(s))) = EDFA.(strcat("Nucleo",int2str(n))).pump.Potencia_dBm(:,:,s);
@@ -112,7 +110,7 @@ for n = 1:graf.Nc
 % %             plot(z,graf.pump.(strcat("LP_",pump.modos(s)))(f,:) , 'DisplayName',strcat(strcat(strcat("LP",pump.modos(s))," @"),strcat(int2str(pump.lambda.(strcat("LP_",pump.modos(s)))(f)*1e9) ,' nm')) ) ; hold on ; xlabel(xlab) ; ylabel(ylab); title('P_{Pump}') ; legend(); grid on
 % %         end
 % %     end
-%       
+% 
 %     % Ganancias
 %     for s = 1:length(signal.modos)
 %         graf.ganancias.(ModoS(s)) = EDFA.(strcat("Nucleo",int2str(n))).salida.ganancias.(ModoS(s));
@@ -127,15 +125,13 @@ for n = 1:graf.Nc
 %     end ; clear s ejex leyenda;
 %     
     % Espectro ASE
-    if fibra.ASEFlag == 0
-        for ase = 1:length(signal.modos)
-            graf.freq_ase = EDFA.(strcat('Nucleo',int2str(n))).ASE_Spectrum.lambdas*1e9;
-            graf.ASE_Spectrum.(strcat("LP_",signal.modos(ase))) = EDFA.(strcat("Nucleo",int2str(n))).ASE_Spectrum.mag.(strcat("LP_",signal.modos(ase)));
-            %subplot(2,2,[3,4])
-            plot( graf.freq_ase, graf.ASE_Spectrum.(strcat("LP_",signal.modos(ase))) , 'DisplayName', strcat( "LP",signal.modos(ase) ) ) ; hold on;
-            xlabel('Longitud de onda (\lambda) [nm]') ; ylabel(ylab); title('Potencia a la salida del EDFA') ; legend()
-        end ; clear ase xlab ylab t_end ;
-    end
+    for ase = 1:length(signal.modos)
+        graf.freq_ase = EDFA.(strcat('Nucleo',int2str(n))).ASE_Spectrum.lambdas*1e9;
+        graf.ASE_Spectrum.(ModoS(ase)) = EDFA.(strcat("Nucleo",int2str(n))).ASE_Spectrum.mag.(ModoS(ase));
+        %subplot(2,2,[3,4])
+        plot( graf.freq_ase, graf.ASE_Spectrum.(ModoS(ase))(:,2) , 'DisplayName', strcat( "LP",signal.modos(ase) ) ) ; hold on;
+        xlabel('Longitud de onda (\lambda) [nm]') ; ylabel(ylab); title('Espectro ASE') ; legend()
+    end  %clear ase xlab ylab t_end ;
     
 end
 % 
@@ -311,19 +307,3 @@ end
 % legend('Location','best')
 % title('Power axial distibution Forward ASE (LP11a,-200 [dBm])')
 % 
-
-
-%% GUARDAR datos
-
-S01 = EDFA.Nucleo1.signal.Potencia_dBm.(ModoS(1));
-S11_a = EDFA.Nucleo1.signal.Potencia_dBm.(ModoS(2));
-
-frecuencias = Frequency_gridS';
-lambdas = Wavelength_gridS';
-G1 = graf.ganancias.LP_01';
-G2 = graf.ganancias.LP_11_a';
-NF01  = EDFA.Nucleo1.NF.LP_01; 
-NF11a = EDFA.Nucleo1.NF.LP_11_a;
-
-DAT = [lambdas G1 lambdas G2 frecuencias NF01 NF11a];
-
