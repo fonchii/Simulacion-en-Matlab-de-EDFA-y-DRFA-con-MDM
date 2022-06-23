@@ -13,16 +13,16 @@ Frequency_gridS=linspace(191.19421875e12,193.64421875e12,signal.NumberOfChannels
 c=299.792458e6; % [m/s]
 Wavelength_gridS=c./Frequency_gridS;
 
-Pin=0; %[dBm]
+Pin=-10; %[dBm]
 
 signal.lambda.LP_01     = Wavelength_gridS;                                  P0_signal.LP_01     = Pin*ones(1,length(signal.lambda.LP_01));
 signal.lambda.LP_11_a   = Wavelength_gridS;                                  P0_signal.LP_11_a   = Pin*ones(1,length(signal.lambda.LP_11_a));
 
-pump.modos = "12_a" ;
+pump.modos = "01" ;
 Wavelength_gridP=980e-9;
-Ppump= 1000e-3; %[W]
+Ppump= 250e-3; %[W]
 
-pump.lambda.LP_12_a   = Wavelength_gridP;                         P0_pump.LP_12_a   = Ppump  ;  
+pump.lambda.LP_01   = Wavelength_gridP;                         P0_pump.LP_01   = Ppump  ;  
 
 ModoS=strcat("LP_",signal.modos(:));
 ModoP=strcat("LP_",pump.modos(:));
@@ -39,12 +39,12 @@ signal.P0 = P0_signal;
 pump.P0 = P0_pump;
 h=6.62607015*10^(-34);
 P.Np=2; 
-P.Fc=c/Wavelength_gridS(ceil(length(Wavelength_gridS)/2)); P.Fb = 50e9; 
+P.Fc=c/Wavelength_gridS(ceil(length(Wavelength_gridS)/2)); P.Fb = 300e9; 
 ASE= -200;
 
     % Datos de la fibra
 fibra.nucleos = 1;                                           % Numero de nucleos
-fibra.largo = 5; fibra.radio = 5.5e-6 ; fibra.N = 7e24; % fibra.N = 3e24; 
+fibra.largo = 3; fibra.radio = 5e-6 ; fibra.N = 7e24; % fibra.N = 3e24; 
 %fibra.AN = 0.2;   %fibra.AN = 0.2 ; %fibra.AN=sqrt(fibra.n1^2-fibra.n2^2);
 fibra.n1 = 1.45 ;   fibra.IndexContrast=0.01;
 fibra.AN=fibra.n1*sqrt(2*fibra.IndexContrast);

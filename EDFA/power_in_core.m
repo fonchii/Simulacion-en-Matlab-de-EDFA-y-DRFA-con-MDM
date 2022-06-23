@@ -44,6 +44,7 @@ function powerInCore = power_in_core(modePlot, coreRadius, maxPlotRadius)
     for i = 1: nModes    
         cMode = modePlot(:,:,i);
         powerInCore(i) = sum(sum(abs(cMode(inCore)).^2))./ sum(sum(abs(cMode).^2));
+        %powerInCore(i) = abs(sum(sum(abs(cMode(inCore))))./ sum(sum(abs(cMode))));
     end
     
 end

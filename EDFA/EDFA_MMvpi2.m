@@ -78,6 +78,7 @@ for p = 1:1:Pmod % Mode overlap factor for pump; entre modo y perfil de dopaje (
     for i=1:1:Nwlp % Cada longitud de onda del modo p
         lambda_p = pump.lambda.(ModoP(p));
         [gamma_p.(ModoP(p)){i},beta0_p.(ModoP(p)){i}] = norm_intensity2(fibra,pump.modos(p),lambda_p(i));
+        gamma_p.(ModoP(p)){i} = 0.77;
     end
 end
 
@@ -779,6 +780,8 @@ for n = 1:1:Sch     % Iteración en nucleos
         sdm.(ch).salida.signal.potencia_dBm.(ModoS(s)) = 10*log10(Psp.(ModoS(s))(:,end)./1e-3);
 
         sdm.(ch).Pase.(ModoS(s)) = 10*log10(Pase.(ModoS(s))./1e-3);
+        sdm.(ch).Pap.(ModoS(s)) = 10*log10(Pap.(ModoS(s))./1e-3);
+        sdm.(ch).Pan.(ModoS(s)) = 10*log10(Pan.(ModoS(s))./1e-3);
         sdm.(ch).salida.ASE.potencia_dBm.(ModoS(s)) = 10*log10(Pase.(ModoS(s))(:,end)./1e-3);
 
         sdm.(ch).salida.ganancias.(ModoS(s)) = gain.(ModoS(s));

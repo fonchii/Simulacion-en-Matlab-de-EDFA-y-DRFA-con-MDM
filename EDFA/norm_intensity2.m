@@ -10,7 +10,7 @@ end
 Beta_0=param.beta*1e6; %[1/m]
 
 % Define the plot area
-maxPlotRadius = (fibra.radio*1e6) * 1.2;  % Lets us see the power in the cladding
+maxPlotRadius = (fibra.radio*1e6) * 1.5;  % Lets us see the power in the cladding
 gridSize = 300;                  % pixels
 
 
