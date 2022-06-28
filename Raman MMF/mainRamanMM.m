@@ -163,6 +163,12 @@ clear fs fp ms mp i strlambda DispName1 DispName2;
 % end
 % plot(z,pump.(Raman.ModoP{1}).backward(1,:)) ; hold on ; plot(z,pumpv2.(Raman.ModoP{1}).backward(1,:)) 
 
+% %%% Atenuaciones
+
+% alp = load('RADynamic_Attenuation.dat');
+% plot(alp(:,1),alp(:,2))
+
+
 %% Otros Archivos
 % eta = load('RADynamic_Rayleigh.dat') ; gr = load('RamanGainEfficiency_SMF28.dat');
 % figure(1);plot(eta(:,1),eta(:,2)) ; figure(2) ; plot(gr(:,1),gr(:,2))

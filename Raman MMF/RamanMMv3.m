@@ -185,7 +185,7 @@ for l = 1:(length(Z)-1)
     end
 end
 
-for mp = 1:length(ModoP) % Método 3 - Tomando en cuenta Psoff
+for mp = 1:length(ModoP) % Método 3 - Pb Tomando en cuenta Psoff
     if sum( Pb.(ModoP{mp})(:,end) ) ~= 0
         for l=(length(Z)-1):-1:1
             for wP = 1:length(lambdaP.(ModoP{mp}))
@@ -383,6 +383,8 @@ Raman.functions.gr = Gr_fun ;
 Raman.functions.eta = eta_fun ;
 Raman.LambdasS = lambdaS ;
 Raman.LambdasP = lambdaP ;
+Raman.Atenuation.Signal = alphaS;
+Raman.Atenuation.Pump = alphaP;
 
 end
 

@@ -128,8 +128,8 @@ vpiasePos = [4 , 12 , 21, 29, 36, 45, 52];
 
 Pan = EDFA.Nucleo1.Pan;
 Pap = EDFA.Nucleo1.Pap;
-z = linspace(0,3,length(S01(1,:)));
-zvpi = linspace(0,3,length(vpiedfamm.axialdist.Sig.LP_01(:,1)));
+z = linspace(0,5,length(S01(1,:)));
+zvpi = linspace(0,5,length(vpiedfamm.axialdist.ASE.LP_01(:,1)));
 
 % %         LP01
 % % % ASE+ 
@@ -198,11 +198,11 @@ Pan = EDFA.Nucleo1.Pan;
 Pap = EDFA.Nucleo1.Pap;
 Pase = EDFA.Nucleo1.Pase;
 
-z = linspace(0,3,length(S01(1,:)));
-zvpi = linspace(0,3,length(vpiedfamm.axialdist.Sig.LP_01(:,1)));
+z = linspace(0,5,length(S01(1,:)));
+zvpi = linspace(0,5,length(vpiedfamm.axialdist.Sig.LP_01(:,1)));
 
 % %% LP01
-% ASE+ Matlab
+% % ASE+ Matlab
 % for i=0:6
 %     plot(z , Pap.LP_01(1+8*i,:) , "DisplayName", strcat(int2str(DAT(1+8*i,1)*1e9) , " nm")) ; hold on
 % end
@@ -241,43 +241,43 @@ zvpi = linspace(0,3,length(vpiedfamm.axialdist.Sig.LP_01(:,1)));
  
 Pan = EDFA.Nucleo1.Pan;
 Pap = EDFA.Nucleo1.Pap;
-Pase = EDFA.Nucleo1.Pase;
+%Pase = EDFA.Nucleo1.Pase;
 
-Osnr01Matlab = EDFA.Nucleo1.signal.Potencia_dBm.LP_01 - Pap.LP_01;
-NF01Matlab = Osnr01Matlab(:,2) - Osnr01Matlab(:,end);
-Osnr11aMatlab = EDFA.Nucleo1.signal.Potencia_dBm.LP_11_a - Pap.LP_11_a;
-NF11aMatlab = Osnr11aMatlab(:,2) - Osnr11aMatlab(:,end);
-
-
-for i=1:50
-    Osnr01VPI(:,i) = vpiedfamm.axialdist.Sig.LP_01(:,i) - vpiedfamm.axialdist.ASE.LP_01(:,i+3);
-    Osnr11aVPI(:,i) = vpiedfamm.axialdist.Sig.LP_11a(:,i) - vpiedfamm.axialdist.ASE.LP_11a(:,i+3);
-end
-NF01VPI = Osnr01VPI(2,:) - Osnr01VPI(end,:);
-NF11aVPI = Osnr11aVPI(2,:) - Osnr11aVPI(end,:);
-
-plot(DAT(:,1).*1e9 , NF01Matlab , "DisplayName" , "Matlab LP01" ) , hold on
-plot(DAT(:,1).*1e9 , NF11aMatlab , "DisplayName" , "MatlabLP11a" )
-
-set(gca,'ColorOrderIndex',1,'FontSize',8)
-
-plot(DAT(:,1).*1e9 , NF01VPI , "DisplayName" , "VPIphotonics LP01" , LineStyle="--"  )
-plot(DAT(:,1).*1e9 , NF11aVPI , "DisplayName" , "VPIphotonics LP11a" , LineStyle="--"  )
-
-legend('Location', 'southoutside','Orientation','horizontal','Box','off', "NumColumns" , 2,'FontSize',9)
-xlabel('Longitud de Onda [nm]','FontSize',14) ; ylabel('NF [dB]','FontSize',14); title('Figura de Ruido','FontSize',14)
-%ylim([8 15])
-
-for i=1:length(NF01VPI)
-    DiffNF01(1,i) = (abs(NF01VPI(i) - NF01Matlab(i)));
-    DiffNF01(2,i) = DAT(i,1);
-    DiffNF11(1,i) = (abs(NF11aVPI(i) - NF11aMatlab(i)));
-    DiffNF11(2,i) = DAT(i,1);
-end
-
-%annotation('textbox', [0.28, 0.148, 0, 0], 'string', 'Matlab')
-%annotation('textbox', [0.28, 0.128, 0, 0], 'string', 'VPIphotonics')
-
+% Osnr01Matlab = EDFA.Nucleo1.signal.Potencia_dBm.LP_01 - Pap.LP_01;
+% NF01Matlab = Osnr01Matlab(:,2) - Osnr01Matlab(:,end);
+% Osnr11aMatlab = EDFA.Nucleo1.signal.Potencia_dBm.LP_11_a - Pap.LP_11_a;
+% NF11aMatlab = Osnr11aMatlab(:,2) - Osnr11aMatlab(:,end);
+% 
+% 
+% for i=1:50
+%     Osnr01VPI(:,i) = vpiedfamm.axialdist.Sig.LP_01(:,i) - vpiedfamm.axialdist.ASE.LP_01(:,i+3);
+%     Osnr11aVPI(:,i) = vpiedfamm.axialdist.Sig.LP_11a(:,i) - vpiedfamm.axialdist.ASE.LP_11a(:,i+3);
+% end
+% NF01VPI = Osnr01VPI(3,:) - Osnr01VPI(end,:);
+% NF11aVPI = Osnr11aVPI(3,:) - Osnr11aVPI(end,:);
+% 
+% plot(DAT(:,1).*1e9 , NF01Matlab , "DisplayName" , "Matlab LP01" ) , hold on
+% plot(DAT(:,1).*1e9 , NF11aMatlab , "DisplayName" , "MatlabLP11a" )
+% 
+% set(gca,'ColorOrderIndex',1,'FontSize',8)
+% 
+% plot(DAT(:,1).*1e9 , NF01VPI , "DisplayName" , "VPIphotonics LP01" , LineStyle="--"  )
+% plot(DAT(:,1).*1e9 , NF11aVPI , "DisplayName" , "VPIphotonics LP11a" , LineStyle="--"  )
+% 
+% legend('Location', 'southoutside','Orientation','horizontal','Box','off', "NumColumns" , 2,'FontSize',9)
+% xlabel('Longitud de Onda [nm]','FontSize',14) ; ylabel('NF [dB]','FontSize',14); title('Figura de Ruido','FontSize',14)
+% %ylim([8 15])
+% 
+% for i=1:length(NF01VPI)
+%     DiffNF01(1,i) = (abs(NF01VPI(i) - NF01Matlab(i)));
+%     DiffNF01(2,i) = DAT(i,1);
+%     DiffNF11(1,i) = (abs(NF11aVPI(i) - NF11aMatlab(i)));
+%     DiffNF11(2,i) = DAT(i,1);
+% end
+% 
+% annotation('textbox', [0.28, 0.148, 0, 0], 'string', 'Matlab')
+% annotation('textbox', [0.28, 0.128, 0, 0], 'string', 'VPIphotonics')
+% ylim([10 15])
 
 
 %% N1 y N2
@@ -289,8 +289,15 @@ end
 % legend('Location', 'southoutside','Orientation','horizontal','Box','off', "NumColumns" , 1,'FontSize',9)
 % xlabel('Posición Axial [m]','FontSize',14) ; ylabel('Cantidad de Iones','FontSize',14); title('Distribución Axial de Densidades Poblacionenales de Iones','FontSize',14)
 
+% %% Inversion Fraccional
+load("VPI_InversionFraction.mat")
 
-
+% plot(z,(EDFA.Nucleo1.N2./EDFA.Nucleo1.Nt)*100 , "DisplayName" , "Matlab") ; hold on
+% plot(VPI_InversionFraction(:,1),VPI_InversionFraction(:,2) , "DisplayName" , "VPIphotonics")
+% set(gca,'ColorOrderIndex',1,'FontSize',8)
+% 
+% legend('Location', 'southoutside','Orientation','horizontal','Box','off', "NumColumns" , 1,'FontSize',9)
+% xlabel('Posición Axial [m]','FontSize',14) ; ylabel('Iones Excitados (N2) [%]','FontSize',14); title('Distribución Axial de Iones Excitados','FontSize',14)
 
 
 %% Cargar resultado vpi.. desde columna ec
