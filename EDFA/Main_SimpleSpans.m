@@ -1,84 +1,77 @@
-% Simulador EDFA MM
-close all; 
-clear all; clc
+% close all; 
+clear all; clc ; close all
 
-%% Parámetros de entrada
+% Parámetros de entrada
 
-    % Señal : Modos y Canales
-NCh = 30;
-%Signal.modos = ["01" "11_a" "11_b" "02" "21_a" "21_b" "32"] ;
-Signal.modos = ["01" "11_a" "11_b"] ;
+    % Modos y canales de señal y bombeo
+signal.NumberOfChannels=20;
+signal.modos = ["01" "11_a"] ;
+% Ejemplo Pump01 - channels 20
+%Frequency_gridS=linspace(191.07234e12,196.7723e12,signal.NumberOfChannels);
+% Ejemplo Pump12 - channels 50
+Frequency_gridS=linspace(191.19421875e12,193.64421875e12,signal.NumberOfChannels);
+c=299.792458e6; % [m/s]
+Wavelength_gridS=c./Frequency_gridS;
 
-Signal.lambda.LP_01     = linspace(1524.6e-9,1570.1e-9,NCh);        P0_signal.LP_01     = -15*ones(1,length(Signal.lambda.LP_01));
-Signal.lambda.LP_11_a   = linspace(1524.6e-9,1570.1e-9,NCh);        P0_signal.LP_11_a   = -15*ones(1,length(Signal.lambda.LP_11_a));
-Signal.lambda.LP_11_b   = linspace(1524.6e-9,1570.1e-9,NCh);        P0_signal.LP_11_b   = -15*ones(1,length(Signal.lambda.LP_11_b));
-Signal.lambda.LP_11     = [1550e-9];                                P0_signal.LP_11     = -15*ones(1,length(Signal.lambda.LP_11));
-Signal.lambda.LP_02     = [1550e-9];                                P0_signal.LP_02     = -15*ones(1,length(Signal.lambda.LP_02));
-Signal.lambda.LP_21_a   = [1550e-9];                                P0_signal.LP_21_a   = -15*ones(1,length(Signal.lambda.LP_21_a));
-Signal.lambda.LP_21_b   = [1550e-9];                                P0_signal.LP_21_b   = -15*ones(1,length(Signal.lambda.LP_21_b));
-Signal.lambda.LP_23     = linspace(1524.6e-9,1570.1e-9,20);         P0_signal.LP_23     = -15*ones(1,length(Signal.lambda.LP_23));
-Signal.lambda.LP_12_a   = [1550e-9];                                P0_signal.LP_12_a   = -15*ones(1,length(Signal.lambda.LP_12_a));
-Signal.lambda.LP_12_b   = [1550e-9];                                P0_signal.LP_12_b   = -15*ones(1,length(Signal.lambda.LP_12_b));
-Signal.lambda.LP_31_a   = [1550e-9];                                P0_signal.LP_31_a   = -15*ones(1,length(Signal.lambda.LP_31_a));
-Signal.lambda.LP_31_b   = [1550e-9];                                P0_signal.LP_31_b   = -15*ones(1,length(Signal.lambda.LP_31_b));
-Signal.lambda.LP_32   = [1550e-9];                                P0_signal.LP_32   = -15*ones(1,length(Signal.lambda.LP_31_b));
+Pin=0; %[dBm]
 
-    % Bombeo : Modos y Canales
-Pump.modos = ["01" ]   ;
+signal.lambda.LP_01     = Wavelength_gridS;                                  P0_signal.LP_01     = Pin*ones(1,length(signal.lambda.LP_01));
+signal.lambda.LP_11_a   = Wavelength_gridS;                                  P0_signal.LP_11_a   = Pin*ones(1,length(signal.lambda.LP_11_a));
 
-Pump.lambda.LP_01   = [980e-9];                                 P0_pump.LP_01   = [250e-3]  ;  
-Pump.lambda.LP_11_a = [980e-9];                                 P0_pump.LP_11_a = [150e-3] ;  
-Pump.lambda.LP_11_b = [980e-9];                                 P0_pump.LP_11_b = [150e-3]  ;
-Pump.lambda.LP_11   = [980e-9];                                 P0_pump.LP_11   = [150e-3]  ;
-Pump.lambda.LP_14   = [980e-9];                                 P0_pump.LP_14   = [150e-3]  ;
-Pump.lambda.LP_02   = [980e-9];                                 P0_pump.LP_02   = [40e-3]  ;
-Pump.lambda.LP_21   = [980e-9];                                 P0_pump.LP_21   = [1000e-3]  ;
-Pump.lambda.LP_21_a = [980e-9];                                 P0_pump.LP_21_a = [110e-3]  ;
-Pump.lambda.LP_21_b = [980e-9];                                 P0_pump.LP_21_b = [115e-3]  ;
-Pump.lambda.LP_12_a = [980e-9];                                 P0_pump.LP_12_a = [590e-3]  ;
-Pump.lambda.LP_12_b = [980e-9];                                 P0_pump.LP_12_b = [590e-3]  ;
-Pump.lambda.LP_31_a = [980e-9];                                 P0_pump.LP_31_a = [180e-3]  ;
-Pump.lambda.LP_31_b = [980e-9];                                 P0_pump.LP_31_b = [190e-3]  ;
-Pump.lambda.LP_12_a = [980e-9];                                 P0_pump.LP_12_a = [250e-3 250e-3]  ;
-Pump.lambda.LP_22_a = [980e-9];                                 P0_pump.LP_22_a = [110e-3]  ;
-Pump.lambda.LP_22_b = [980e-9];                                 P0_pump.LP_22_b = [115e-3]  ;
-Pump.lambda.LP_42_a = [980e-9];                                 P0_pump.LP_42_a = [250e-3 250e-3]  ;
+pump.modos = "12_a" ;
+Wavelength_gridP=980e-9;
+Ppump= 1000e-3; %[W]
+
+pump.lambda.LP_12_a   = Wavelength_gridP;                         P0_pump.LP_12_a   = Ppump  ;  
+
+ModoS=strcat("LP_",signal.modos(:));
+ModoP=strcat("LP_",pump.modos(:));
+
 
     % POTENCIAS
 
-for i=1:length(Signal.modos)        % Potencia: W -> mW
-    for j=1:length( P0_signal.(strcat("LP_",Signal.modos(i))) )
-        P0_signal.( strcat("LP_",Signal.modos(i) ) )(j) = 1e-3*10^(P0_signal.( strcat("LP_",Signal.modos(i) ) )(j)/10);
+for i=1:length(signal.modos)        % Potencia de señal a W
+    for j=1:length(P0_signal.(ModoS(i)))
+        P0_signal.(ModoS(i))(j) = 1e-3*10^(P0_signal.(ModoS(i))(j)/10);
     end
 end ;clear i j;
-Signal.P0 = P0_signal; 
-Pump.P0 = P0_pump;
-ASE = -200;                                                  %dBm  -50
-Signal.NumberOfChannels=NCh;
+signal.P0 = P0_signal; 
+pump.P0 = P0_pump;
+h=6.62607015*10^(-34);
+P.Np=2; 
+P.Fc=c/Wavelength_gridS(ceil(length(Wavelength_gridS)/2)); P.Fb = 50e9; 
+ASE= -200;
 
     % Datos de la fibra
+fibra.nucleos = 1;                                           % Numero de nucleos
+fibra.largo = 5; fibra.radio = 5.5e-6 ; fibra.N = 7e24; 
+fibra.n1 = 1.45 ;   fibra.IndexContrast=0.01;
+fibra.AN=fibra.n1*sqrt(2*fibra.IndexContrast);
+fibra.n2 =sqrt((fibra.n1^2-fibra.AN^2));
 
-Fibra.nucleos = 1;                                           % Numero de nucleos
-Fibra.largo = 15     ; Fibra.radio = 5e-6   ; Fibra.N = 7e24; % fibra.N = 3e24; 
+fibra.dvk=P.Fb;
 
-Fibra.dvk=300e9;
-Signal.NumberOfChannels=30;
-
-
-Fibra.n1 = 1.45 ;   
-Fibra.n2 = 1.4354 ;
-%Fibra.dvk= P.OpticalBW; % diferencia : max_lambda - min_lambda 
-
-Fibra.WaitBar = 1; Fibra.Avance = 1;    % Despliegue de info
-Fibra.ASEFlag = 0;                      % 1 : Evita Calculo Espectro ASE ; 0 : Lo Calcula (lento)
-
+fibra.WaitBar = 1; fibra.Avance = 1;    % Despliegue de info
+fibra.ASEFlag = 1;                      % 1 : Evita Calculo Espectro ASE ; 0 : Lo Calcula (lento)
 
 %%
 tic;
-%EDFA = EDFA_MM(fibra,signal,pump,ASE);         % Sin efecto acomplamiento de Potencia intermodal
-EDFA = EDFA_MMvPCCv3(Fibra,Signal,Pump,ASE);      % Con efecto acomplamiento de Potencia intermodal
+EDFA = EDFA_MMvpi2(fibra,signal,pump,ASE);%EDFA_MMvPCCv3(fibra,signal,pump,ASE);
+% EDFA = EDFA_MM(fibra,signal,pump,ASE); %197.82 segundos
 t_end = toc; fprintf('Tiempo de cómputo: %.2f segundos\n', t_end);
 
+
+SPAN.EDFA = EDFA;
+
+%% Iterar en varios Spans de figra
+Nspans = 3;
+LargoFibra = 100;        % [km]
+alpha = 0.2*ones(length(Wavelength_gridS),1);               % [Np/km]
+Att = -alpha*LargoFibra;
+
+
+%for i=1:Nspans
+P0_signal.LP_01     = Pin*ones(1,length(signal.lambda.LP_01));
 
     %% Graficos
 
