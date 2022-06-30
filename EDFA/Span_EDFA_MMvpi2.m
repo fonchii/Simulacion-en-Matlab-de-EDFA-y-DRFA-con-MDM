@@ -1,4 +1,4 @@
-function edfa = EDFA_MMvpi2(fibra,signal,pump,ASE)
+function edfa = Span_EDFA_MMvpi2(fibra,signal,pump,ASE)
 % Datos de entrada:
 % signal (struct)
 %       signal.lambda -> int [nm]
@@ -47,7 +47,7 @@ ModoP=strcat("LP_",pump.modos(:));
 Smod = length(signal.modos);            % N° de modos de señal
 Pmod = length(pump.modos);              % N° de modos de bombeo
 
-P_ase0 = 1e-3*10.^(ASE/10);             % Potencia ASE entrada en Watts
+P_ase0 = ASE;             % Potencia ASE entrada en Watts
 
 % %   Espectros emision y absorción
 
@@ -364,7 +364,7 @@ for n = 1:1:Sch     % Iteración en nucleos
 %                             lambda_s = signal.lambda.(ModoS(s));
 %                             Gamma_s = gamma_s.(ModoS(s)){i};
 %                             v_s = c./lambda_s;
-                            Pap.(ModoS(s))(i,z) = P_ase0;% + ((N2(z,:)*sigma_ems(lambda_s(i))-N1(z,:)*sigma_abs(lambda_s(i)))*Gamma_s*P_ase0 + 2*N2(z,:)*sigma_ems(lambda_s(i))*Gamma_s*h*v_s(i)*d_vk)*del_z/(1+P_ase0/Psat);
+                            Pap.(ModoS(s))(i,z) = P_ase0.(ModoS(s))(i);% + ((N2(z,:)*sigma_ems(lambda_s(i))-N1(z,:)*sigma_abs(lambda_s(i)))*Gamma_s*P_ase0 + 2*N2(z,:)*sigma_ems(lambda_s(i))*Gamma_s*h*v_s(i)*d_vk)*del_z/(1+P_ase0/Psat);
                         end
                     else
                         for i = 1:1:Nwl
@@ -396,6 +396,7 @@ for n = 1:1:Sch     % Iteración en nucleos
                     Pase.(ModoS(s))(:,z) = Pap.(ModoS(s))(:,z);%+Pan.(ModoS(s))(:,z);
                 end
                 clc
+                fprintf("Span %.0f de %.0f \n",fibra.span,fibra.Nspans)
                 fprintf('%.2f %% \n' ,  (z/Nz)*(1/QQ)* 100 + ((Q-1)/QQ) * 100  ) % Mostrar % de avance del cálculo
 
 
@@ -586,7 +587,7 @@ for n = 1:1:Sch     % Iteración en nucleos
 %                             lambda_s = signal.lambda.(ModoS(s));
 %                             v_s = c./lambda_s;
 %                             Gamma_s = gamma_s.(ModoS(s)){i};
-                            Pap.(ModoS(s))(i,z) = P_ase0;% + ((N2(z,:)*sigma_ems(lambda_s(i)) - N1(z,:)*sigma_abs(lambda_s(i)))*Gamma_s*P_ase0 + 2*N2(z,:)*sigma_ems(lambda_s(i))*Gamma_s*h*v_s(i)*d_vk)*del_z/(1+P_ase0/Psat);
+                            Pap.(ModoS(s))(i,z) = P_ase0.(ModoS(s))(i);% + ((N2(z,:)*sigma_ems(lambda_s(i)) - N1(z,:)*sigma_abs(lambda_s(i)))*Gamma_s*P_ase0 + 2*N2(z,:)*sigma_ems(lambda_s(i))*Gamma_s*h*v_s(i)*d_vk)*del_z/(1+P_ase0/Psat);
                         end
                     else
                         parfor i = 1:1:Nwl
@@ -619,7 +620,7 @@ for n = 1:1:Sch     % Iteración en nucleos
 %                             lambda_s = signal.lambda.(ModoS(s));
 %                             v_s = c./lambda_s;
 %                             Gamma_s = gamma_s.(ModoS(s)){i};
-                            Pan.(ModoS(s))(i,Nz-z+1) = P_ase0;%+((N2(Nz-z+1,:)*sigma_ems(lambda_s(i))-N1(Nz-z+1,:)*sigma_abs(lambda_s(i)))*Gamma_s* P_ase0 + 2*N2(Nz-z+1,:)*sigma_ems(lambda_s(i))*Gamma_s*h*v_s(i)*d_vk)*(-1*del_z)/(1+P_ase0/Psat);
+                            Pan.(ModoS(s))(i,Nz-z+1) = P_ase0.(ModoS(s))(i);%+((N2(Nz-z+1,:)*sigma_ems(lambda_s(i))-N1(Nz-z+1,:)*sigma_abs(lambda_s(i)))*Gamma_s* P_ase0 + 2*N2(Nz-z+1,:)*sigma_ems(lambda_s(i))*Gamma_s*h*v_s(i)*d_vk)*(-1*del_z)/(1+P_ase0/Psat);
                         end
                     else
                         parfor i = 1:1:Nwl
@@ -646,6 +647,7 @@ for n = 1:1:Sch     % Iteración en nucleos
                     Pase.(ModoS(s))(:,z) = Pap.(ModoS(s))(:,z);%+Pan.(ModoS(s))(:,z);
                 end
                 clc
+                fprintf("Span %.0f de %.0f \n",fibra.span,fibra.Nspans)
                 fprintf('%.2f %% \n' ,  (z/Nz)*(1/QQ)* 100 + ((Q-1)/QQ) * 100 ) % Mostrar % de avance del cálculo
 
             end % fin iteraciones en largo de fibra
@@ -659,7 +661,7 @@ for n = 1:1:Sch     % Iteración en nucleos
         Nch_ase=length(lambda_ase);
         for z = 1:Nz
             for s = 1:1:Smod
-                P_ase0_sp = P_ase0;
+                P_ase0_sp = mean(P_ase0.(ModoS(s))); % Toma un promedio
                 Gamma_s=sum(cell2mat(gamma_s.(ModoS(s))))/length(cell2mat(gamma_s.(ModoS(s))));
                 v_s_sp=frequency_ase;
                 if(z == 1)
@@ -786,7 +788,7 @@ for n = 1:1:Sch     % Iteración en nucleos
 
         sdm.(ch).salida.ganancias.(ModoS(s)) = gain.(ModoS(s));
         %sdm.(ch).NF.(ModoS(s)) = OSNR.(ModoS(s))(:,1)./OSNR.(ModoS(s))(:,end);
-        sdm.(ch).NF.(ModoS(s)) = OSNR.(ModoS(s))(:,2) - OSNR.(ModoS(s))(:,end);
+        sdm.(ch).NF.(ModoS(s)) = OSNR.(ModoS(s))(:,1) - OSNR.(ModoS(s))(:,end);
     end
 
     sdm.(ch).signal.lambdas = lambda_s ; sdm.(ch).pump.lambdas = lambda_p;
