@@ -43,22 +43,20 @@ P.Fc=c/Wavelength_gridS(ceil(length(Wavelength_gridS)/2)); P.Fb = 50e9;
 ASE= -200;
 
     % Datos de la fibra
-fibra.nucleos = 1;                                           % Numero de nucleos
-fibra.largo = 5; fibra.radio = 5.5e-6 ; fibra.N = 7e24; % fibra.N = 3e24; 
-%fibra.AN = 0.2;   %fibra.AN = 0.2 ; %fibra.AN=sqrt(fibra.n1^2-fibra.n2^2);
+fibra.nucleos = 1;
+fibra.largo = 5; fibra.radio = 5.5e-6 ; fibra.N = 7e24; 
 fibra.n1 = 1.45 ;   fibra.IndexContrast=0.01;
 fibra.AN=fibra.n1*sqrt(2*fibra.IndexContrast);
 fibra.n2 =sqrt((fibra.n1^2-fibra.AN^2));
-%fibra.M = 10; fibra.Nalpha = inf; % Iteraciones Radiales.
 fibra.dvk=P.Fb;
+fibra.PumpMode = "reverse";
 
 fibra.WaitBar = 1; fibra.Avance = 1;    % Despliegue de info
 fibra.ASEFlag = 1;                      % 1 : Evita Calculo Espectro ASE ; 0 : Lo Calcula (lento)
 
 %%
 tic;
-EDFA = EDFA_MMvpi2(fibra,signal,pump,ASE);%EDFA_MMvPCCv3(fibra,signal,pump,ASE);
-%EDFAv3 = EDFA_MMvPCCv3(fibra,signal,pump,ASE);
+EDFA = EDFA_ReversePump_MMvPCCv3(fibra,signal,pump,ASE);
 t_end = toc; fprintf('Tiempo de cómputo: %.2f segundos\n', t_end);
 
 

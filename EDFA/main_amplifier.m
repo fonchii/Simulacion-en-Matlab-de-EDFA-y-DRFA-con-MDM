@@ -77,6 +77,7 @@ Fibra.ASEFlag = 0;                      % 1 : Evita Calculo Espectro ASE ; 0 : L
 tic;
 %EDFA = EDFA_MM(fibra,signal,pump,ASE);         % Sin efecto acomplamiento de Potencia intermodal
 EDFA = EDFA_MMvPCCv3(Fibra,Signal,Pump,ASE);      % Con efecto acomplamiento de Potencia intermodal
+EDFAVPI= EDFA_MMvpi2(Fibra,Signal,Pump,ASE);
 t_end = toc; fprintf('Tiempo de cómputo: %.2f segundos\n', t_end);
 
 

@@ -1,4 +1,4 @@
-function edfa = EDFA_MMvPCCv3(Fibra,Signal,Pump,ASE)
+function edfa = EDFA_ReversePump_MMvPCCv3(Fibra,Signal,Pump,ASE)
 % Datos de entrada:
 % signal (struct)
 %       signal.lambda -> int [nm]
@@ -72,34 +72,7 @@ for i=1:length(ModoP)
     A_p.(ModoP(i)) = pi*Fibra.radio^2 ;                               % Area efectiva para bombeo
 end
 
-% De Paper ó VPIphotonics 
-% Para radio=10e-6 y AN=0.2
-%A_s.LP_01=80e-12; A_s.LP_11_a=76e-12; A_s.LP_11_b=76e-12; A_s.LP_02=83e-12; A_s.LP_21_a=86e-12; A_s.LP_21_b=86e-12;
-%A_p.LP_01=80e-12; A_p.LP_11_a=76e-12; A_p.LP_11_b=76e-12; A_p.LP_02=83e-12; A_p.LP_21=86e-12;
-% Para radio=6e-6 y AN=0.2
-% A_s.LP_01=80e-12; A_s.LP_11_a=76e-12; A_s.LP_11_b=76e-12; A_s.LP_02=83e-12; A_s.LP_21_a=86e-12; A_s.LP_21_b=86e-12;
-% A_p.LP_01=80e-12; A_p.LP_11_a=76e-12; A_p.LP_11_b=76e-12; A_p.LP_02=83e-12; A_p.LP_21=86e-12;
 sdm = struct;
-
-% % Calculo de Gammas
-% warning('off')
-% 
-% for p = 1:1:length(Pump.modos) % Mode overlap factor for pump; entre modo y perfil de dopaje (uniforme)
-%     Nwlp = length(Pump.lambda.(ModoP(p)));
-%     for i=1:1:Nwlp % Cada longitud de onda del modo p
-%         lambda_p = Pump.lambda.(ModoP(p));
-%         [gamma_p.(ModoP(p)){i},beta0_p.(ModoP(p)){i}] = norm_intensity(Fibra,Pump.modos(p),lambda_p(i));
-%     end
-% end
-% 
-% for s = 1:1:length(Signal.modos) % Mode overlap factor for signal entre modo y perfil de dopaje
-%     Nwl = length(Signal.lambda.(ModoS(s)));
-%     for i=1:1:Nwl % Cada longitud de onda del modo s
-%         lambda_s = Signal.lambda.(ModoS(s));
-%         [gamma_s.(ModoS(s)){i},beta0_s.(ModoS(s)){i}] = norm_intensity(Fibra,Signal.modos(s),lambda_s(i)) ; 
-%     end
-% end
-% warning('on')
 
 % Calculo de Gammas
 warning('off')
