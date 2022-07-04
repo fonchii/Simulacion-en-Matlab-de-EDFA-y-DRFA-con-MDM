@@ -175,12 +175,6 @@ for n = 1:1:Sch     % Iteración en nucleos
     ASE_Spectrum = [];
 
     % Calculo de densidades de iones en estado basal y excitado (N1 y N2)
-    sig_xx = 0;
-    sig_yy = 0;                    % Inicialización de variables
-    ase_xx = 0;
-    ase_yy = 0;
-    pmp_xx = 0;
-    pmp_yy = 0;
 
     z_waitbar = waitbar(0 ,'','Name',"Cálculo a lo largo del EDFA: " , 'Visible', 'off') ;
     QQ = 3; % Iteraciones para aumentar precisión
