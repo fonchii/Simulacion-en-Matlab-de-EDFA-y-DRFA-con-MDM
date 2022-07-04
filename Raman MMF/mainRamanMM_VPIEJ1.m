@@ -7,7 +7,7 @@ In.Fibra.RamanMethod              = 'Forward';                   % 'Forward', 'B
 In.Fibra.AttenuationMethod        = 'Static';                    % 'Dynamic' , 'Static'
 In.Fibra.Length                   = 100;                          % fibre length (km)
 In.Fibra.T                        = 25;                           % Temperatura Fibra (ambiente)
-In.Fibra.PolarizationFactor       = 0.5;                          % C_R_max
+In.Fibra.PolarizationFactor       = 0.7;                          % C_R_max
 In.Fibra.n1=1.47;  In.Fibra.n2=1.42; In.Fibra.radio=5.04626e-6;
 
 % BOMBEOS : 

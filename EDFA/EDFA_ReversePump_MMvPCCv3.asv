@@ -138,7 +138,6 @@ for n = 1:1:Sch     % Iteración en nucleos
     
     for p = 1:length(ModoP)
         Ppp.(ModoP(p)) = zeros(length(Pump.lambda.(ModoP(p))) , Nz);                            % Potencia de bombeo en dirección +z
-        Ppp.(ModoP(p))(:,end) = P_p0.(ModoP(p))(:);
     end
     OSNR = [];                          % Relacion señal a ruido
     gain = [];
@@ -148,11 +147,11 @@ for n = 1:1:Sch     % Iteración en nucleos
     ASE_Spectrum = [];
 
     z_waitbar = waitbar(0 ,'','Name',"Cálculo a lo largo del EDFA: " , 'Visible', 'off') ;
-    QQ = 5; % Iteraciones para aumentar precisión
+    QQ = 3; % Iteraciones para aumentar precisión
     for Q = 1:QQ
         if (Q == 1) % Primera iteracion no calcula ASE en direccion -z
 
-            for z = Nz:-1:1 % Una Iteracion de solo Bombeo en sentido -z
+            for z = Nz:1 % Una Iteracion de solo Bombeo en sentido -z
                 % Primera Iteración
                 sig_xx = 0;
                 sig_yy = 0;                    % Inicialización de variables
@@ -161,7 +160,7 @@ for n = 1:1:Sch     % Iteración en nucleos
                 pmp_xx = 0;
                 pmp_yy = 0;
 
-                if(z == Nz)
+                if(z == 1)
                     % Potencia Bombeo
                     parfor p = 1:Pmod
                         Nwlp = length(Pump.lambda.(ModoP(p)));
@@ -197,7 +196,7 @@ for n = 1:1:Sch     % Iteración en nucleos
                 for p = 1:1:Pmod      % Iteracion en cada modo de bombeo
                     Nwlp = length(Pump.lambda.(ModoP(p)));
                     lambda_p = Pump.lambda.(ModoP(p));
-                    if(z == Nz)
+                    if(z == 1)
                         parfor i = 1:Nwlp
                             Pp0 = P_p0.(ModoP(p))(i);
                             PppAux(i) = Pp0 
@@ -235,7 +234,7 @@ for n = 1:1:Sch     % Iteración en nucleos
                 
                 
                 if(z == 1)
-                     % Potencia Bombeo
+%                     % Potencia Bombeo
                     parfor p = 1:Pmod
                         Nwlp = length(Pump.lambda.(ModoP(p)));
                         lambda_p = Pump.lambda.(ModoP(p)); v_p = c./lambda_p;
@@ -531,7 +530,7 @@ for n = 1:1:Sch     % Iteración en nucleos
                     else
                         parfor i = 1:Nwlp
                             Gamma_p = gamma_p.(ModoP(p)){i};
-                            PppAux(i) = Ppp.(ModoP(p))(i,Nz-z+2) + ((N2(Nz-z+2))*sigma_ems(lambda_p(i)) - (N1(Nz-z+2))*sigma_abs(lambda_p(i)))*Gamma_p*Ppp.(ModoP(p))(i,Nz-z+2)*del_z;
+                            PppAux(i) = Ppp.(ModoP(p))(i,Nz-z+1) + ((N2(Nz-z+1))*sigma_ems(lambda_p(i)) - (N1(Nz-z+1))*sigma_abs(lambda_p(i)))*Gamma_p*Ppp.(ModoP(p))(i,Nz-z)*del_z;
                         end
                         Ppp.(ModoP(p))(:,Nz-z+1) = PppAux(:);
                     end

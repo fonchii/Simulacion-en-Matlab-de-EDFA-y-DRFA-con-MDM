@@ -21,7 +21,7 @@ RamanVPIE1.NF = Ejemplo1RamanVPI(:,8);
 RamanVPIE1.GainOnOff= Ejemplo1RamanVPI(:,9);
 
 
-load("Raman_Matlab_EJ1.mat")
+load("Raman_Matlab_EJ1_Gain3.mat")
 %load("Raman_Matlab_EJ1_Gain3.mat")
 plot(RamanVPIE1.GainOnOff) ; hold on
 plot(Raman.Sig.GainOnOFF.LP01)
@@ -82,11 +82,6 @@ plot(Raman.Sig.GainOnOFF.LP01)
 
 
 %% Propagación
-
-load('VPI_EDFAmmDifPump_axialdist.mat') 
-load("MatlabS01.mat")
-load("MatlabS11_a.mat")
-load("MatlabEDFA_Pump12a.mat")
 
 % % %              Propagación SEÑAL LP01
 
@@ -202,12 +197,6 @@ load("MatlabEDFA_Pump12a.mat")
 
 %               Propagación ASE + -
 
-Pan = EDFA.Nucleo1.Pan;
-Pap = EDFA.Nucleo1.Pap;
-Pase = EDFA.Nucleo1.Pase;
-
-z = linspace(0,5,length(S01(1,:)));
-zvpi = linspace(0,5,length(vpiedfamm.axialdist.Sig.LP_01(:,1)));
 
 % %% LP01
 % % ASE+ Matlab
@@ -247,8 +236,8 @@ zvpi = linspace(0,5,length(vpiedfamm.axialdist.Sig.LP_01(:,1)));
 
 % % % NF Y OSNR
  
-Pan = EDFA.Nucleo1.Pan;
-Pap = EDFA.Nucleo1.Pap;
+% Pan = EDFA.Nucleo1.Pan;
+% Pap = EDFA.Nucleo1.Pap;
 %Pase = EDFA.Nucleo1.Pase;
 
 % Osnr01Matlab = EDFA.Nucleo1.signal.Potencia_dBm.LP_01 - Pap.LP_01;
@@ -298,7 +287,6 @@ Pap = EDFA.Nucleo1.Pap;
 % xlabel('Posición Axial [m]','FontSize',14) ; ylabel('Cantidad de Iones','FontSize',14); title('Distribución Axial de Densidades Poblacionenales de Iones','FontSize',14)
 
 % %% Inversion Fraccional
-load("VPI_InversionFraction.mat")
 
 % plot(z,(EDFA.Nucleo1.N2./EDFA.Nucleo1.Nt)*100 , "DisplayName" , "Matlab") ; hold on
 % plot(VPI_InversionFraction(:,1),VPI_InversionFraction(:,2) , "DisplayName" , "VPIphotonics")
