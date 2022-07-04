@@ -62,78 +62,102 @@ t_end = toc; fprintf('Tiempo de cómputo: %.2f segundos\n', t_end);
 
 
     %% Graficos
+% SAVE:
+set( gcf,'PaperSize',[29.7 21.0], 'PaperPosition',[0 0 29.7 21.0])
+print -dpdf 'NAME'
+
 
 close all 
 Nc = length(fieldnames(EDFA)); 
 z = EDFA.(strcat('Nucleo',int2str(1))).z;
 xlab = 'Posición en fibra [m]'; ylab = 'Potencia [dBm]';
-for n = 1:Nc
-    figure(n)
-    
-    % Señal
-    for s = 1:length(signal.modos) % Grafico
-        graf.signal = EDFA.(strcat("Nucleo",int2str(n))).signal.Potencia_dBm;
-        grafReverse.signal = EDFA_RP.(strcat("Nucleo",int2str(n))).signal.Potencia_dBm;
-        subplot 121
-        if length(signal.lambda.LP_01)>6
-            var = 2;
-            for f = 0:6
-                plot(z , graf.signal.(strcat("LP_",signal.modos(s)))(1+var*f,:) , 'DisplayName', strcat("LP",signal.modos(s)," @",int2str(signal.lambda.(strcat("LP_",signal.modos(s)))(1+var*f)*1e9) ,' nm') ) ; 
-                hold on ; xlabel(xlab) ; ylabel(ylab); title('Distribución Axial de la Señal') ; legend(); grid on ; legend('location', 'best');
-                plot(z , grafReverse.signal.(strcat("LP_",signal.modos(s)))(1+var*f,:) , 'DisplayName', strcat("LP",signal.modos(s)," @",int2str(signal.lambda.(strcat("LP_",signal.modos(s)))(1+var*f)*1e9) ,' nm') )
-            end
-            set(gca,"ColorOrderIndex",1)
-            for f = 0:6
-                plot(z , grafReverse.signal.(strcat("LP_",signal.modos(s)))(1+var*f,:) , 'DisplayName', strcat("LP",signal.modos(s)," @",int2str(signal.lambda.(strcat("LP_",signal.modos(s)))(1+var*f)*1e9) ,' nm') )
-            end
-            
-        else
-            for f = 1:length(signal.lambda.LP_01)
-                plot(z , graf.signal.(strcat("LP_",signal.modos(s)))(f,:) , 'DisplayName', strcat("LP",signal.modos(s)," @",int2str(signal.lambda.(strcat("LP_",signal.modos(s)))(f)*1e9) ,' nm') ) ; 
-                hold on ; xlabel(xlab) ; ylabel(ylab); title('Distribución Axial de la Señal') ; legend(); grid on ; legend('location', 'best');
-            end
-            set(gca,"ColorOrderIndex",1)
-            for f = 1:length(signal.lambda.LP_01)
-                plot(z , grafReverse.signal.(strcat("LP_",signal.modos(s)))(f,:) , 'DisplayName', strcat("LP",signal.modos(s)," @",int2str(signal.lambda.(strcat("LP_",signal.modos(s)))(f)*1e9) ,' nm') ) ;
-            end
-        end
-    end
-    
-    % Bombeo
-    for s = 1:length(pump.modos) % Grafico
-        graf.pump = EDFA.(strcat("Nucleo",int2str(n))).pump.Potencia_dBm;
-        grafReverse.pump = EDFA_RP.(strcat("Nucleo",int2str(n))).pump.Potencia_dBm;
-        figure(n)
-        subplot 122
-        for f = 1:length(pump.lambda.(strcat("LP_",pump.modos(s))))
-            plot(z,graf.pump.(strcat("LP_",pump.modos(s)))(f,:) , 'DisplayName', strcat("LP",pump.modos(s)," @",int2str(pump.lambda.(strcat("LP_",pump.modos(s)))(f)*1e9) ,' nm') ) ; 
-            hold on ; xlabel(xlab) ; ylabel(ylab); title('Distribución Axial del Bombeo') ; legend(); grid on
-        end
-        %set(gca,'ColorOrderIndex',1)
-        for f = 1:length(pump.lambda.(strcat("LP_",pump.modos(s))))
-            plot(z,grafReverse.pump.(strcat("LP_",pump.modos(s)))(f,:) , 'DisplayName', strcat("LP",pump.modos(s)," @",int2str(pump.lambda.(strcat("LP_",pump.modos(s)))(f)*1e9) ,' nm' , ' Reverse') )
-        end
-        
-    end
 
-    figure(n+1)
-    % Ganancias
-    for s = 1:length(signal.modos)
-        graf.ganancias = EDFA.(strcat("Nucleo",int2str(n))).salida.ganancias;
-        ejex = signal.lambda.LP_01.*1e9;
-       % ax = subplot (2,2,3);
-        plot(ejex,graf.ganancias.(strcat("LP_",signal.modos(s))) , '-o' , 'DisplayName',strcat("LP",signal.modos(s)) ) ; hold on ; title('Ganancias') ; legend(); grid on ; 
-        xlabel('λ [nm]') ; ylabel(ylab) ; %scatter(ejex,graf.ganancias.(strcat("LP_",signal.modos(s))),'filled', 'DisplayName','') ; ax.ColorOrderIndex = s;
+
+% Señal
+smodos = ["01","11a"];
+for s = 1:length(signal.modos) % Grafico
+
+    figure(s)
+
+    graf.signal = EDFA.("Nucleo1").signal.Potencia_dBm;
+    grafReverse.signal = EDFA_RP.("Nucleo1").signal.Potencia_dBm;
+    var = 2;
+    for f = 0:6
+        plot(z , graf.signal.(strcat("LP_",signal.modos(s)))(1+var*f,:) , 'DisplayName', strcat(int2str(signal.lambda.(strcat("LP_",signal.modos(s)))(1+var*f)*1e9) ,' nm') ) ; 
+        hold on ; 
     end
-    %set(gca,'ColorOrderIndex',1)
-    for s = 1:length(signal.modos)
-        grafReverse.ganancias = EDFA_RP.(strcat("Nucleo",int2str(n))).salida.ganancias;
-        ejex = signal.lambda.LP_01.*1e9;
-       % ax = subplot (2,2,3);
-        plot(ejex,grafReverse.ganancias.(strcat("LP_",signal.modos(s))) , '-o' , 'DisplayName', strcat("LP",signal.modos(s), " Reverse") )
-        xlabel('λ [nm]') ; ylabel(ylab) ; %scatter(ejex,graf.ganancias.(strcat("LP_",signal.modos(s))),'filled', 'DisplayName','') ; ax.ColorOrderIndex = s;
+    set(gca,"ColorOrderIndex",1,'FontSize',8)
+    for f = 0:6
+        plot(z , grafReverse.signal.(strcat("LP_",signal.modos(s)))(1+var*f,:) , 'DisplayName', strcat(int2str(signal.lambda.(strcat("LP_",signal.modos(s)))(1+var*f)*1e9) ,' nm') )
     end
-    
+    xlabel(xlab,'FontSize',14) ; ylabel(ylab,'FontSize',14); title(strcat('Distribución Axial de la Señal LP',smodos(s)),'FontSize',14) ; 
+    legend('Location', 'southoutside','Orientation','horizontal','Box','off', "NumColumns" , 7,'FontSize', 9);
+    annotation('textbox', [0.1254, 0.148, 0, 0], 'string', 'ForwardPump')
+    annotation('textbox', [0.1254, 0.128, 0, 0], 'string', 'BackwardPump')
+end
+
+
+
+% Bombeo
+% for s = 1:length(pump.modos) % Grafico
+%     graf.pump = EDFA.("Nucleo1").pump.Potencia_dBm;
+%     grafReverse.pump = EDFA_RP.(strcat("Nucleo",int2str(n))).pump.Potencia_dBm;
+%     figure(3)
+%     for f = 1:length(pump.lambda.(strcat("LP_",pump.modos(s))))
+%         plot(z,graf.pump.(strcat("LP_",pump.modos(s)))(f,:) , 'DisplayName', strcat("Forward ", int2str(pump.lambda.(strcat("LP_",pump.modos(s)))(f)*1e9) ,' nm') ) ; 
+%         hold on ; 
+%     end
+%     set(gca,'FontSize',8)
+%     for f = 1:length(pump.lambda.(strcat("LP_",pump.modos(s))))
+%         plot(z,grafReverse.pump.(strcat("LP_",pump.modos(s)))(f,:) , 'DisplayName', strcat("Backward " , int2str(pump.lambda.(strcat("LP_",pump.modos(s)))(f)*1e9) ,' nm') )
+%     end
+%     xlabel(xlab,'FontSize', 14) ; ylabel(ylab,'FontSize', 14); title('Distribución Axial del Bombeo LP12a','FontSize', 14) ; 
+%     legend('Location', 'southoutside','Orientation','horizontal','Box','off', "NumColumns" , 2,'FontSize', 9);
+% end
+
+
+% % Ganancias
+% figure(4)
+% for s = 1:length(signal.modos)
+%     graf.ganancias = EDFA.("Nucleo1").salida.ganancias;
+%     ejex = signal.lambda.LP_01.*1e9;
+%     plot(ejex,graf.ganancias.(strcat("LP_",signal.modos(s))) , '-o' , 'DisplayName',strcat("LP",signal.modos(s)) ) ; hold on ;
+% end
+% set(gca,'ColorOrderIndex',1,'FontSize',8)
+% for s = 1:length(signal.modos)
+%     
+%     grafReverse.ganancias = EDFA_RP.("Nucleo1").salida.ganancias;
+%     ejex = signal.lambda.LP_01.*1e9;
+%     plot(ejex,grafReverse.ganancias.(strcat("LP_",signal.modos(s))) , '-*' , 'DisplayName', strcat("Backward Pump " , "LP",signal.modos(s)) )
+%      
+% end
+% title('Ganancias','FontSize',14) ; xlabel('Longitud de Onda [nm]','FontSize',14) ; ylabel("Magnitud [dB]",'FontSize',14) ;
+% legend('Location', 'southoutside','Orientation','horizontal','Box','off', "NumColumns" , 2,'FontSize', 9);
+% 
+% 
+% % Figuras de Ruido
+% figure(n+2+length(signal.modos)-1)
+% for s = 1:length(signal.modos)
+%     graf.NF = EDFA.("Nucleo1").NF;
+%     ejex = signal.lambda.LP_01.*1e9;
+%     plot(ejex,graf.NF.(strcat("LP_",signal.modos(s))) , '-o' , 'DisplayName',strcat("LP",smodos(s)) ) ; hold on ; 
+% end
+% set(gca,'ColorOrderIndex',1,'FontSize',8)
+% for s = 1:length(signal.modos)
+%     grafReverse.NF = EDFA_RP.("Nucleo1").NF;
+%     ejex = signal.lambda.LP_01.*1e9;
+%     plot(ejex,grafReverse.NF.(strcat("LP_",signal.modos(s))) , '-*' , 'DisplayName', strcat( "Backward Pump " ,"LP",smodos(s)) )
+% end
+% legend('Location', 'southoutside','Orientation','horizontal','Box','off', "NumColumns" , 2,'FontSize', 9)
+% title('Figuras de Ruido','FontSize', 14) ; %grid on ; 
+% xlabel('Longitud de Onda [nm]','FontSize', 14) ; ylabel("Magnitud [dB]",'FontSize', 14) ; 
+
+
+
+
+
+
+%%    
 %     % Espectro de ganancia
 %     for ase = 1:length(Signal.modos)
 %         freq_ase = EDFA.(strcat('Nucleo',int2str(n))).ASE_Spectrum.lambdas*1e9;
@@ -143,7 +167,7 @@ for n = 1:Nc
 %         xlabel('Longitud de onda (\lambda) [nm]') ; ylabel(ylab); title('Potencia a la salida del EDFA') ; legend()
 %     end
     
-end
+
 % %% Graficos Modos
 % 
 % % Señal
