@@ -73,12 +73,20 @@ sdm = struct;
 % Calculo de Gammas
 warning('off')
 
+% for p = 1:1:Pmod % Mode overlap factor for pump; entre modo y perfil de dopaje (uniforme)
+%     Nwlp = length(pump.lambda.(ModoP(p)));
+%     for i=1:1:Nwlp % Cada longitud de onda del modo p
+%         lambda_p = pump.lambda.(ModoP(p));
+%         [gamma_p.(ModoP(p)){i},beta0_p.(ModoP(p)){i}] = norm_intensity2(fibra,pump.modos(p),lambda_p(i));
+%         gamma_p.(ModoP(p)){i} = 0.77;
+%     end
+% end
+
 for p = 1:1:Pmod % Mode overlap factor for pump; entre modo y perfil de dopaje (uniforme)
     Nwlp = length(pump.lambda.(ModoP(p)));
     for i=1:1:Nwlp % Cada longitud de onda del modo p
         lambda_p = pump.lambda.(ModoP(p));
-        [gamma_p.(ModoP(p)){i},beta0_p.(ModoP(p)){i}] = norm_intensity2(fibra,pump.modos(p),lambda_p(i));
-        gamma_p.(ModoP(p)){i} = 0.77;
+        [gamma_p.(ModoP(p)){i},beta0_p.(ModoP(p)){i}] = norm_intensity(fibra,pump.modos(p),lambda_p(i));
     end
 end
 

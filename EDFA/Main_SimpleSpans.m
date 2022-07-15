@@ -60,8 +60,16 @@ Fibra.ASEFlag = 1;                      % 1 : Evita Calculo Espectro ASE ; 0 : L
 
 %% Primer Amplificador
 tic;
+
 EDFA = EDFA_MMvpi2(Fibra,Signal,Pump,ASE);%EDFA_MMvPCCv3(fibra,signal,pump,ASE);
-% EDFA = EDFA_MM(fibra,signal,pump,ASE); %197.82 segundos
+
+% for i=1:length(Signal.modos)        % Potencia de señal y ASE a W
+%     Fibra.Nspans = 4;
+%     Fibra.span = 1;
+%     P0_ASE.(ModoS(i)) = (1e-3*10^(( -200 )/10)).*ones(1,Signal.NumberOfChannels);
+% end ;clear i;
+% EDFA = Span_EDFA_MMvpi2(Fibra,Signal,Pump,P0_ASE);
+
 t_end = toc; fprintf('Tiempo de cómputo: %.2f segundos\n', t_end);
 
 

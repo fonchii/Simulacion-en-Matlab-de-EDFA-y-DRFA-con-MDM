@@ -3,17 +3,17 @@ close all ; clc ; clear all
 %% Datos Entrada
 
 % FIBRA
-In.Fibra.RamanMethod              = 'Forward';                   % 'Forward', 'Backward', 'Forward&Backward'
+In.Fibra.RamanMethod              = 'Backward';                   % 'Forward', 'Backward', 'Forward&Backward'
 In.Fibra.AttenuationMethod        = 'Static';                    % 'Dynamic' , 'Static'
 In.Fibra.Length                   = 100;                          % fibre length (km)
 In.Fibra.T                        = 25;                           % Temperatura Fibra (ambiente)
-In.Fibra.PolarizationFactor       = 0.7;                          % C_R_max
-In.Fibra.n1=1.47;  In.Fibra.n2=1.42; In.Fibra.radio=5.04626e-6;
+In.Fibra.PolarizationFactor       = 0.5;                          % C_R_max
+In.Fibra.n1=1.47;  In.Fibra.n2=1.42; In.Fibra.radio=5.04626e-6; In.Fibra.area=pi*(In.Fibra.radio)^2;
 
 % BOMBEOS : 
     % LP01
 In.Pump.LP01.Wavelengths       = 1500 ;                                                    % [nm]
-In.Pump.LP01.Powers            = 300 *1e-3;                                                % [mW]
+In.Pump.LP01.Powers            = 400 *1e-3;                                                % [mW]
 In.Pump.LP01.Alpha             = 0.20; 
 
 
@@ -28,7 +28,7 @@ In.Signal.LP01.Alpha              = 0.2;                                        
 
 
 In.Monomodo = true;
-In.Rayleight = false;
+In.Rayleight = false; In.ase_calc = false;
 
 %% Calculo de amplificación
 tic;
@@ -135,6 +135,13 @@ clear fs fp ms mp i strlambda DispName1 DispName2;
 
 % alp = load('RADynamic_Attenuation.dat');
 % plot(alp(:,1),alp(:,2))
+
+
+% A                   =load('RamanGain3.dat');
+% B                   = load('RamanGains/RamanGain_PSCF.mat'); B = B.RamanGainPSCF;
+% C                   = load('RamanGains/RamanGain_DCF.mat'); C = C.RamanGainDCF;
+% D                   = load('RamanGains/RamanGainSLA.mat'); D = D.RamanGainSLA;
+% plot(A(:,2),"DisplayName","A") ; hold on ; plot(B(:,2),"DisplayName","B") ; plot(C(:,2)./5,"DisplayName","C") ; plot(D(:,2).*1000,"DisplayName","D")  ; legend()
 
 
 %% Otros Archivos

@@ -229,7 +229,7 @@ for i=0:6
     plot(z , Pan.LP_11_a(1+3*i,:) , "DisplayName", strcat(int2str(DAT(1+3*i,1)*1e9) , " nm") ) ; hold on
 end
 
-legend('Location', 'southoutside','Orientation','horizontal','Box','off', "NumColumns" , 7,'FontSize',9)
+legend('Location', 'southoutside','Orientation','horizontal','Box','on', "NumColumns" , 7,'FontSize',9)
 xlabel('Posición Axial [m]','FontSize',14) ; ylabel('Potencia [dBm]','FontSize',14); title('Distribución Axial de Ruido ASE Total en modo LP11a','FontSize',14)
 ylim([-100 -10])
 

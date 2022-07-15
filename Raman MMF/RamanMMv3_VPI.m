@@ -7,8 +7,10 @@ function [Raman] = RamanMMv3_VPI(In)
 % C_R                 = In.Fibra.PolarizationFactor*(g_R)*1000; % Ajuste de polarización y paso a km
 % FF_gR               = A(:,1);
 
-
-A                   = load('RamanGain3.dat');
+A                   =load('RamanGain3.dat');
+%A                   = load('RamanGains/RamanGain_PSCF.mat'); A = A.RamanGainPSCF;
+%A                   = load('RamanGains/RamanGain_DCF.mat'); A = A.RamanGainDCF; A(:,2) = A(:,2)./5;
+%A                   = load('RamanGains/RamanGainSLA.mat'); A = A.RamanGainSLA; A(:,2) = A(:,2).*1000;
 g_R                 = A(:,2);
 C_R                 = In.Fibra.PolarizationFactor*(g_R);
 FF_gR               = A(:,1).*1e12;
@@ -32,6 +34,7 @@ eta_fun = @(lambda)interp1(f,magg,lambda);
 h = 6.6260*10^(-34) ;                                                       % Constante de Planck
 k = 1.380649*10^(-23) ;                                                     % Constante de Boltzmann
 T = In.Fibra.T + 273.15 ;                                                   % Temperatura absoluta de la fibra       
+c = 299792458 ; 
 
 ModoS                           = fieldnames(In.Signal);
 ModoP                           = fieldnames(In.Pump);
@@ -43,7 +46,7 @@ for i=1:length(ModoP)
   % Frecuencias y Wavelengths
     PumpWavelengths.(ModoP{i})  = In.Pump.(ModoP{i}).Wavelengths;
     lambdaP.(ModoP{i})          = ( PumpWavelengths.(ModoP{i}) ) .*1e-9 ;
-    F_p.(ModoP{i})              = 3e8./(lambdaP.(ModoP{i}));
+    F_p.(ModoP{i})              = c./(lambdaP.(ModoP{i}));
   % Potencias
     Ppf0.(ModoP{i})             = In.Pump.(ModoP{i}).Powers;                                % Pump forward powers (W)
     PpbL.(ModoP{i})             = In.Pump.(ModoP{i}).Powers;                                % Pump backward powers (W)
@@ -58,7 +61,7 @@ end
 for i=1:length(ModoS)
   % Frecuencias y Wavelengths
     lambdaS.(ModoS{i})          = (In.Signal.(ModoS{i}).Wavelengths) .*1e-9;
-    F_s.(ModoS{i})              = 3e8./( lambdaS.(ModoS{i})); 
+    F_s.(ModoS{i})              = c./( lambdaS.(ModoS{i})); 
   % Potencias
     Ps0.(ModoS{i})              = 10.^( ((In.Signal.(ModoS{i}).Powers) -30)/10 ) ;          % Total Signal input power (W)
     Ps.(ModoS{i})               = zeros( length(lambdaS.(ModoS{i})), length(Z) );
@@ -106,7 +109,7 @@ if ~Calc_monomodo
         for ms = 1:length(ModoS)
             for p = 1:length( F_p.(ModoP{mp}) )
                 parfor s = 1:length( F_s.(ModoS{ms}) )
-                    lambdas = 3e8 /(F_s.(ModoS{ms})(s)) ; lambdap = 3e8/(F_p.(ModoP{mp})(p)) ;
+                    lambdas = c /(F_s.(ModoS{ms})(s)) ; lambdap = c/(F_p.(ModoP{mp})(p)) ;
                     
                     gRPumpAux(p,s) = Gr_fun( abs(F_p.(ModoP{mp})(p)- F_s.(ModoS{ms})(s)) ) ;
                     gRSignalAux(p,s) = Gr_fun( abs(F_p.(ModoP{mp})(p)-F_s.(ModoS{ms})(s)) ) ;
@@ -125,7 +128,7 @@ else
         for ms = 1:length(ModoS)
             for p = 1:length( F_p.(ModoP{mp}) )
                 parfor s = 1:length( F_s.(ModoS{ms}) )
-                    lambdas = 3e8 /(F_s.(ModoS{ms})(s)) ; lambdap = 3e8/(F_p.(ModoP{mp})(p)) ;
+                    lambdas = c /(F_s.(ModoS{ms})(s)) ; lambdap = c/(F_p.(ModoP{mp})(p)) ;
                     
                     gRPumpAux(p,s) = Gr_fun( abs(F_p.(ModoP{mp})(p)- F_s.(ModoS{ms})(s)) ) ;
                     if isnan(gRPumpAux(p,s))
@@ -152,7 +155,8 @@ if ~(isfield(In,'Rayleight'))
 else
     Calc_Rayleight = true;
 end
-
+ase_calc = In.ase_calc;
+ASE_BW = 6*10^12; %6*10^12; %THz "paper: RAMAN amplifier gain dynamics with ASE"
 %% % Calculo potencias
 
 switch In.Fibra.RamanMethod
@@ -218,21 +222,24 @@ for l = 1:(length(Z)-1)
         for wS = 1:length(lambdaS.(ModoS{ms}))
             p_sum = 0;
             eta_sum = 0;
-            ase_sum = 0;
+            ase_sum = 0; ASE = 0;
             for mp = 1:length(ModoP)
                 p_sum = p_sum + sum( fmn.Signal.(ModoS{ms}).(ModoP{mp})(:,wS) .* gR.Signal.(ModoS{ms}).(ModoP{mp})(:,wS)...
                                     .* ( Pf.(ModoP{mp})(:,l)+Pb.(ModoP{mp})(:,l) ) );
             % Contribución ASE
-                deltaV = abs( 3e8/lambdaP.(ModoP{mp})(:) - 3e8/lambdaS.(ModoS{ms})(wS) ) ; BW = 6*10^12; %THz "paper: RAMAN amplifier gain dynamics with ASE"
+                deltaV = abs( c/lambdaP.(ModoP{mp})(:) - c/lambdaS.(ModoS{ms})(wS) ) ; BW = ASE_BW;%6*10^12; %THz "paper: RAMAN amplifier gain dynamics with ASE"
                 ase_sum = ase_sum + sum(    sum( ( fmn.Signal.(ModoS{ms}).(ModoP{mp})(:,wS) .* gR.Signal.(ModoS{ms}).(ModoP{mp})(:,wS)...
                                     .* ( Pf.(ModoP{mp})(:,l)+Pb.(ModoP{mp})(:,l) ) ) .* (1+(exp(h*deltaV/(k*T))-1).^-1 ) .* BW ) ) ;
             end
-
+            
+            if ase_calc
+                ASE = ase_sum;
+            end
             lambda = lambdaS.(ModoS{ms})(wS); alpS = alphaS.(ModoS{ms})(lambda); if isnan(alpS); alpS = 0; end
-            Ps.(ModoS{ms})(wS,l+1) = Ps.(ModoS{ms})(wS,l) + deltaZ*( -alpS*Ps.(ModoS{ms})(wS,l) + p_sum*Ps.(ModoS{ms})(wS,l) );% + ...
-                                       % ase_sum * h  * ( 3e8/lambdaS.(ModoS{ms})(wS) ) + eta_sum);
+            Ps.(ModoS{ms})(wS,l+1) = Ps.(ModoS{ms})(wS,l) + deltaZ*( -alpS*Ps.(ModoS{ms})(wS,l) + p_sum*Ps.(ModoS{ms})(wS,l)  + ...
+                                        ASE * h  * ( c/lambdaS.(ModoS{ms})(wS) ) + eta_sum);
             Ps.Rayleigh.(ModoS{ms})(wS,l+1) = eta_sum;
-            Ps.ASE.(ModoS{ms})(wS,l+1) = ase_sum * h  * ( 3e8/lambdaS.(ModoS{ms})(wS) );
+            Ps.ASE.(ModoS{ms})(wS,l+1) = ase_sum * h  * ( c/lambdaS.(ModoS{ms})(wS) );
             
         end
     end
@@ -248,7 +255,7 @@ for l = 1:(length(Z)-1)
                     s_sum = s_sum + sum( fmn.Pump.(ModoP{mp}).(ModoS{ms})(wP,:) * gR.Pump.(ModoP{mp}).(ModoS{ms})(wP,:)'...
                                     .* lambdaS.(ModoS{ms})(:).*Ps.(ModoS{ms})(:,l) ) ;
 
-                    deltaV = abs( 3e8/lambdaP.(ModoP{mp})(wP) - 3e8/lambdaS.(ModoS{ms})(:) ) ; BW = 6*10^12; %THz "paper: RAMAN amplifier gain dynamics with ASE"
+                    deltaV = abs( c/lambdaP.(ModoP{mp})(wP) - c/lambdaS.(ModoS{ms})(:) ) ; BW = ASE_BW;%6*10^12; %THz "paper: RAMAN amplifier gain dynamics with ASE"
                     lam = lambdaS.(ModoS{ms})(:)' ;
                     ase_sum = ase_sum + sum(    sum( ( fmn.Pump.(ModoP{mp}).(ModoS{ms})(:,wP) .* gR.Pump.(ModoP{mp}).(ModoS{ms})(:,wP)...
                                         .* ( Pf.(ModoP{mp})(wP,l) )  )  .* (1+(exp(h*deltaV/(k*T))-1).^-1 ) .* lam .* BW ) ) ;
@@ -260,9 +267,11 @@ for l = 1:(length(Z)-1)
                 if Ppbcalc == 1 && AdjIter == true && Calc_Rayleight == true
                     eta_sum = eta_fun(lambda) * ( Pb.(ModoP{mp})(wP,l) );
                 end
-
+                if ase_calc
+                    ASE = ase_sum;
+                end
                 Pf.(ModoP{mp})(wP,l+1) = Pf.(ModoP{mp})(wP,l) + deltaZ*( -alpP*Pf.(ModoP{mp})(wP,l) - (1/lambdaP.(ModoP{mp})(wP))*s_sum*Pf.(ModoP{mp})(wP,l) ...
-                                        + eta_sum) ;%- ase_sum*(1/lambdaP.(ModoP{mp})(wP)) * h  * ( 3e8/lambdaP.(ModoP{mp})(wP) ));  
+                                        + eta_sum - ASE*(1/lambdaP.(ModoP{mp})(wP)) * h  * ( c/lambdaP.(ModoP{mp})(wP) ));  
                 Pf.Rayleigh.(ModoP{mp})(wP,l+1) = eta_sum;
                 
             end
@@ -310,21 +319,24 @@ if AdjIter
                 for wS = 1:length(lambdaS.(ModoS{ms}))
                     p_sum = 0;
                     eta_sum = 0;
-                    ase_sum = 0;
+                    ase_sum = 0; ASE = 0;
                     for mp = 1:length(ModoP)
                         p_sum = p_sum + sum( fmn.Signal.(ModoS{ms}).(ModoP{mp})(:,wS) .* gR.Signal.(ModoS{ms}).(ModoP{mp})(:,wS)...
                                             .* ( Pf.(ModoP{mp})(:,l)+Pb.(ModoP{mp})(:,l) ) );
                     % Contribución ASE
-                        deltaV = abs( 3e8/lambdaP.(ModoP{mp})(:) - 3e8/lambdaS.(ModoS{ms})(wS) ) ; BW = 6*10^12; %THz "paper: RAMAN amplifier gain dynamics with ASE"
+                        deltaV = abs( c/lambdaP.(ModoP{mp})(:) - c/lambdaS.(ModoS{ms})(wS) ) ; BW = ASE_BW;%6*10^12; %THz "paper: RAMAN amplifier gain dynamics with ASE"
                         ase_sum = ase_sum + sum(    sum( ( fmn.Signal.(ModoS{ms}).(ModoP{mp})(:,wS) .* gR.Signal.(ModoS{ms}).(ModoP{mp})(:,wS)...
                                             .* ( Pf.(ModoP{mp})(:,l)+Pb.(ModoP{mp})(:,l) ) ) .* (1+(exp(h*deltaV/(k*T))-1).^-1 ) .* BW ) ) ;
                     end
-
+                    
+                    if ase_calc
+                        ASE = ase_sum;
+                    end
                     lambda = lambdaS.(ModoS{ms})(wS); alpS = alphaS.(ModoS{ms})(lambda); if isnan(alpS); alpS = 0; end
-                    Ps.(ModoS{ms})(wS,l+1) = Ps.(ModoS{ms})(wS,l) + deltaZ*( -alpS*Ps.(ModoS{ms})(wS,l) + p_sum*Ps.(ModoS{ms})(wS,l) ) ;%+ ...
-                                                %ase_sum * h  * ( 3e8/lambdaS.(ModoS{ms})(wS) ) + eta_sum);
+                    Ps.(ModoS{ms})(wS,l+1) = Ps.(ModoS{ms})(wS,l) + deltaZ*( -alpS*Ps.(ModoS{ms})(wS,l) + p_sum*Ps.(ModoS{ms})(wS,l)  + ...
+                                                ASE * h  * ( c/lambdaS.(ModoS{ms})(wS) ) + eta_sum);
                     Ps.Rayleigh.(ModoS{ms})(wS,l+1) = eta_sum;
-                    Ps.ASE.(ModoS{ms})(wS,l+1) = ase_sum * h  * ( 3e8/lambdaS.(ModoS{ms})(wS) );
+                    Ps.ASE.(ModoS{ms})(wS,l+1) = ase_sum * h  * ( c/lambdaS.(ModoS{ms})(wS) );
                 end
             end
         
@@ -334,12 +346,12 @@ if AdjIter
                     for wP = 1:length(lambdaP.(ModoP{mp}))
                         s_sum = 0;
                         eta_sum = 0;
-                        ase_sum = 0;
+                        ase_sum = 0; ASE = 0;
                         for ms = 1:length(ModoS)
                             s_sum = s_sum + sum( fmn.Pump.(ModoP{mp}).(ModoS{ms})(wP,:) * gR.Pump.(ModoP{mp}).(ModoS{ms})(wP,:)'...
                                             .* lambdaS.(ModoS{ms})(:).*Ps.(ModoS{ms})(:,l) ) ;
                             
-                            deltaV = abs( 3e8/lambdaP.(ModoP{mp})(wP) - 3e8/lambdaS.(ModoS{ms})(:) ) ; BW = 6*10^12; %THz "paper: RAMAN amplifier gain dynamics with ASE"
+                            deltaV = abs( c/lambdaP.(ModoP{mp})(wP) - c/lambdaS.(ModoS{ms})(:) ) ; BW = ASE_BW;%6*10^12; %THz "paper: RAMAN amplifier gain dynamics with ASE"
                             lam = lambdaS.(ModoS{ms})(:)';
                             ase_sum = ase_sum + sum(    sum( ( fmn.Signal.(ModoP{mp}).(ModoS{ms})(:,wP) .* gR.Signal.(ModoP{mp}).(ModoS{ms})(:,wP)...
                                             .* ( Pf.(ModoP{mp})(wP,l) ) ) .* lam .* (1+(exp(h*deltaV/(k*T))-1).^-1 ) .* BW ) ) ;
@@ -352,9 +364,12 @@ if AdjIter
                             eta_sum = eta_fun(lambda) * ( Pb.(ModoP{mp})(wP,l) );
                         end
                         
+                        if ase_calc
+                            ASE = ase_sum;
+                        end
 
-                        Pf.(ModoP{mp})(wP,l+1) = Pf.(ModoP{mp})(wP,l) + deltaZ*( -alpP*Pf.(ModoP{mp})(wP,l) - (1/lambdaP.(ModoP{mp})(wP))*s_sum*Pf.(ModoP{mp})(wP,l) );% ...
-                                                %+ eta_sum - ase_sum*(1/lambdaP.(ModoP{mp})(wP)) * h  * ( 3e8/lambdaP.(ModoP{mp})(wP) )); 
+                        Pf.(ModoP{mp})(wP,l+1) = Pf.(ModoP{mp})(wP,l) + deltaZ*( -alpP*Pf.(ModoP{mp})(wP,l) - (1/lambdaP.(ModoP{mp})(wP))*s_sum*Pf.(ModoP{mp})(wP,l)  ...
+                                                - ASE*(1/lambdaP.(ModoP{mp})(wP)) * h  * ( c/lambdaP.(ModoP{mp})(wP) )); %+ eta_sum 
                         Pf.Rayleigh.(ModoP{mp})(wP,l+1) = eta_sum;
                     end
                 end
