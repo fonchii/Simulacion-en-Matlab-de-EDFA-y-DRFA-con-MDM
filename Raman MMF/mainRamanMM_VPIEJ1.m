@@ -7,21 +7,22 @@ In.Fibra.RamanMethod              = 'Backward';                   % 'Forward', '
 In.Fibra.AttenuationMethod        = 'Static';                    % 'Dynamic' , 'Static'
 In.Fibra.Length                   = 100;                          % fibre length (km)
 In.Fibra.T                        = 25;                           % Temperatura Fibra (ambiente)
-In.Fibra.PolarizationFactor       = 0.5;                          % C_R_max
+In.Fibra.PolarizationFactor       = 0.66;                          % C_R_max
 In.Fibra.n1=1.47;  In.Fibra.n2=1.42; In.Fibra.radio=5.04626e-6; In.Fibra.area=pi*(In.Fibra.radio)^2;
 
 % BOMBEOS : 
     % LP01
 In.Pump.LP01.Wavelengths       = 1500 ;                                                    % [nm]
-In.Pump.LP01.Powers            = 400 *1e-3;                                                % [mW]
+In.Pump.LP01.Powers            = 300 *1e-3;                                                % [mW]
 In.Pump.LP01.Alpha             = 0.20; 
 
 
 
 % SEÑALES : 
-Nch = 100;
+Nch = 100; c = 299792458;
     % LP01  
-In.Signal.LP01.Wavelengths        = linspace(1.66551366e3 , 1.50046275e3 , Nch);                  % [nm]
+%In.Signal.LP01.Wavelengths        = linspace(1.66551366e3 , 1.50046275e3 , Nch);                  % [nm]
+In.Signal.LP01.Wavelengths        = ( c./linspace(c/(1.66551366e-6) , c/(1.50046275e-6) , Nch)).*1e9;                  % [nm]
 In.Signal.LP01.Powers             = -30*ones( 1,length(In.Signal.LP01.Wavelengths) );                 %[dBm]
 In.Signal.LP01.Alpha              = 0.2;                                                              % [dB/km]
 
@@ -30,10 +31,31 @@ In.Signal.LP01.Alpha              = 0.2;                                        
 In.Monomodo = true;
 In.Rayleight = false; In.ase_calc = false;
 
+load("RamanVPIE1.mat")
+
 %% Calculo de amplificación
+bestGain = 1000000; worstGain = 0;
+factor = [1,1]; %best , worst
 tic;
-%Raman = RamanMM_comp(In) ; tend = toc; fprintf("Tiempo de cómputo: %.2f",tend);
-Raman = RamanMMv3_VPI(In) ; tend = toc; fprintf("Tiempo de cómputo: %.2fs\n",tend);
+
+Raman = RamanMMv3_VPI(In) ; 
+% for fct=1:51
+%     clc; fprintf('%.0f /51 \n',fct)
+%     In.Fibra.PolarizationFactor       = fct / 50;
+%     
+%     Raman = RamanMMv3_VPI(In) ; 
+%     
+%     GainDiff = sum((RamanVPIE1.Gain - Raman.Sig.Gain.LP01).^2);
+%     if GainDiff < bestGain
+%         bestGain = GainDiff ; factor(1) = fct;
+%         BestRaman = Raman;
+%     end
+%     if GainDiff > worstGain
+%         worstGain = GainDiff ; factor(2) = fct;
+%         WorstRaman = Raman;
+%     end
+% end
+tend = toc; fprintf("Tiempo de cómputo: %.2fs\n",tend);
 
 %% Graficar
 

@@ -156,7 +156,8 @@ else
     Calc_Rayleight = true;
 end
 ase_calc = In.ase_calc;
-ASE_BW = 6*10^12; %6*10^12; %THz "paper: RAMAN amplifier gain dynamics with ASE"
+ASE_BW = 10e12; % VPI
+%6*10^12; %6*10^12; %THz "paper: RAMAN amplifier gain dynamics with ASE"
 %% % Calculo potencias
 
 switch In.Fibra.RamanMethod
