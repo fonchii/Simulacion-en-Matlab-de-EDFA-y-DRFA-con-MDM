@@ -615,6 +615,11 @@ for n = 1:1:Sch     % Iteración en nucleos
                         %Pan.(ModoS(s))(:,Nz-z+1) = PanAux(:);
                     end
                 end
+                
+                for s = 1:1:Smod
+                    Pase.(ModoS(s))(:,z) = Pan.(ModoS(s))(:,z);%Pap.(ModoS(s))(:,z)+Pan.(ModoS(s))(:,z);
+                end
+
                 % Mostrar % de avance como prints en pantalla:
                 if Fibra.Avance
                     if Fibra.ASEFlag == 0

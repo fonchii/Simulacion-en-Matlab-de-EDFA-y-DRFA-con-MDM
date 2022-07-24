@@ -57,18 +57,18 @@ GainDiff = abs( RamanVPIE3.GainOnOff - Raman.Sig.GainOnOFF.LP01 );
 % annotation('textbox', [0.13, 0.127, 0, 0], 'string', 'VPIphotonics')
 
 
-% % % Potencia
+% % % Pump
 % 
-plot(Raman.z , Raman.Pump.forward.LP01 , "DisplayName", "Matlab  Forward") ; hold on
-plot(Raman.z , Raman.Pump.backward.LP01 , "DisplayName", "Matlab Backward")
-
-set(gca,'ColorOrderIndex',1,'FontSize',8)
-
-plot(RamanVPIE3.z , (1e-3.*10.^( RamanVPIE3.PumpFwd./10)) , '--' , "DisplayName","VPI Forward" ) 
-plot(RamanVPIE3.z , (1e-3.*10.^( RamanVPIE3.PumpBwd./10)) , '--' , "DisplayName","VPI Backward" )
-
-title('Distribución Axial de la Potencia de Bombeo','FontSize',14) ; xlabel('Posición en fibra [km]','FontSize',14) ; ylabel('Potencia [mW]','FontSize',14)
-legend('Location', 'southoutside','Orientation','horizontal','Box','off' , "NumColumns",2,"FontSize",9)
+% plot(Raman.z , Raman.Pump.forward.LP01 , "DisplayName", "Matlab  Forward") ; hold on
+% plot(Raman.z , Raman.Pump.backward.LP01 , "DisplayName", "Matlab Backward")
+% 
+% set(gca,'ColorOrderIndex',1,'FontSize',8)
+% 
+% plot(RamanVPIE3.z , (1e-3.*10.^( RamanVPIE3.PumpFwd./10)) , '--' , "DisplayName","VPI Forward" ) 
+% plot(RamanVPIE3.z , (1e-3.*10.^( RamanVPIE3.PumpBwd./10)) , '--' , "DisplayName","VPI Backward" )
+% 
+% title('Distribución Axial de la Potencia de Bombeo','FontSize',14) ; xlabel('Posición en fibra [km]','FontSize',14) ; ylabel('Potencia [mW]','FontSize',14)
+% legend('Location', 'southoutside','Orientation','horizontal','Box','off' , "NumColumns",2,"FontSize",9)
 
 
 % % ASE

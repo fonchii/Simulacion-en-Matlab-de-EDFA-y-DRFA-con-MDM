@@ -68,10 +68,10 @@ close all
 Nc = length(fieldnames(EDFA)); 
 z = EDFA.(strcat('Nucleo',int2str(1))).z;
 xlab = 'Posición en fibra [m]'; ylab = 'Potencia [dBm]';
-
+smodos = ["01","11a"];
 
 % % % % % % Señal
-% smodos = ["01","11a"];
+
 % for s = 1:length(signal.modos) % Grafico
 % 
 %     figure(s)
@@ -135,8 +135,7 @@ xlab = 'Posición en fibra [m]'; ylab = 'Potencia [dBm]';
 % % % % % % OSNR
 
 % % MODO LP01
-% s = 1;
-% graf.OSNR.LP_01 = EDFA.("Nucleo1").OSNR.LP_01(:,end);
+% s = 1; graf.OSNR.LP_01 = EDFA.("Nucleo1").OSNR.LP_01(:,end);
 % ejex = signal.lambda.LP_01.*1e9;
 % plot(ejex,graf.OSNR.(ModoS(s)) , '-o' , 'DisplayName',"Forward Pump" ) ; hold on ; 
 % 
@@ -150,8 +149,7 @@ xlab = 'Posición en fibra [m]'; ylab = 'Potencia [dBm]';
 % xlabel('Longitud de Onda [nm]','FontSize', 14) ; ylabel("Magnitud [dB]",'FontSize', 14) ; 
 
 % % MODO LP11a
-s = 2;
-graf.OSNR.LP_11_a = EDFA.("Nucleo1").OSNR.LP_11_a(:,end);
+s = 2; graf.OSNR.LP_11_a = EDFA.("Nucleo1").OSNR.LP_11_a(:,end);
 ejex = signal.lambda.LP_01.*1e9;
 plot(ejex,graf.OSNR.(ModoS(s)) , '-o' , 'DisplayName','Forward Pump' ); hold on ; 
 
@@ -184,4 +182,28 @@ xlabel('Longitud de Onda [nm]','FontSize', 14) ; ylabel("Magnitud [dB]",'FontSiz
 % xlabel('Longitud de Onda [nm]','FontSize', 14) ; ylabel("Magnitud [dB]",'FontSize', 14) ; 
 
 
+
+
+% % % % % % ASE
+% smodos = ["01","11a"];
+% for s = 1:length(signal.modos) % Grafico
+% 
+%     figure(s)
+% 
+%     graf.signal = EDFA.("Nucleo1").signal.Potencia_dBm;
+%     grafReverse.signal = EDFA_RP.("Nucleo1").signal.Potencia_dBm;
+%     var = 2;
+%     for f = 0:6
+%         plot(z , graf.signal.(strcat("LP_",signal.modos(s)))(1+var*f,:) , 'DisplayName', strcat(int2str(signal.lambda.(strcat("LP_",signal.modos(s)))(1+var*f)*1e9) ,' nm') ) ; 
+%         hold on ; 
+%     end
+%     set(gca,"ColorOrderIndex",1,'FontSize',8)
+%     for f = 0:6
+%         plot(z , grafReverse.signal.(strcat("LP_",signal.modos(s)))(1+var*f,:) , '--' , 'DisplayName', strcat(int2str(signal.lambda.(strcat("LP_",signal.modos(s)))(1+var*f)*1e9) ,' nm') )
+%     end
+%     xlabel(xlab,'FontSize',14) ; ylabel(ylab,'FontSize',14); title(strcat('Distribución Axial de la Señal LP',smodos(s)),'FontSize',14) ; 
+%     legend('Location', 'southoutside','Orientation','horizontal','Box','off', "NumColumns" , 7,'FontSize', 9);
+%     annotation('textbox', [0.1254, 0.148, 0, 0], 'string', 'ForwardPump')
+%     annotation('textbox', [0.1254, 0.128, 0, 0], 'string', 'BackwardPump')
+% end
 
