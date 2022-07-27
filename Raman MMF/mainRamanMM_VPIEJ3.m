@@ -36,7 +36,8 @@ load("RamanVPIE3.mat")
 %% Calculo de amplificación
 % bestGain = 1000000; worstGain = 0;
 % factor = [1,1]; %best , worst
-% tic;
+
+tic;
 
 Raman = RamanMMv3_VPI(In) ; 
 % for fct=1:51
