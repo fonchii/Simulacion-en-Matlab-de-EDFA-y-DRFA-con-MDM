@@ -12,8 +12,8 @@ if k1{1} == 'L'
     if length(modoi) == 4
         modoii = strcat( extract(modoi,3) , extract(modoi,4) );
         modoi = modoii{1};
-    elseif length(modoi) == 6
-        modoii = strcat( strcat( extract(modoi,3) , extract(modoi,4) ) , strcat(extract(modoi,5) , extract(modoi,6)) );
+    elseif length(modoi) == 5
+        modoii = strcat( strcat( extract(modoi,3) , extract(modoi,4) , extract(modoi,5)  ) );
         modoi = modoii{1};
     end
 end
@@ -21,8 +21,8 @@ if k2{1} == 'L'
     if length(modoj) == 4
         modojj = strcat( extract(modoj,3) , extract(modoj,4) );
         modoj = modojj{1};
-    elseif length(modoj) == 6
-        modojj = strcat( strcat( extract(modoj,3) , extract(modoj,4) ) , strcat(extract(modoj,5) , extract(modoj,6)) );
+    elseif length(modoj) == 5
+        modojj = strcat( strcat( extract(modoj,3) , extract(modoj,4) , extract(modoj,5) ) );
         modoj = modojj{1};
     end
 end

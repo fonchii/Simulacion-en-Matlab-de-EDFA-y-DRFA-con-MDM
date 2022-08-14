@@ -4,37 +4,40 @@ close all ; clc ; clear all
 %% Datos Entrada
 c = 299792458;
 % FIBRA
-In.Fibra.RamanMethod              = 'Forward';                   % 'Forward', 'Backward', 'Forward&Backward'
-In.Fibra.AttenuationMethod        = 'Static';                    % 'Dynamic' , 'Static'
-In.Fibra.Length                   = 100;                          % fibre length (km)
+In.Fibra.RamanMethod              = 'Backward';                   % 'Forward', 'Backward', 'Forward&Backward'
+In.Fibra.AttenuationMethod        = 'Dynamic';                    % 'Dynamic' , 'Static'
+In.Fibra.Length                   = 50;                          % fibre length (km)
 In.Fibra.T                        = 25;                           % Temperatura Fibra (ambiente)
 In.Fibra.PolarizationFactor       = 0.5;                          % C_R_max
-In.Fibra.n1 = 1.45;  In.Fibra.n2 = 1.4354; In.Fibra.radio = 5e-6;
+In.Fibra.n1=1.46;  In.Fibra.n2=1.42; In.Fibra.radio=25e-6; In.Fibra.area=pi*(In.Fibra.radio)^2;
+
 
 % BOMBEOS : 
 %     % LP01
 
-In.Pump.LP01.Wavelengths       = c/(200e12) ;                    % [nm]
-In.Pump.LP01.Powers            = 300*1e-3;                                                % [mW]
-In.Pump.LP01.Alpha             = [0.20]; 
-
-
+In.Pump.LP01.Wavelengths       = 1450;               %c/(200e12) ;                    % [nm]
+In.Pump.LP01.Powers            = 200*1e-3;                                                % [mW]
+%In.Pump.LP11a.Alpha             = [0.25]; 
 
 
 % SEÑALES : 
-Nch = 20;
+Nch = 100;
     % LP01  
-In.Freqs.Signal.LP01                = linspace(1.80000000e+14,1.99800000e+14,102) ;
-In.Signal.LP01.Wavelengths          = c./In.Freqs.Signal.LP01;
-In.Signal.LP01.Powers               = -30*ones( 1,length(In.Signal.LP01.Wavelengths) );                 %[dBm]
-In.Signal.LP01.Alpha                = 0.2;                                                              % [dB/km]
-
-
+In.Signal.LP11a.Wavelengths          = linspace(1500,1600,Nch) ;
+In.Signal.LP11a.Powers               = -30*ones( 1,length(In.Signal.LP11a.Wavelengths) );                 %[dBm]
+%In.Signal.LP01.Alpha                = 0.2;                                                              % [dB/km]
+In.ASE.LP11a                         = -200*ones( 1,length(In.Signal.LP11a.Wavelengths) );
+    % LP21a
+In.Signal.LP21a.Wavelengths          = linspace(1500,1600,Nch) ;
+In.Signal.LP21a.Powers               = -30*ones( 1,length(In.Signal.LP21a.Wavelengths) );                 %[dBm]
+%In.Signal.LP21a.Alpha                = 0.2;                                                              % [dB/km]
+In.ASE.LP21a                         = -200*ones( 1,length(In.Signal.LP21a.Wavelengths) );
 
 %% Calculo de amplificación
+
 tic;
-%Raman = RamanMM_comp(In) ; tend = toc; fprintf("Tiempo de cómputo: %.2f",tend);
-Raman = RamanMMv3(In) ; tend = toc; fprintf("Tiempo de cómputo: %.2fs\n",tend);
+Raman = RamanMMv3(In) ; 
+tend = toc; fprintf("Tiempo de cómputo: %.2fs\n",tend);
 
 %% Graficar
 
@@ -52,22 +55,28 @@ fs = 1; fp =1;
 
 
 for ms = 1:length(Raman.ModoS)% Potencia Señal
-    figure(1); 
-    strlambda = strcat( num2str( In.Signal.(Raman.ModoS{ms}).Wavelengths(ms)) , "nm");
-    subplot(1,length(Raman.ModoS),fs) ; plot(z,10.*log10(signal.(Raman.ModoS{ms})./1e-3) , 'DisplayName',strlambda) ,ylabel("Potencia [dBm]") ; hold on
-    %subplot(1,length(Raman.ModoS),fs) ; plot(z,10.*log10(signal.Off.(Raman.ModoS{ms})./1e-3) ) ,ylabel("Potencia [dBm]") ; hold on
-    %subplot(1,fs,fs) ; plot( z,(signal.(Raman.ModoS{ms}) ) ,ylabel("Potencia [mW]"); hold on
-    xlabel("Largo [km]") ; title(strcat("Signal Modo ", Raman.ModoS{ms})) ; legend('Location','best')
+    for lS=1:10:length(In.Signal.(Raman.ModoS{ms}).Wavelengths)
+        figure(1); 
+        strlambda = strcat( num2str( In.Signal.(Raman.ModoS{ms}).Wavelengths(lS)) , "nm");
+        subplot(1,length(Raman.ModoS),fs) ; 
+        plot(z,10.*log10(signal.(Raman.ModoS{ms})(lS,:)./1e-3) , 'DisplayName',strlambda) ,ylabel("Potencia [dBm]") ; hold on
+        %subplot(1,length(Raman.ModoS),fs) ; plot(z,10.*log10(signal.Off.(Raman.ModoS{ms})./1e-3) ) ,ylabel("Potencia [dBm]") ; hold on
+        %subplot(1,fs,fs) ; plot( z,(signal.(Raman.ModoS{ms}) ) ,ylabel("Potencia [mW]"); hold on
+        xlabel("Largo [km]") ; title(strcat("Signal Modo ", Raman.ModoS{ms})) ; legend('Location','southoutside','NumColumns',10) 
+    end
     fs = fs+1;
 end
+set(gca,'ColorOrderIndex',1)
 fs = 1;
 for ms = 1:length(Raman.ModoS)% Potencia Señal Off
-    %figure(1); 
-    strlambda = strcat( num2str( In.Signal.(Raman.ModoS{ms}).Wavelengths(ms)) , "nm OFF");
-    h=subplot(1,length(Raman.ModoS),fs) ; h.ColorOrderIndex=1;
-    plot(z,10.*log10(signal.Off.(Raman.ModoS{ms})./1e-3) , 'DisplayName',strlambda) ,ylabel("Potencia [dBm]") ; hold on
-    %subplot(1,fs,fs) ; plot( z,(signal.Off.(Raman.ModoS{ms})) ) ,ylabel("Potencia [mW]"); hold on
-    xlabel("Largo [km]") ; title(strcat("Signal Modo ", Raman.ModoS{ms})) ; legend('Location','best')
+    for lS=1:10:length(In.Signal.(Raman.ModoS{ms}).Wavelengths)
+        %figure(1); 
+        strlambda = strcat( num2str( In.Signal.(Raman.ModoS{ms}).Wavelengths(lS)) , "nm OFF");
+        %h=subplot(1,length(Raman.ModoS),fs) ; h.ColorOrderIndex=1;
+        plot(z,10.*log10(signal.Off.(Raman.ModoS{ms})(lS,:)./1e-3) , '--', 'DisplayName',strlambda) ,ylabel("Potencia [dBm]") ; hold on
+        %subplot(1,fs,fs) ; plot( z,(signal.Off.(Raman.ModoS{ms})) ) ,ylabel("Potencia [mW]"); hold on
+        xlabel("Largo [km]") ; title(strcat("Signal Modo ", Raman.ModoS{ms})) ; legend('Location','southoutside','NumColumns',10)
+    end
     fs = fs+1;
 end
 
@@ -114,15 +123,26 @@ for ms = 1:length(Raman.ModoS)% Ganancias
     plot(In.Signal.(Raman.ModoS{ms}).Wavelengths , gain.(Raman.ModoS{ms}), '-o')  ; hold on
     %plot(In.Signal.(Raman.ModoS{ms}).Wavelengths(i) , gain.(Raman.ModoS{ms})(i) ) ,ylabel("Potencia [mW]"); hold on
 end
-    figure(3) ; xlabel("Longitud de Onda nm") ,ylabel("Ganancia [dB]") ; title("Ganancias On-Off") ; legend(Raman.ModoS{:},"Location","best")
+    figure(3) ; xlabel("Longitud de Onda nm") ,ylabel("Ganancia [dB]") ; title("Ganancias On-Off") ; legend(Raman.ModoS{:},"Location","southoutside")
 
 for ms = 1:length(Raman.ModoS)% OSNR
     figure(4)
     plot(In.Signal.(Raman.ModoS{ms}).Wavelengths , osnr.(Raman.ModoS{ms}), '-o')  ; hold on
     %plot(In.Signal.(Raman.ModoS{ms}).Wavelengths(i) , osnr.(Raman.ModoS{ms})(i) ) ,ylabel("Potencia [mW]"); hold on
 end
-    figure(4) ; xlabel("Longitud de Onda nm") ,ylabel("Magnitud [dB]") ; title("OSNR") ; legend(Raman.ModoS{:},"Location","best")
+    figure(4) ; xlabel("Longitud de Onda nm") ,ylabel("Magnitud [dB]") ; title("OSNR") ; legend(Raman.ModoS{:},"Location","southoutside")
 
+% ASE
+fs = 1;
+for ms = 1:10:length(Raman.ModoS)
+    for lS=1:10:length(In.Signal.(Raman.ModoS{ms}).Wavelengths)
+        figure(5); 
+        strlambda = strcat( num2str( In.Signal.(Raman.ModoS{ms}).Wavelengths(lS)) , "nm");
+        subplot(1,length(Raman.ModoS),fs) ; plot(z,10.*log10(Raman.ASE.(Raman.ModoS{ms})(lS,:)./1e-3) , 'DisplayName',strlambda) ,ylabel("Potencia [dBm]") ; hold on
+        xlabel("Largo [km]") ; title(strcat("Signal Modo ", Raman.ModoS{ms})) ; legend('Location','southoutside','NumColumns',10)
+    end
+    fs = fs+1;
+end
 
 clear fs fp ms mp i strlambda DispName1 DispName2;
 

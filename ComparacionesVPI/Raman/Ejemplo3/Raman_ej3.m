@@ -15,8 +15,8 @@ load("RamanVPIE3.mat")
 %load("Raman_Matlab_EJ1_Gain3backward.mat")
 %load("Raman_Matlab_EJ1_Gain3backward_400mw.mat")
 
-load("Raman_MatlabE3.mat")
-%load("Raman_MatlabE3_ASE.mat")
+%load("Raman_MatlabE3.mat")
+load("Raman_MatlabE3_ASE.mat")
 
 c = 299792458;
 wavelenghts_matlab = ( c./linspace(c/(1.66551366e-6) , c/(1.50046275e-6) , 100)).*1e9;
@@ -74,24 +74,65 @@ GainDiff = abs( RamanVPIE3.GainOnOff - Raman.Sig.GainOnOFF.LP01 );
 % legend('Location', 'southoutside','Orientation','horizontal','Box','off' , "NumColumns",2,"FontSize",9)
 
 
-% % ASE
+% % % ASE
+
+% for i=0:6
+%     plot(Raman.z , Raman.ASE.LP01(1+15*i,:)*1000  ,"DisplayName",strcat(num2str(round(wavelenghts_matlab(1+15*i))), 'nm') ); hold on
+% end
+% % 
+% set(gca,'ColorOrderIndex',1,'FontSize',8)
+% ase_wl = c./RamanVPIE3.ASE_freqs;
+% for i=0:6
+%     plot(RamanVPIE3.z , RamanVPIE3.ASE_Fwd_mW(:,1+15*i) , '--' ,"DisplayName",strcat( num2str(round(ase_wl(RamanVPIE3.ASE_freqs_idx(1+15*i))*1e9) ), 'nm')  ) 
+% end
+% 
+% title('Distribución Axial de la Potencia ASE','FontSize',14) ; xlabel('Posición [km]','FontSize',14) ; ylabel('Potencia [mW]','FontSize',14)
+% legend('Location', 'southoutside','Orientation','horizontal','Box','off','NumColumns',7,'FontSize',9)
+% annotation('textbox', [0.13, 0.148, 0, 0], 'string', 'Matlab')
+% annotation('textbox', [0.13, 0.127, 0, 0], 'string', 'VPIphotonics')
 
 
-for i=0:6
-    %plot(Raman.z , Raman.Sig.Power.ASE.LP01(1+15*i,:)  ,"DisplayName",strcat(num2str(round(wavelenghts_matlab(1+15*i))), 'nm') ); hold on
-    plot(Raman.z , Raman.Sig.Power.LP01(1+15*i,:)  ,"DisplayName",strcat(num2str(round(wavelenghts_matlab(1+15*i))), 'nm') ); hold on
-end
 
-set(gca,'ColorOrderIndex',1,'FontSize',8)
-ase_wl = c./RamanVPIE3.ASE_freqs;
-for i=0:6
-    plot(RamanVPIE3.z , RamanVPIE3.ASE_Fwd_mW(:,1+15*i)/100 , '--' ,"DisplayName",strcat( num2str(round(ase_wl(RamanVPIE3.ASE_freqs_idx(1+15*i))*1e9) ), 'nm')  ) 
-end
+% % % OSNR
+% OSNR_Matlab = 10*log10( Raman.Sig.Power.LP01(:,:)./Raman.ASE.LP01(:,:) );
+% NF_Matlab = OSNR_Matlab(:,12)-OSNR_Matlab(:,end);
+% 
+% %signals_VPI = 1e-3.*10.^( RamanVPIE3.Signals(:,:)./10);
+% OSNR_VPI = 10*log10( 1e-3.*10.^( RamanVPIE3.Signals(:,:)./10)./(RamanVPIE3.ASE_Fwd_mW(:,:)./1000) );
+% NF_VPI = OSNR_VPI(3,:)-OSNR_VPI(end,:);
+%  
+% for i=0:6
+%     plot(Raman.z , OSNR_Matlab(1+15*i,:)  ,"DisplayName",strcat(num2str(round(wavelenghts_matlab(1+15*i))), 'nm') ); hold on
+% end
+% % 
+% set(gca,'ColorOrderIndex',1,'FontSize',8)
+% ase_wl = c./RamanVPIE3.ASE_freqs;
+% for i=0:6
+%     plot(RamanVPIE3.z , OSNR_VPI(:,1+15*i) , '--' ,"DisplayName",strcat( num2str(round(ase_wl(RamanVPIE3.ASE_freqs_idx(1+15*i))*1e9) ), 'nm')  ) 
+% end
+% 
+% title('Distribución Axial de la OSNR','FontSize',14) ; xlabel('Posición [km]','FontSize',14) ; ylabel('Magnitud [dB]','FontSize',14)
+% legend('Location', 'southoutside','Orientation','horizontal','Box','off','NumColumns',7,'FontSize',9)
+% annotation('textbox', [0.13, 0.148, 0, 0], 'string', 'Matlab')
+% annotation('textbox', [0.13, 0.127, 0, 0], 'string', 'VPIphotonics')
 
-title('Distribución Axial de la Potencia ASE','FontSize',14) ; xlabel('Posición [km]','FontSize',14) ; ylabel('Potencia [mW]','FontSize',14)
+
+% % % NF
+OSNR_Matlab = 10*log10( Raman.Sig.Power.LP01(:,:)./Raman.ASE.LP01(:,:) );
+NF_Matlab = OSNR_Matlab(:,13)-OSNR_Matlab(:,end);
+
+%signals_VPI = 1e-3.*10.^( RamanVPIE3.Signals(:,:)./10);
+OSNR_VPI = 10*log10( 1e-3.*10.^( RamanVPIE3.Signals(:,:)./10)./(RamanVPIE3.ASE_Fwd_mW(:,:)./1000) );
+NF_VPI = OSNR_VPI(3,:)-OSNR_VPI(end,:);
+ 
+plot(wavelenghts_matlab , NF_Matlab  ,"DisplayName",strcat('Matlab') ); hold on
+
+plot(RamanVPIE3.wavelength.*1e9 , NF_VPI , "DisplayName",strcat( 'VPIPhotonics')  ) 
+
+
+title('Figura de Ruido','FontSize',14) ; xlabel('Longitud de onda [nm]','FontSize',14) ; ylabel('Magnitud [dB]','FontSize',14)
 legend('Location', 'southoutside','Orientation','horizontal','Box','off','NumColumns',7,'FontSize',9)
-annotation('textbox', [0.13, 0.148, 0, 0], 'string', 'Matlab')
-annotation('textbox', [0.13, 0.127, 0, 0], 'string', 'VPIphotonics')
+
 
 
 

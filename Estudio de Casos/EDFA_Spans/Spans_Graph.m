@@ -138,19 +138,34 @@ graf.z = Span.EDFA1.(strcat('Nucleo',int2str(1))).z;
 xlab = 'Posición en fibra [m]'; ylab = 'Potencia [dBm]';
 
 
- % Ganancias
- % LP01
-%  s=1;
-% figure(s)
+% Power Out
+% s=2;
 % for span = 1:Nspans+1
 %     set(gca,'FontSize',8)
-%     graf.ganancias.(strcat("LP_",ModoS(s))) = Span.(strcat("EDFA",num2str(span))).Nucleo1.salida.ganancias.(strcat("LP_",ModoS(s)));
+%     graf.SignalPump_OUT.(strcat("LP_",ModoS(s))) = Span.(strcat("EDFA",num2str(span))).Nucleo1.salida.signal.potencia_dBm.(strcat("LP_",ModoS(s)))(:,end);
 %     leyenda = strcat(" EDFA ",num2str(span) );
 %     ejex = Signal.lambda.(strcat("LP_",ModoS(s))).*1e9;
-%     plot(ejex,graf.ganancias.(strcat("LP_",ModoS(s))) , '-o' , 'DisplayName',leyenda ) ; hold on ; 
-%     title(strcat('Ganancias Por Amplificador en Modo LP',Signal.modos(s)),'FontSize',14) ; legend('Location', 'southoutside','Orientation','horizontal','Box','off', "NumColumns" , 4,'FontSize',9); 
-%     xlabel('Longitud de Onda [nm]','FontSize',14) ; ylabel(ylab,'FontSize',14)
+%     plot(ejex,graf.SignalPump_OUT.(strcat("LP_",ModoS(s))) , '-o' , 'DisplayName',leyenda ) ; hold on ; 
+%     title(strcat('Potencia de Salida en Modo LP',Signal.modos(s)),'FontSize',14) ; 
+%     legend('Location', 'southoutside','Orientation','horizontal','Box','off', "NumColumns" , 4,'FontSize',9); 
+%     xlabel('Longitud de Onda [nm]','FontSize',14) ; ylabel('Magnitud [dB]','FontSize',14)
 % end ; clear s ejex leyenda;
+
+
+
+ % Ganancias
+ % LP01
+ s=1;
+figure(s)
+for span = 1:Nspans+1
+    set(gca,'FontSize',8)
+    graf.ganancias.(strcat("LP_",ModoS(s))) = Span.(strcat("EDFA",num2str(span))).Nucleo1.salida.ganancias.(strcat("LP_",ModoS(s)));
+    leyenda = strcat(" EDFA ",num2str(span) );
+    ejex = Signal.lambda.(strcat("LP_",ModoS(s))).*1e9;
+    plot(ejex,graf.ganancias.(strcat("LP_",ModoS(s))) , '-o' , 'DisplayName',leyenda ) ; hold on ; 
+    title(strcat('Ganancias Por Amplificador en Modo LP',Signal.modos(s)),'FontSize',14) ; legend('Location', 'southoutside','Orientation','horizontal','Box','off', "NumColumns" , 4,'FontSize',9); 
+    xlabel('Longitud de Onda [nm]','FontSize',14) ; ylabel('Magnitud [dB]','FontSize',14)
+end ; clear s ejex leyenda;
 
  % LP11a
 % s=2;
@@ -162,7 +177,7 @@ xlab = 'Posición en fibra [m]'; ylab = 'Potencia [dBm]';
 %     ejex = Signal.lambda.(strcat("LP_",ModoS(s))).*1e9;
 %     plot(ejex,graf.ganancias.(strcat("LP_",ModoS(s))) , '-o' , 'DisplayName',leyenda ) ; hold on ; 
 %     title(strcat('Ganancias Por Amplificador en Modo LP',Signal.modos(s)),'FontSize',14) ; legend('Location', 'southoutside','Orientation','horizontal','Box','off', "NumColumns" , 4,'FontSize',9); 
-%     xlabel('Longitud de Onda [nm]','FontSize',14) ; ylabel(ylab,'FontSize',14)
+%     xlabel('Longitud de Onda [nm]','FontSize',14) ; ylabel('Magnitud [dB]','FontSize',14)
 % end ; clear s ejex leyenda;
 
 
@@ -200,17 +215,17 @@ xlab = 'Posición en fibra [m]'; ylab = 'Potencia [dBm]';
 
 %LP01
 
-s=1;
-for span = 1:Nspans+1
-    set(gca,'FontSize',8)
-    graf.OSNR_OUT.(strcat("LP_",ModoS(s))) = Span.(strcat("EDFA",num2str(span))).Nucleo1.OSNR.(strcat("LP_",ModoS(s)))(:,end);
-    leyenda = strcat(" EDFA ",num2str(span) );
-    ejex = Signal.lambda.(strcat("LP_",ModoS(s))).*1e9;
-    plot(ejex,graf.OSNR_OUT.(strcat("LP_",ModoS(s))) , '-o' , 'DisplayName',leyenda ) ; hold on ; 
-    title(strcat('OSNR en Modo LP',Signal.modos(s)),'FontSize',14) ; 
-    legend('Location', 'southoutside','Orientation','horizontal','Box','off', "NumColumns" , 4,'FontSize',9); 
-    xlabel('Longitud de Onda [nm]','FontSize',14) ; ylabel('Magnitud [dB]','FontSize',14)
-end ; clear s ejex leyenda;
+% s=1;
+% for span = 1:Nspans+1
+%     set(gca,'FontSize',8)
+%     graf.OSNR_OUT.(strcat("LP_",ModoS(s))) = Span.(strcat("EDFA",num2str(span))).Nucleo1.OSNR.(strcat("LP_",ModoS(s)))(:,end);
+%     leyenda = strcat(" EDFA ",num2str(span) );
+%     ejex = Signal.lambda.(strcat("LP_",ModoS(s))).*1e9;
+%     plot(ejex,graf.OSNR_OUT.(strcat("LP_",ModoS(s))) , '-o' , 'DisplayName',leyenda ) ; hold on ; 
+%     title(strcat('OSNR en Modo LP',Signal.modos(s)),'FontSize',14) ; 
+%     legend('Location', 'southoutside','Orientation','horizontal','Box','off', "NumColumns" , 4,'FontSize',9); 
+%     xlabel('Longitud de Onda [nm]','FontSize',14) ; ylabel('Magnitud [dB]','FontSize',14)
+% end ; clear s ejex leyenda;
 
 
 %LP11a

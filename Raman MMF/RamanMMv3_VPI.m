@@ -70,7 +70,10 @@ for i=1:length(ModoS)
     Psoff.(ModoS{i})(:,1)       = Ps0.(ModoS{i}); 
 
     Ps.Rayleigh.(ModoS{i})      = zeros( length(lambdaS.(ModoS{i})), length(Z) );
-    Ps.ASE.(ModoS{i})           = zeros( length(lambdaS.(ModoS{i})), length(Z) );
+    Ps.ASE.(ModoS{i})           = zeros( length(lambdaS.(ModoS{i})), length(Z) );   % ASE sum for each signal chanel
+    Pase.(ModoS{i})             = zeros( length(lambdaS.(ModoS{i})), length(Z) );   % ASE propagation vector forward direction
+    Pase0.(ModoS{i})            = 10.^( ((In.ASE.(ModoS{i})) -30)/10 ) ;
+    Pase.(ModoS{i})(:,1)        = Pase0.(ModoS{i}); 
     
 end
 
@@ -156,7 +159,7 @@ else
     Calc_Rayleight = true;
 end
 ase_calc = In.ase_calc;
-ASE_BW = 10e12; % VPI
+ASE_BW = 0.2e12; % VPI
 %6*10^12; %6*10^12; %THz "paper: RAMAN amplifier gain dynamics with ASE"
 %% % Calculo potencias
 
@@ -223,7 +226,7 @@ for l = 1:(length(Z)-1)
         for wS = 1:length(lambdaS.(ModoS{ms}))
             p_sum = 0;
             eta_sum = 0;
-            ase_sum = 0; ASE = 0;
+            ase_sum = 0; ASE = 0; ase_sum2 = 0;
             for mp = 1:length(ModoP)
                 p_sum = p_sum + sum( fmn.Signal.(ModoS{ms}).(ModoP{mp})(:,wS) .* gR.Signal.(ModoS{ms}).(ModoP{mp})(:,wS)...
                                     .* ( Pf.(ModoP{mp})(:,l)+Pb.(ModoP{mp})(:,l) ) );
@@ -231,6 +234,8 @@ for l = 1:(length(Z)-1)
                 deltaV = abs( c/lambdaP.(ModoP{mp})(:) - c/lambdaS.(ModoS{ms})(wS) ) ; BW = ASE_BW;%6*10^12; %THz "paper: RAMAN amplifier gain dynamics with ASE"
                 ase_sum = ase_sum + sum(    sum( ( fmn.Signal.(ModoS{ms}).(ModoP{mp})(:,wS) .* gR.Signal.(ModoS{ms}).(ModoP{mp})(:,wS)...
                                     .* ( Pf.(ModoP{mp})(:,l)+Pb.(ModoP{mp})(:,l) ) ) .* (1+(exp(h*deltaV/(k*T))-1).^-1 ) .* BW ) ) ;
+%                 ase_sum2 = ase_sum2 + sum(    sum( ( fmn.Signal.(ModoS{ms}).(ModoP{mp})(:,wS) .* gR.Signal.(ModoS{ms}).(ModoP{mp})(:,wS)...
+%                                     .* ( Pf.(ModoP{mp})(:,l)+Pb.(ModoP{mp})(:,l) ) ) .* BW ) ) ;
             end
             
             if ase_calc
@@ -241,7 +246,13 @@ for l = 1:(length(Z)-1)
                                         ASE * h  * ( c/lambdaS.(ModoS{ms})(wS) ) + eta_sum);
             Ps.Rayleigh.(ModoS{ms})(wS,l+1) = eta_sum;
             Ps.ASE.(ModoS{ms})(wS,l+1) = ase_sum * h  * ( c/lambdaS.(ModoS{ms})(wS) );
-            
+
+            % ASE PROPAGATION
+            Pase.(ModoS{ms})(wS,l+1) = Pase.(ModoS{ms})(wS,l) + deltaZ*( -alpS*Pase.(ModoS{ms})(wS,l) + p_sum*Pase.(ModoS{ms})(wS,l)  + ...
+                                        ase_sum * h  * ( c/lambdaS.(ModoS{ms})(wS) ));
+%             Pase.(ModoS{ms})(wS,l+1) = Pase.(ModoS{ms})(wS,l) + deltaZ*( -alpS*Pase.(ModoS{ms})(wS,l) + p_sum*Pase.(ModoS{ms})(wS,l)  + ...
+%                                         ase_sum2 * h  * ( c/lambdaS.(ModoS{ms})(wS) ));
+%             
         end
     end
 
@@ -320,7 +331,7 @@ if AdjIter
                 for wS = 1:length(lambdaS.(ModoS{ms}))
                     p_sum = 0;
                     eta_sum = 0;
-                    ase_sum = 0; ASE = 0;
+                    ase_sum = 0; ASE = 0; ase_sum2 = 0;
                     for mp = 1:length(ModoP)
                         p_sum = p_sum + sum( fmn.Signal.(ModoS{ms}).(ModoP{mp})(:,wS) .* gR.Signal.(ModoS{ms}).(ModoP{mp})(:,wS)...
                                             .* ( Pf.(ModoP{mp})(:,l)+Pb.(ModoP{mp})(:,l) ) );
@@ -328,6 +339,8 @@ if AdjIter
                         deltaV = abs( c/lambdaP.(ModoP{mp})(:) - c/lambdaS.(ModoS{ms})(wS) ) ; BW = ASE_BW;%6*10^12; %THz "paper: RAMAN amplifier gain dynamics with ASE"
                         ase_sum = ase_sum + sum(    sum( ( fmn.Signal.(ModoS{ms}).(ModoP{mp})(:,wS) .* gR.Signal.(ModoS{ms}).(ModoP{mp})(:,wS)...
                                             .* ( Pf.(ModoP{mp})(:,l)+Pb.(ModoP{mp})(:,l) ) ) .* (1+(exp(h*deltaV/(k*T))-1).^-1 ) .* BW ) ) ;
+%                         ase_sum2 = ase_sum2 + sum(    sum( ( fmn.Signal.(ModoS{ms}).(ModoP{mp})(:,wS) .* gR.Signal.(ModoS{ms}).(ModoP{mp})(:,wS)...
+%                                     .* ( Pf.(ModoP{mp})(:,l)+Pb.(ModoP{mp})(:,l) ) ) .* BW ) ) ;
                     end
                     
                     if ase_calc
@@ -338,6 +351,12 @@ if AdjIter
                                                 ASE * h  * ( c/lambdaS.(ModoS{ms})(wS) ) + eta_sum);
                     Ps.Rayleigh.(ModoS{ms})(wS,l+1) = eta_sum;
                     Ps.ASE.(ModoS{ms})(wS,l+1) = ase_sum * h  * ( c/lambdaS.(ModoS{ms})(wS) );
+
+                    % ASE PROPAGATION
+                    Pase.(ModoS{ms})(wS,l+1) = Pase.(ModoS{ms})(wS,l) + deltaZ*( -alpS*Pase.(ModoS{ms})(wS,l) + p_sum*Pase.(ModoS{ms})(wS,l)  + ...
+                                       ase_sum * h  * ( c/lambdaS.(ModoS{ms})(wS) ));
+%                     Pase.(ModoS{ms})(wS,l+1) = Pase.(ModoS{ms})(wS,l) + deltaZ*( -alpS*Pase.(ModoS{ms})(wS,l) + p_sum*Pase.(ModoS{ms})(wS,l)  + ...
+%                                         ase_sum2 * h  * ( c/lambdaS.(ModoS{ms})(wS) ));
                 end
             end
         
@@ -385,8 +404,10 @@ end
 for ms = 1:length(ModoS)
     Gain.(ModoS{ms}) =  10*log10( Ps.(ModoS{ms})(:,end) ./ Ps.(ModoS{ms})(:,1) );
     GainOnOFF.(ModoS{ms}) =  10*log10( Ps.(ModoS{ms})(:,end) ./ Psoff.(ModoS{ms})(:,end) );
-    TempOSNR.(ModoS{ms}) = 10*log10( Ps.(ModoS{ms})(:,:)./Ps.ASE.(ModoS{ms})(:,:) );
-    OSNR.(ModoS{ms}) = 10*log10( Ps.(ModoS{ms})(:,end)./Ps.ASE.(ModoS{ms})(:,end) );
+    %TempOSNR.(ModoS{ms}) = 10*log10( Ps.(ModoS{ms})(:,:)./Ps.ASE.(ModoS{ms})(:,:) );
+    TempOSNR.(ModoS{ms}) = 10*log10( Ps.(ModoS{ms})(:,:)./Pase.(ModoS{ms})(:,:) );
+    %OSNR.(ModoS{ms}) = 10*log10( Ps.(ModoS{ms})(:,end)./Ps.ASE.(ModoS{ms})(:,end) );
+    OSNR.(ModoS{ms}) = 10*log10( Ps.(ModoS{ms})(:,end)./Pase.(ModoS{ms})(:,end) );
     NF.(ModoS{ms}) = TempOSNR.(ModoS{ms})(:,2)-TempOSNR.(ModoS{ms})(:,end);
 end
 
@@ -408,6 +429,7 @@ Raman.LambdasS = lambdaS ;
 Raman.LambdasP = lambdaP ;
 Raman.Atenuation.Signal = alphaS;
 Raman.Atenuation.Pump = alphaP;
+Raman.ASE = Pase;
 
 end
 

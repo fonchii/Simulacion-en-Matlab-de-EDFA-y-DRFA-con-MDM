@@ -15,7 +15,10 @@ load("RamanVPIE1.mat")
 %load("Raman_Matlab_EJ1_Gain3_ASE300mw.mat")
 %load("Raman_Matlab_EJ1_Gain3backward.mat")
 %load("Raman_Matlab_EJ1_Gain3backward_400mw.mat")
-load("BestRaman_Matlab_EJ1_v0.mat")
+
+
+%load("BestRaman_Matlab_EJ1_v0.mat")
+load("BestRaman_Matlab_EJ1_ASE.mat")
 
 c = 299792458;
 wavelenghts_matlab = ( c./linspace(c/(1.66551366e-6) , c/(1.50046275e-6) , 100)).*1e9;
@@ -24,18 +27,18 @@ GainDiff = abs( RamanVPIE1.GainOnOff - Raman.Sig.GainOnOFF.LP01 );
 
 % % Ganancias
 
-plot(wavelenghts_matlab , Raman.Sig.GainOnOFF.LP01,"DisplayName","Matlab") ; hold on
-plot(RamanVPIE1.wavelength.*1e9 , RamanVPIE1.GainOnOff,"DisplayName","VPI") 
-
-set(gca,'FontSize',8)
-title("Distribución espectral de Ganancias",'FontSize',14) ; xlabel("Longitud de onda [nm]",'FontSize',14) ; ylabel("Ganancia [dBm]",'FontSize',14)
-
-    % Diferencia de Ganancias
-yyaxis right
-ylabel('Diferencia de Ganancias','FontSize',14)
-plot(wavelenghts_matlab , GainDiff ,  "-o" , DisplayName = "Diferencia de Ganancias" , Color='#0072BD')
-ylim([0, 5]) ; %grid minor
-legend('Location', 'southoutside','Orientation','horizontal','Box','off' , "NumColumns",2,"FontSize",9)
+% plot(wavelenghts_matlab , Raman.Sig.GainOnOFF.LP01,"DisplayName","Matlab") ; hold on
+% plot(RamanVPIE1.wavelength.*1e9 , RamanVPIE1.GainOnOff,"DisplayName","VPI") 
+% 
+% set(gca,'FontSize',8)
+% title("Distribución espectral de Ganancias",'FontSize',14) ; xlabel("Longitud de onda [nm]",'FontSize',14) ; ylabel("Ganancia [dBm]",'FontSize',14)
+% 
+%     % Diferencia de Ganancias
+% yyaxis right
+% ylabel('Diferencia de Ganancias','FontSize',14)
+% plot(wavelenghts_matlab , GainDiff ,  "-o" , DisplayName = "Diferencia de Ganancias" , Color='#0072BD')
+% ylim([0, 5]) ; %grid minor
+% legend('Location', 'southoutside','Orientation','horizontal','Box','off' , "NumColumns",2,"FontSize",9)
 
 %Analisis de forma:
 %plot((Raman.Sig.GainOnOFF.LP01./max(Raman.Sig.GainOnOFF.LP01)).*max(RamanVPIE1.GainOnOff),"DisplayName","Matlab_ajustado") ; legend()
@@ -67,20 +70,35 @@ legend('Location', 'southoutside','Orientation','horizontal','Box','off' , "NumC
 % legend('Location', 'southoutside','Orientation','horizontal','Box','off' , "NumColumns",2,"FontSize",9)
 
 
-% % ASE
+% % % ASE
+plot(Raman.z , ( Raman.ASE.LP01(1,:))*1000 ,"DisplayName",strcat(num2str(round(wavelenghts_matlab(1))), 'nm - Matlab') ) ; hold on
 
+set(gca,'ColorOrderIndex',1,'FontSize',8)
 
-%plot(RamanVPIE1.z , (1e-3.*10.^( RamanVPIE1.ASE_Fwd./10)) ) ; hold on
+plot(RamanVPIE1.z , (1e-3.*10.^( RamanVPIE1.ASE_Fwd./10)) , '--',"DisplayName",strcat( num2str(round(RamanVPIE1.wavelength(1)*1e9)) , 'nm - VPIphotonics' ) ) ; hold on
 
-% set(gca,'ColorOrderIndex',1,'FontSize',8)
 % for i=0:6
-%     plot(Raman.z , (1e-3.*10.^( Raman.Sig.Power.ASE.LP01(1+15*i,:)./10)) ) ; hold on
+%     %plot(Raman.z , (1e-3.*10.^( Raman.Sig.Power.ASE.LP01(1+15*i,:)./10)) ) ; hold on
+%     plot(Raman.z , ( Raman.ASE.LP01(1+15*i,:)) ) ; hold on
 % end
 
-%title('Distribución Axial de la Potencia ASE','FontSize',14) ; xlabel('Posición [km]','FontSize',14) ; ylabel('Potencia [mW]','FontSize',14)
+title('Distribución Axial de la Potencia ASE','FontSize',14) ; xlabel('Posición [km]','FontSize',14) ; ylabel('Potencia [mW]','FontSize',14)
+legend('Location', 'southoutside','Orientation','horizontal','Box','off','NumColumns',1,'FontSize',9)
 
 
-
+% % % OSNR
+% OSNR_Matlab = 10*log10( Raman.Sig.Power.LP01(1,:)./Raman.ASE.LP01(1,:) );
+% 
+% OSNR_VPI = 10*log10( 1e-3.*10.^( RamanVPIE1.Signals(:,1)./10)./((1e-3.*10.^( RamanVPIE1.ASE_Fwd./10))./1000) );
+%  
+% plot(Raman.z , OSNR_Matlab(1,:)  ,"DisplayName",strcat(num2str(round(wavelenghts_matlab(1))), 'nm - Matlab') ); hold on
+% 
+% set(gca,'ColorOrderIndex',1,'FontSize',8)
+% 
+% plot(RamanVPIE1.z , OSNR_VPI(:,1) , '--' ,"DisplayName",strcat( num2str(round(RamanVPIE1.wavelength(1)*1e9) ), 'nm - VPIphotonics')  ) 
+% 
+% title('Distribución Axial de la OSNR','FontSize',14) ; xlabel('Posición [km]','FontSize',14) ; ylabel('Magnitud [dB]','FontSize',14)
+% legend('Location', 'southoutside','Orientation','horizontal','Box','off','NumColumns',1,'FontSize',9)
 
 
 

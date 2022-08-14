@@ -26,7 +26,7 @@ In.Signal.LP01.Wavelengths        = ( c./linspace(c/(1.66551366e-6) , c/(1.50046
 In.Signal.LP01.Powers             = -30*ones( 1,length(In.Signal.LP01.Wavelengths) );                 %[dBm]
 In.Signal.LP01.Alpha              = 0.25;                                                              % [dB/km]
 
-
+In.ASE.LP01                         = -200*ones( 1,length(In.Signal.LP01.Wavelengths) );
 
 In.Monomodo = true;
 In.Rayleight = false; In.ase_calc = false;
