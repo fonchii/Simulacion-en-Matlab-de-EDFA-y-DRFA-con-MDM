@@ -4,7 +4,7 @@ close all ; clc ; clear all
 %% Datos Entrada
 c = 299792458;
 % FIBRA
-In.Fibra.RamanMethod              = 'Backward';                   % 'Forward', 'Backward', 'Forward&Backward'
+In.Fibra.RamanMethod              = 'Forward&Backward';                   % 'Forward', 'Backward', 'Forward&Backward'
 In.Fibra.AttenuationMethod        = 'Dynamic';                    % 'Dynamic' , 'Static'
 In.Fibra.Length                   = 50;                          % fibre length (km)
 In.Fibra.T                        = 25;                           % Temperatura Fibra (ambiente)
@@ -16,7 +16,7 @@ In.Fibra.n1=1.46;  In.Fibra.n2=1.42; In.Fibra.radio=25e-6; In.Fibra.area=pi*(In.
 %     % LP01
 
 In.Pump.LP01.Wavelengths       = 1450;               %c/(200e12) ;                    % [nm]
-In.Pump.LP01.Powers            = 200*1e-3;                                                % [mW]
+In.Pump.LP01.Powers            = 100*1e-3;                                                % [mW]
 %In.Pump.LP11a.Alpha             = [0.25]; 
 
 

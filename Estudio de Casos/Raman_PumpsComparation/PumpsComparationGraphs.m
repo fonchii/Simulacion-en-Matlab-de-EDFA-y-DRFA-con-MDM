@@ -34,7 +34,7 @@ In.ASE.LP11a                         = -200*ones( 1,length(In.Signal.LP11a.Wavel
 clc;
 load('RamanBackward.mat')
 load('RamanForward.mat')
-load('RamanHibrido.mat')
+load('RamanHibrido2.mat')
 
 close all; 
 z = RamanBackward.z;
@@ -123,13 +123,13 @@ set( gcf,'PaperSize',[29.7 21.0], 'PaperPosition',[0 0 29.7 21.0])
 
 % % LP11a
 
-ms=1;
-plot(In.Signal.(RamanForward.ModoS{ms}).Wavelengths , RamanForward.Sig.GainOnOFF.(ModoS{ms}), '-o','DisplayName','Bombeo Forward')  ; hold on
-plot(In.Signal.(RamanBackward.ModoS{ms}).Wavelengths , RamanBackward.Sig.GainOnOFF.(ModoS{ms}), '-o','DisplayName','Bombeo Backward')
-plot(In.Signal.(RamanHibrido.ModoS{ms}).Wavelengths , RamanHibrido.Sig.GainOnOFF.(ModoS{ms}), '-o','DisplayName','Bombeo Hibrido')
-set(gca,"ColorOrderIndex",1,'FontSize',8)
-xlabel("Longitud de Onda [nm]",'FontSize',14) ,ylabel("Ganancia [dB]",'FontSize',14); title("Ganancias On-Off modo LP11a",'FontSize',14) ; 
-legend("Location","southoutside",'FontSize', 9,'Orientation','horizontal','Box','off')
+% ms=1;
+% plot(In.Signal.(RamanForward.ModoS{ms}).Wavelengths , RamanForward.Sig.GainOnOFF.(ModoS{ms}), '-o','DisplayName','Bombeo Forward')  ; hold on
+% plot(In.Signal.(RamanBackward.ModoS{ms}).Wavelengths , RamanBackward.Sig.GainOnOFF.(ModoS{ms}), '-o','DisplayName','Bombeo Backward')
+% plot(In.Signal.(RamanHibrido.ModoS{ms}).Wavelengths , RamanHibrido.Sig.GainOnOFF.(ModoS{ms}), '-o','DisplayName','Bombeo Hibrido')
+% set(gca,"ColorOrderIndex",1,'FontSize',8)
+% xlabel("Longitud de Onda [nm]",'FontSize',14) ,ylabel("Ganancia [dB]",'FontSize',14); title("Ganancias On-Off modo LP11a",'FontSize',14) ; 
+% legend("Location","southoutside",'FontSize', 9,'Orientation','horizontal','Box','off')
 
 %set(gca,'ColorOrderIndex',1)
 
@@ -182,13 +182,13 @@ legend("Location","southoutside",'FontSize', 9,'Orientation','horizontal','Box',
 
 % % LP21a
 
-% ms = 2;
-% plot(In.Signal.(ModoS{1}).Wavelengths , RamanForward.NF.(ModoS{ms}), '-o','DisplayName','Bombeo Forward')  ; hold on
-% plot(In.Signal.(ModoS{1}).Wavelengths , RamanBackward.NF.(ModoS{ms}), '-o','DisplayName','Bombeo Backward')  ; 
-% plot(In.Signal.(ModoS{1}).Wavelengths , RamanHibrido.NF.(ModoS{ms}), '-o','DisplayName','Bombeo Hibrido')  ; 
-% set(gca,'FontSize',8)
-% xlabel("Longitud de Onda [nm]",'FontSize',14) ,ylabel("Magnitud [dB]",'FontSize',14) ; title("Figura de Ruido en modo LP21a",'FontSize',14) ; 
-% legend("Location","southoutside",'FontSize', 9,'Orientation','horizontal','Box','off')
+ms = 2;
+plot(In.Signal.(ModoS{1}).Wavelengths , RamanForward.NF.(ModoS{ms}), '-o','DisplayName','Bombeo Forward')  ; hold on
+plot(In.Signal.(ModoS{1}).Wavelengths , RamanBackward.NF.(ModoS{ms}), '-o','DisplayName','Bombeo Backward')  ; 
+plot(In.Signal.(ModoS{1}).Wavelengths , RamanHibrido.NF.(ModoS{ms}), '-o','DisplayName','Bombeo Hibrido')  ; 
+set(gca,'FontSize',8)
+xlabel("Longitud de Onda [nm]",'FontSize',14) ,ylabel("Magnitud [dB]",'FontSize',14) ; title("Figura de Ruido en modo LP21a",'FontSize',14) ; 
+legend("Location","southoutside",'FontSize', 9,'Orientation','horizontal','Box','off')
 
 
 

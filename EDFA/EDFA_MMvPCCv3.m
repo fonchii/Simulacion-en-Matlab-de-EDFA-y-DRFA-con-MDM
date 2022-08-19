@@ -27,6 +27,15 @@ if length(Z)<20                         % Correccion para EDFA muy corto
     Z=linspace(0,L,20);
     del_z = (Z(2)-Z(1));
 end
+if L>20                                 % Correccion para EDFAs Largos
+    Z=linspace(0,L,50);
+    del_z = (Z(2)-Z(1));
+end
+if L>10
+    Z=linspace(0,L,30);
+    del_z = (Z(2)-Z(1));
+end
+
 Nz = length(Z);
 
 d_vk = 125*10^9;                        % 1 nm - Noise Bandwidth
