@@ -2,73 +2,103 @@
 
 close all ; clear all
 
+%% Cargar datos y guardar en struct
+
+% ---------- Ganancias vs lamda ---------- %
+% %%load(strcat("Data_GananciavsLargo_OptiSystem.mat")) ; 
+% load(strcat("Data_GananciaEspectro.mat")) ; 
+% for larg=[3 5 7 10 15 20] %1:length(fieldnames(Largos))
+%     cont=1;
+%     for j=["150mw" "200mw" "250mw" "300mw" "400mw" "500mw" "700mw" "1000mw"]
+%         Ganancias.(strcat('L',num2str(larg),'m'))(cont,:) = GainSpectrum.(strcat("L",num2str(larg),'m')).(strcat("EDFA_",j)).Nucleo1.salida.ganancias.LP_01; 
+%         cont=cont+1;
+%     end
+% end
+% Ganancias.ejex = GainSpectrum.(strcat("L",num2str(larg),'m')).(strcat("EDFA_",j)).Nucleo1.signal.lambdas;
+
+
+
+% ---------- Ganancias vs Largo ---------- %
+
+% % %load(strcat("Largos_Potencias")) % Datos VPI
+% load(strcat("Data_Largos_Potencias_OptiSystem")) % Datos OptiSystem
+% for j=["150mw" "200mw" "250mw" "300mw" "400mw" "500mw" "700mw" "1000mw" "1500mw"]
+%     cont = 1;
+%     for i=[1,3,5,7,9,11,13,15,17,19]
+%         GananciasvsLargo_Temp(cont) = Largos_v2.(strcat("EDFA_",num2str(i),'m')).(strcat('Pump',j)).Nucleo1.salida.ganancias.LP_01(16); % 1555 nm
+%         cont = cont+1;
+%     end
+%     GananciasvsLargo.(strcat("P",j)) = GananciasvsLargo_Temp;
+% end
+% 
+
+
+
+% ----------- Ganancias vs Potencia ---------- %
+% %load("PotenciasvsLargo.mat")
+% load("Data_GananciavsLargo_OptiSystem.mat")
+% %for i=[3,5,7,9,11,13,15,17,19]
+% for i=[3,5,7,10,15,20]
+%     cont = 1;
+%     for j=["150mw" "200mw" "250mw" "300mw" "350mw" "400mw" "450mw" "500mw" "550mw" "600mw" "650mw" "700mw" "750mw" "800mw" "850mw" "900mw" "950mw" "1000mw"]
+%         GananciasvsPot_Temp(cont) = Potencias.(strcat('L',num2str(i),'m')).(strcat('EDFA_',j)).Nucleo1.salida.ganancias.LP_01(16); % 1555 nm
+%         cont = cont+1;
+%     end
+%     GananciasvsPot.(strcat("L",num2str(i),'m')) = GananciasvsPot_Temp;
+% end
+
+
+%% GRAFICAR
 
 set( gcf,'PaperSize',[29.7 21.0], 'PaperPosition',[0 0 29.7 21.0])
 % SAVE:
 % print -dpdf 'NAME'
 
+% ---------- Ganancia vs Lambda ---------- %
+
+load("Ganancias_OptiSystem.mat")
+larg = ["3m" "5m" "7m" "10m" "15m" "20m"];
+pots = ["150mw" "200mw" "250mw" "300mw" "400mw" "500mw" "700mw" "1000mw"];
+cont = 1;
+
+for l = "L10m" %larg
+    figure(cont)
+    for p = 1:length(Ganancias.L10m(:,1))
+        leyenda = strcat('Pump ',pots(p));
+        ejex = Ganancias.ejex.*1e9;
+        plot(ejex,Ganancias.(l)(p,:) , '-o' , 'DisplayName',leyenda ) ; hold on ; 
+    end %; clear s ejex leyenda;
+    set(gca,'FontSize',8)
+    legend(Location="southoutside",FontSize=9,Box="off",Orientation="horizontal", NumColumns=4);  
+    title('Distribución espectral de Ganancias para EDFA de largo 10m','FontSize',14) ; xlabel('Longitud de onda [nm]','FontSize',14) ; ylabel('Magnitud [dB]','FontSize',14)
+    ylim([0 35])
+    cont = cont + 1;
+end
 
 
-
-
-% % Ganancias vs lamda
-% Cargar datos y guardar en struct
-% for j=["150mw" "200mw" "250mw" "300mw" "400mw" "500mw" "700mw" "1000mw" "1500mw"]
-%     load(strcat("Largo_Caracterizacion_",j,".mat"))
-%     for i=1:length(fieldnames(Largos))
-%         Ganancias.(strcat('g_',num2str(i),'m')) = Largos.(strcat("EDFA_",num2str(i),'m')).Nucleo1.salida.ganancias.LP_01(11:end-10); %
-%         GananciasvsLargo_Temp(i) = Ganancias.(strcat('g_',num2str(i),'m'))(6); %1555 nm
-%     end
-%     GananciasvsLargo.(strcat("P",j)) = GananciasvsLargo_Temp;
-% end
-
-
-% for g = [1,2,3,5,7,10,15]
-%     leyenda = strcat('Largo: ',int2str(g)," m");
-%     ejex = Largos.EDFA_1m.Nucleo1.signal.lambdas(11:end-10).*1e9;
-%     plot(ejex,Ganancias.(strcat('g_',num2str(g),'m')) , '-o' , 'DisplayName',leyenda ) ; hold on ; 
+% ---------- GANANCIA VS PumpPower ---------- %
+% load("GananciavsPumpPower_OptiSystem.mat")
+% ejex = [150:50:1000];
+% %for j=["3m" "5m" "7m" "9m" "11m" "13m" "15m" "17m" "19m"]
+% for j=["3m" "5m" "7m" "10m" "15m" "20m"]
+%     %plot(ejex , PotenciasvsLargo.(strcat("L",j)) , 'DisplayName' , strcat('Largo= ',j)  )  ; hold on;
+%     plot(ejex , GananciasvsPot.(strcat("L",j)) , 'DisplayName' , strcat('Largo= ',j)  )  ; hold on;
 % end ; clear s ejex leyenda;
 % set(gca,'FontSize',8)
-% legend(Location="southoutside",FontSize=9,Box="off",Orientation="horizontal");  
-% title('Distribución espectras de Ganancias','FontSize',14) ; xlabel('Longitud de onda [nm]','FontSize',14) ; ylabel('Magnitud [dB]','FontSize',14)
+% legend(Location="southoutside",FontSize=9,Box="off",Orientation="horizontal",NumColumns=3)
+% title('Ganancia vs Potencia de Bombeo para canal de 1555 nm','FontSize',14) ; xlabel('Potencia de Bombeo [mw]','FontSize',14) ; ylabel('Ganancia [dB]','FontSize',14)
 
 
-% Ganancias vs Largo
-% load("GananciavsLargo2.mat") ; load("Largo_Caracterizacion_1500mw.mat")
-% xlargos=[1:length(fieldnames(Largos))];
+% --------- Ganancia vs Largo --------- %
+
+% xlargos=[1,3,5,7,9,11,13,15,17,19];
 % for g = [150,200,250,300,400,500,700,1000,1500]
-%     plot(xlargos(1:end-15) , GananciasvsLargo.(strcat('P',int2str(g),'mw'))(1:end-15) , 'DisplayName' , strcat('Pump= ',int2str(g),' mw') )  ; hold on;
+%     plot(xlargos , GananciasvsLargo.(strcat('P',int2str(g),'mw')) , 'DisplayName' , strcat('Pump= ',int2str(g),' mw') )  ; hold on;
 %     
 % end ; clear s ejex leyenda;
 % set(gca,'FontSize',8)
 % legend(Location="southoutside",FontSize=9,Box="off",Orientation="horizontal",NumColumns=5)
-% title('Ganancia vs Largo del amplificador','FontSize',14) ; xlabel('Largo del EDFA [m]','FontSize',14) ; ylabel('Ganancia [dB]','FontSize',14)
-
-
-
-% ----------- Ganancias vs Potencia
-% % % Cargar datos y guardar en struct
-% for j=["3m" "5m" "7m" "10m" "15m" "20m"]
-%     load(strcat("Potencia_Caracterizacion_",j,".mat"))
-%     %load(strcat("Potencia_Caracterizacion_10m",".mat"))
-%     for i=1:length(fieldnames(Potencias))
-%         Ganancias.(strcat('g_',num2str(i),'m')) = Potencias.(strcat("EDFA_",num2str(100+50*i),'mw')).Nucleo1.salida.ganancias.LP_01;%;(11:end-10); %
-%         GananciasvsLargos_Temp(i) = Ganancias.(strcat('g_',num2str(i),'m'))(21); %1560 nm
-%     end
-%     PotenciasvsLargo.(strcat("L",j)) = GananciasvsLargos_Temp;
-% end
-
-
-load("PotenciasvsLargo.mat")
-ejex = [150:50:1000];
-for j=["3m" "5m" "7m" "10m" "15m" "20m"]
-    plot(ejex , PotenciasvsLargo.(strcat("L",j)) , 'DisplayName' , strcat('Largo= ',j)  )  ; hold on;
-end ; clear s ejex leyenda;
-set(gca,'FontSize',8)
-legend(Location="southoutside",FontSize=9,Box="off",Orientation="horizontal",NumColumns=5)
-title('Ganancia vs Potencia de Bombeo del amplificador','FontSize',14) ; xlabel('Potencia de Bombeo [mw]','FontSize',14) ; ylabel('Ganancia [dB]','FontSize',14)
-
-
+% title('Ganancia vs Largo del amplificador para canal de 1555 nm ','FontSize',14) ; xlabel('Largo del EDFA [m]','FontSize',14) ; ylabel('Ganancia [dB]','FontSize',14)
 
 
 %% %% Parámetros de entrada

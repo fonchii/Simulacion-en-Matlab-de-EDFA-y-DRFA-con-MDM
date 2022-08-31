@@ -5,10 +5,11 @@ clear all; clc
 %% Parámetros de entrada
 
     % Señal : Modos y Canales
-NCh = 36;
+NCh = 41;%36;
 Signal.modos = ["01"] ;
 
-Signal.lambda.LP_01     = linspace(1540e-9,1575e-9,NCh);              P0_signal.LP_01     = -15*ones(1,length(Signal.lambda.LP_01));
+%Signal.lambda.LP_01     = linspace(1540e-9,1575e-9,NCh);              P0_signal.LP_01     = -15*ones(1,length(Signal.lambda.LP_01));
+Signal.lambda.LP_01     = linspace(1530e-9,1570e-9,NCh);              P0_signal.LP_01     = -15*ones(1,length(Signal.lambda.LP_01));
 
     % Bombeo : Modos y Canales
 Pump.modos = ["01" ]   ;
@@ -52,28 +53,68 @@ Fibra.ASEFlag = 1;                      % 1 : Evita Calculo Espectro ASE ; 0 : L
 
 
 tic;
-% Iterar por Largos
-% for largos=1:30
-%     P0_pump.LP_01   = [250e-3]  ; Pump.P0 = P0_pump;
-%     Fibra.largo = largos;
-%     fprintf('Iniciando Fibra %.0f de %.0f\n', largos,30);
-% 
-%     Largos.(strcat("EDFA_",num2str(largos),'m')) = EDFA_MMvPCCv3(Fibra,Signal,Pump,ASE);       % Con efecto acomplamiento de Potencia intermodal
-% 
+% --------- Iterar por Largos --------- %
+% for largos=[3 5 7 10 15 20]%largos=1:2:20
+%         for pump = [150,200,250,300,400,500,700,1000,1500]
+%             %P0_pump.LP_01   = [150e-3]  ; Pump.P0 = P0_pump;
+%             P0_pump.LP_01   = pump*1e-3  ; Pump.P0 = P0_pump;
+%             Fibra.largo = largos;
+%             fprintf('Iniciando Fibra %.0f de %.0f\n', largos,30);
+%         
+%             %Largos.(strcat("EDFA_",num2str(largos),'m')) = EDFA_MMvPCCv3(Fibra,Signal,Pump,ASE);       % Con efecto acomplamiento de Potencia intermodal
+%             %Largos.(strcat("EDFA_",num2str(largos),'m')) = EDFA_MMvpi2(Fibra,Signal,Pump,ASE);       
+%             Largos_v2.(strcat("EDFA_",num2str(largos),'m')).(strcat('Pump',num2str(pump),'mw')) = EDFA_MMvPCCv3(Fibra,Signal,Pump,ASE);
+%         end
+%     
 % end
 % largos_time=toc; fprintf('Tiempo Total de cómputo: %.2f segundos\n', largos_time )
 
-% Iterar por Potencias
 
 
-for potencias=150:50:1000
-    P0_pump.LP_01 = potencias.*1e-3; Pump.P0 = P0_pump;
-    fprintf('Iniciando Fibra %.0f de %.0f\n', potencias,1000);
-    Fibra.largo = 20; % 3,5,7,10
-    Potencias.(strcat("EDFA_",num2str(potencias),'mw')) = EDFA_MMvPCCv3(Fibra,Signal,Pump,ASE);       % Con efecto acomplamiento de Potencia intermodal
+% --------- Iterar por Potencias --------- %
 
+%for largos=3:2:20
+% cont = 1;
+% for largos=[3 5 7 10 15 20]
+%     for potencias=150:50:1000
+%         P0_pump.LP_01 = potencias.*1e-3; Pump.P0 = P0_pump;
+%         fprintf('Iniciando Fibra %.0f de %.0f\n', cont,(length(150:50:1000)*length([3 5 7 10 15 20]))); cont = cont+1;
+%         Fibra.largo = largos; % 3,5,7,10
+%         Potencias.(strcat('L',num2str(largos),'m')).(strcat("EDFA_",num2str(potencias),'mw')) = EDFA_MMvPCCv3(Fibra,Signal,Pump,ASE);       % Con efecto acomplamiento de Potencia intermodal
+%     
+%     end
+% end
+% largos_time=toc; fprintf('Tiempo Total de cómputo: %.2f segundos\n', largos_time )
+
+% --------- Ganancias Espectral --------- %
+% Cambiar arriba a estos datos:
+%Signal.lambda.LP_01     = linspace(1530e-9,1570e-9,41);              P0_signal.LP_01     = -15*ones(1,length(Signal.lambda.LP_01)); Signal.NumberOfChannels=41;
+for largos=3:2:20
+    cont = 1;
+    for largos=[3 5 7 10 15 20]
+        for potencias=150:50:1000
+            P0_pump.LP_01 = potencias.*1e-3; Pump.P0 = P0_pump;
+            fprintf('Iniciando Fibra %.0f de %.0f\n', cont,(length(150:50:1000)*length([3 5 7 10 15 20]))); cont = cont+1;
+            Fibra.largo = largos; % 3,5,7,10
+            GainSpectrum.(strcat('L',num2str(largos),'m')).(strcat("EDFA_",num2str(potencias),'mw')) = EDFA_MMvPCCv3(Fibra,Signal,Pump,ASE);       % Con efecto acomplamiento de Potencia intermodal
+        end
+    end
 end
-largos_time=toc; fprintf('Tiempo Total de cómputo: %.2f segundos\n', largos_time )
+spectrumG_time=toc; fprintf('Tiempo Total de cómputo: %.2f segundos\n', spectrumG_time )
+
+
+
+
+% -------- OLD ---------
+% % for potencias=150:50:1000       
+% %     P0_pump.LP_01 = potencias.*1e-3; Pump.P0 = P0_pump;
+% %     fprintf('Iniciando Fibra %.0f de %.0f\n', potencias,1000);
+% %     Fibra.largo = 20; % 3,5,7,10
+% %     Potencias.(strcat("EDFA_",num2str(potencias),'mw')) = EDFA_MMvPCCv3(Fibra,Signal,Pump,ASE);       % Con efecto acomplamiento de Potencia intermodal
+% % 
+% % end
+% % largos_time=toc; fprintf('Tiempo Total de cómputo: %.2f segundos\n', largos_time )
+
 
 
     %% Graficos

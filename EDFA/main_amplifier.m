@@ -70,14 +70,14 @@ Fibra.n2 = 1.4354 ;
 %Fibra.dvk= P.OpticalBW; % diferencia : max_lambda - min_lambda 
 
 Fibra.WaitBar = 1; Fibra.Avance = 1;    % Despliegue de info
-Fibra.ASEFlag = 0;                      % 1 : Evita Calculo Espectro ASE ; 0 : Lo Calcula (lento)
+Fibra.ASEFlag = 1;                      % 1 : Evita Calculo Espectro ASE ; 0 : Lo Calcula (lento)
 
 
 %%
 tic;
 %EDFA = EDFA_MM(fibra,signal,pump,ASE);         % Sin efecto acomplamiento de Potencia intermodal
 EDFA = EDFA_MMvPCCv3(Fibra,Signal,Pump,ASE);      % Con efecto acomplamiento de Potencia intermodal
-EDFAVPI= EDFA_MMvpi2(Fibra,Signal,Pump,ASE);
+%EDFAVPI= EDFA_MMvpi2(Fibra,Signal,Pump,ASE);
 t_end = toc; fprintf('Tiempo de cómputo: %.2f segundos\n', t_end);
 
 
@@ -118,7 +118,7 @@ for n = 1:graf.Nc
 %             plot(graf.z,graf.pump.(strcat("LP_",Pump.modos(s)))(f,:) , 'DisplayName',strcat(strcat(strcat("LP",Pump.modos(s))," @"),strcat(int2str(Pump.lambda.(strcat("LP_",Pump.modos(s)))(f)*1e9) ,' nm')) ) ; hold on ; xlabel(xlab) ; ylabel(ylab); title('P_{Pump}') ; legend(); grid on
 %         end
 %     end
-
+legend()
     % Ganancias
     if Fibra.ASEFlag == 0
         for s = 1:length(Signal.modos)

@@ -58,10 +58,17 @@ P_ase0 = ASE;             % Potencia ASE entrada en Watts
 % sigma_abs = fit(lambda_cross,Sa,'linearinterp');
 % sigma_ems = fit(lambda_cross,Se,'linearinterp');
 
-% Datos obtenidos de VPI
-VPI = load('Erbium_VPI.dat');
-lambda_cross = VPI(:,1).*1e-9;
-Sa = VPI(:,3); Se = VPI(:,2);
+%       % % Datos obtenidos de VPI
+% VPI = load('Erbium_VPI.dat');
+% lambda_cross = VPI(:,1).*1e-9;
+% Sa = VPI(:,3); Se = VPI(:,2);
+
+%       % % Datos OptiSystem
+OptiSystem = load('Erbium_OptiSystem.dat');
+Sa = OptiSystem(:,2); Se = OptiSystem(:,3);
+lambda_cross = OptiSystem(:,1).*1e-9;
+
+
 sigma_abs = fit(lambda_cross,Sa,'linearinterp');
 sigma_ems = fit(lambda_cross,Se,'linearinterp');
 

@@ -59,7 +59,7 @@ ASE= -200;
 
     % Datos de la fibra
 Fibra.nucleos = 1;                                           % Numero de nucleos
-Fibra.largo = 3; Fibra.radio = 5.5e-6 ; Fibra.N = 7e24; 
+Fibra.largo = 5; Fibra.radio = 5.5e-6 ; Fibra.N = 7e24; 
 Fibra.n1 = 1.45 ;   Fibra.IndexContrast=0.01;
 Fibra.AN=Fibra.n1*sqrt(2*Fibra.IndexContrast);
 Fibra.n2 =sqrt((Fibra.n1^2-Fibra.AN^2));
@@ -148,7 +148,7 @@ close all
 figure(1)
 set(gca,'ColorOrderIndex',1,'FontSize',8)
 for plotfreq = 0:6
-    plot(GrafSpans.z_total , GrafSpans.Signal_total.LP_01(1+6*plotfreq , :),"DisplayName",strcat( num2str(Span.EDFA1.Nucleo1.signal.lambdas(1+6*plotfreq)*1e9)," nm") )
+    plot(GrafSpans.z_total , GrafSpans.Signal_total.LP_11_a(1+6*plotfreq , :),"DisplayName",strcat( num2str(Span.EDFA1.Nucleo1.signal.lambdas(1+6*plotfreq)*1e9)," nm") )
     hold on
 end
 title('Propagación Señal','FontSize',14); xlabel("Posición",'FontSize',14) ; ylabel("Magnitud [dBm]",'FontSize',14) ; 

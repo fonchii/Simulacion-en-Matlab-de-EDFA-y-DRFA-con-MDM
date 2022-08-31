@@ -21,14 +21,14 @@ In.Pump.LP01.Powers            = 100*1e-3;                                      
 
 
 % SEÑALES : 
-Nch = 100;
+Nch = 41;
     % LP01  
-In.Signal.LP11a.Wavelengths          = linspace(1500,1600,Nch) ;
+In.Signal.LP11a.Wavelengths          = linspace(1530,1570,Nch) ;
 In.Signal.LP11a.Powers               = -30*ones( 1,length(In.Signal.LP11a.Wavelengths) );                 %[dBm]
 %In.Signal.LP01.Alpha                = 0.2;                                                              % [dB/km]
 In.ASE.LP11a                         = -200*ones( 1,length(In.Signal.LP11a.Wavelengths) );
     % LP21a
-In.Signal.LP21a.Wavelengths          = linspace(1500,1600,Nch) ;
+In.Signal.LP21a.Wavelengths          = linspace(1530,1570,Nch) ;
 In.Signal.LP21a.Powers               = -30*ones( 1,length(In.Signal.LP21a.Wavelengths) );                 %[dBm]
 %In.Signal.LP21a.Alpha                = 0.2;                                                              % [dB/km]
 In.ASE.LP21a                         = -200*ones( 1,length(In.Signal.LP21a.Wavelengths) );
@@ -139,7 +139,8 @@ for ms = 1:10:length(Raman.ModoS)
         figure(5); 
         strlambda = strcat( num2str( In.Signal.(Raman.ModoS{ms}).Wavelengths(lS)) , "nm");
         subplot(1,length(Raman.ModoS),fs) ; plot(z,10.*log10(Raman.ASE.(Raman.ModoS{ms})(lS,:)./1e-3) , 'DisplayName',strlambda) ,ylabel("Potencia [dBm]") ; hold on
-        xlabel("Largo [km]") ; title(strcat("Signal Modo ", Raman.ModoS{ms})) ; legend('Location','southoutside','NumColumns',10)
+        xlabel("Largo [km]") ; title(strcat("ASE Modo ", Raman.ModoS{ms})) ; legend('Location','southoutside','NumColumns',10)
+        ylim([-60 -40])
     end
     fs = fs+1;
 end
