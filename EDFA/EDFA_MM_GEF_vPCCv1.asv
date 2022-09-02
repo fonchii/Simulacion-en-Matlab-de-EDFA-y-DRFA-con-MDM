@@ -668,10 +668,8 @@ for n = 1:1:Sch     % Iteración en nucleos
                         normPot = best_normPot; weight = best_weight;
                         break_flag = 1;
                     end
-                    if ActualDiffPot<0.03*InitialDiffPot
-                        break_flag = 1;
-                        final_flag = 1;
-                    end
+                    if ActualDiffPot<0.1*InitialDiffPot
+                        
 
                 else % mejora el resultado
                     fallos_seguidos = 0;
@@ -705,13 +703,13 @@ for n = 1:1:Sch     % Iteración en nucleos
                             best_normPot = normPot; best_weight = weight; best_ActualInitial = Logro(1);
 
                         else
-                            ajuste = 0.015;%0.01; % 0.03
+                            ajuste = 0.01; % 0.03
 %                             if fallos_seguidos==1
 %                                 ajuste = 0.01;
 %                             if while_count > 3
 %                                 ajuste = 0.01;
                              if while_count > 12
-                                ajuste = 0.01;%0.005;
+                                ajuste = 0.005;
 %                             elseif while_count > 30
 %                                 ajuste = 0.0001;
                             end
@@ -738,7 +736,7 @@ for n = 1:1:Sch     % Iteración en nucleos
                                     end
                                 end
                                 sdm.(ch).GEF.(strcat('Iteracion',num2str(while_count))) = weight*normPot ;
-                            elseif break_flag==1 || final_flag == 1
+                            elseif break_flag==1
                                 sdm.(ch).GEF.best_weight_Function = weight*normPot ;
                             end
                             

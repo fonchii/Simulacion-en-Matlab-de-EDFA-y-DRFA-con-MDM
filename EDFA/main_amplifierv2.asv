@@ -56,7 +56,7 @@ tic;
 
 %EDFAVPI= EDFA_MMvpi2(Fibra,Signal,Pump,ASE);
 
-EDFA = EDFA_MM_GEF_vPCCv1(Fibra,Signal,Pump,ASE); % Filtrado de equalizacion de ganancias
+EDFA = EDFA_MM_GEF_vPCCv2(Fibra,Signal,Pump,ASE); % Filtrado de equalizacion de ganancias
 %Original_EDFA = EDFA_MMvPCCv3(Fibra,Signal,Pump,ASE);   
 t_end = toc; fprintf('Tiempo de cómputo: %.2f segundos\n', t_end);
 
