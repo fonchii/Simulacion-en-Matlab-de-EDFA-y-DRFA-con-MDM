@@ -34,12 +34,12 @@ Signal.NumberOfChannels=NCh;
     % Datos de la fibra
 
 Fibra.nucleos = 1;                                           % Numero de nucleos
-Fibra.largo = 10     ; Fibra.radio = 5e-6   ; Fibra.N = 7e24; % fibra.N = 3e24; 
+Fibra.largo = 5     ; Fibra.radio = 5e-6   ; Fibra.N = 7e24; % fibra.N = 3e24; 
 
 Fibra.dvk=300e9;
 Signal.NumberOfChannels=30;
 
-
+Fibra.CrossSectionParameters = "OptiSystem"; % "OptiSystem" , "VPI"
 Fibra.n1 = 1.45 ;   
 Fibra.n2 = 1.4354 ;
 %Fibra.dvk= P.OpticalBW; % diferencia : max_lambda - min_lambda 
@@ -56,7 +56,7 @@ tic;
 
 %EDFAVPI= EDFA_MMvpi2(Fibra,Signal,Pump,ASE);
 
-EDFA = EDFA_MM_GEF_vPCCv1(Fibra,Signal,Pump,ASE); % Filtrado de equalizacion de ganancias
+EDFA = EDFA_MM_GEF_vPCCv3(Fibra,Signal,Pump,ASE); % Filtrado de equalizacion de ganancias
 %Original_EDFA = EDFA_MMvPCCv3(Fibra,Signal,Pump,ASE);   
 t_end = toc; fprintf('Tiempo de cómputo: %.2f segundos\n', t_end);
 
@@ -67,6 +67,8 @@ close all
 graf.Nc = length(fieldnames(EDFA)); 
 graf.z = EDFA.(strcat('Nucleo',int2str(1))).z;
 xlab = 'Posición en fibra [m]'; ylab = 'Potencia [dBm]';
+
+
 % for n = 1:graf.Nc
 %     figure(n)
 %     
@@ -167,7 +169,7 @@ for s = 1:length(Signal.modos)
     set(gca,"ColorOrderIndex",s)
     plot(ejex,EDFA.Nucleo1.salida.ganancias_sinGEF.(strcat("LP_",Signal.modos(s))) , '--*' , 'DisplayName',strcat(leyenda,' sin GEF' )   )
 end ; clear s ejex leyenda;
-
+% 
 figure(2)
 plot(Signal.lambda.(strcat("LP_",Signal.modos(1))).*1e9 , EDFA.Nucleo1.GEF.best_weight_Function ) 
 title('Filtro utilizado') ; xlabel('Longitud de onda [nm]') ; ylabel('Magnitud')

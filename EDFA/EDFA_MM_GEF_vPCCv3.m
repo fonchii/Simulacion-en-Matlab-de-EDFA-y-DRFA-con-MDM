@@ -1,4 +1,4 @@
-function edfa = EDFA_MMvPCCv3(Fibra,Signal,Pump,ASE)
+function edfa = EDFA_MM_GEF_vPCCv3(Fibra,Signal,Pump,ASE)
 % Datos de entrada:
 % signal (struct)
 %       signal.lambda -> int [nm]
@@ -60,14 +60,18 @@ P_ase0 = 1e-3*10.^(ASE/10);             % Potencia ASE entrada en Watts
 % %   Espectros emision y absorción
 
 %       % % Datos obtenidos de VPI
-% VPI = load('Erbium_VPI.dat');
-% Sa = VPI(:,3); Se = VPI(:,2);
-% lambda_cross = VPI(:,1).*1e-9;
+if Fibra.CrossSectionParameters == "VPI"
+    VPI = load('Erbium_VPI.dat');
+    Sa = VPI(:,3); Se = VPI(:,2);
+    lambda_cross = VPI(:,1).*1e-9;
+end
 
 % %       % % Datos OptiSystem
-OptiSystem = load('Erbium_OptiSystem.dat');
-Sa = OptiSystem(:,2); Se = OptiSystem(:,3);
-lambda_cross = OptiSystem(:,1).*1e-9;
+if Fibra.CrossSectionParameters == "OptiSystem"
+    OptiSystem = load('Erbium_OptiSystem.dat');
+    Sa = OptiSystem(:,2); Se = OptiSystem(:,3);
+    lambda_cross = OptiSystem(:,1).*1e-9;
+end
 
 
 sigma_abs = fit(lambda_cross,Sa,'linearinterp');
@@ -630,367 +634,390 @@ for n = 1:1:Sch     % Iteración en nucleos
                 gain_sinGEF_mW.(ModoS(s)) = Psp.(ModoS(s));
             end
             sdm.(ch).salida.ganancias_sinGEF.(ModoS(s)) = gain_sinGEF.(ModoS(s));
+            sdm.(ch).salida.ganancias_sinGEF_mW.(ModoS(s)) = gain_sinGEF_mW.(ModoS(s));
         end
-        
         
         
         % Ultima iteracion - GEF
         InitialPsp = Psp;
         InitialPap = Pap;
+        Umbral_Ripple = 0.2;
 
         elseif Q == QQ  
-            initial_flag = 0;
-            if initial_flag == 0
-                InitialDiffPot = max( Psp.(ModoS(1))(:,Nz ) ) - min( Psp.(ModoS(1))(:,Nz ) );
-                ActualDiffPot = max( Psp.(ModoS(1))(:,Nz ) ) - min( Psp.(ModoS(1))(:,Nz ) );
-                %minGain = min( Psp.(ModoS(1))(:,Nz ) );
-                minGain = mean( Psp.(ModoS(1))(:,Nz ) );
-                Logro = [ActualDiffPot/InitialDiffPot , 1 ] ; 
-            end 
+
+            GEF_gain = 10*log10( Psp.(ModoS(1))(:,end) ./ Psp.(ModoS(1))(:,1 ) );
+            gainRipple_dB = GEF_gain - mean(GEF_gain);              % Vector Ripple vs Lambda
+            maxRipple_dB = max(GEF_gain) - min(GEF_gain) ; best_Ripple = maxRipple_dB;
+            Logro = [maxRipple_dB , 1 ] ; 
             
-            
-            for_count = 0; for_options = [0 0.5 , 1, 1.5 , 2];
-            
-            for g_weight = for_options
-            
-                while_count = 0; weight_change_flag = 0; break_flag = 0; 
-                for_count = for_count +1;
-                if for_count == 2 % guardar mejores de 1era iteracion
-                    for_best_weight = best_weight; for_best_normPot = best_normPot;
-                    for_best_Actual = best_Actual ;
-                    
-                elseif for_count>2
-                    if for_best_Actual < best_Actual % hubo mejora entre ciclos for
-                        for_best_Actual = best_Actual ; for_best_weight = best_weight; for_best_normPot = best_normPot;
+            while_count = 0 ; break_flag = 0; EarlyStop_flag = 0; reducir_paso = 0; patience = 0; patience_flag = 0;
+
+            %while ActualDiffPot>0.15*InitialDiffPot
+            while maxRipple_dB > Umbral_Ripple  %true
+                Psp = InitialPsp; Pap = InitialPap;
+                while_count = while_count +1;
+                
+                Logro(2) = Logro(1) ; Logro(1) = maxRipple_dB  ; 
+                
+                if abs(Logro(2) - Logro(1)) < 0.02
+                    EarlyStop_flag = EarlyStop_flag +1;
+                else
+                    EarlyStop_flag = EarlyStop_flag -1;
+                    if EarlyStop_flag <0 ; EarlyStop_flag = 0;end
+                end
+
+                if Logro(1) > Logro(2)                      % Empeora el resultado
+                    fallos_seguidos = fallos_seguidos +1;   % rendirse
+                    if fallos_seguidos >3
+                        sprintf('mejor resultado posible...')
+                        normPot = best_normPot;
+                        break_flag = 1;
+                    end
+
+                else % mejora el resultado
+                    fallos_seguidos = 0;
+                    if while_count>1 && best_Ripple > Logro(1)
+                        best_normPot = normPot;  best_Ripple = Logro(1);
                     end
                 end
-                
-                while ActualDiffPot>0.15*InitialDiffPot
-    
-                    Psp = InitialPsp; Pap = InitialPap;
-                    while_count = while_count +1;
-                    
-                    Logro(2) = Logro(1) ; Logro(1) = ActualDiffPot/InitialDiffPot  ; 
-                    
-                    if Logro(1) > Logro(2) % Empeora el resultado
-                        fallos_seguidos = fallos_seguidos +1;
-                        normPot = best_normPot;
-                        weight = weight+0.05 ; weight_change_flag = 1;
 
-                        if for_count<length(for_options)
-                            if weight >=0.95 || fallos_seguidos >2
-                                break
+                if EarlyStop_flag > 5 && reducir_paso == 0
+                    reducir_paso = 1;
+                    EarlyStop_flag = 0;
+                end
+
+                if maxRipple_dB < Umbral_Ripple || while_count > 100 || ( best_Ripple < maxRipple_dB - 10 && while_count>25) || (EarlyStop_flag > 7 && reducir_paso == 1 )                     break_flag = 1;
+                        final_flag = 1;
+                end
+
+                for z = 1:1:Nz %Iteraciones a lo largo del EDFA  
+                    sig_xx = 0;
+                    sig_yy = 0;                    % Inicialización de variables
+                    ase_xx = 0;
+                    ase_yy = 0;
+                    pmp_xx = 0;
+                    pmp_yy = 0;
+
+                    % GEF - Filtro de equalización
+                    
+                    if (z == round(Nz/2,0) && Q == QQ) % Centro de la fibra
+
+                        if while_count == 1
+
+                            offsetPot = Psp.(ModoS(1))(:,Nz) - min( Psp.(ModoS(1))(:,Nz) );             % Curva trasladada a cero
+                            maxDiffPot = max( Psp.(ModoS(1))(:,Nz) ) - min( Psp.(ModoS(1))(:,Nz) );     % "Amplitud"
+                            normPot = 0.5*offsetPot./maxDiffPot ;                                      % curva en cero normalizada
+
+                            for s = 1:1:Smod  
+                                Psp.(ModoS(s))(:,z-1) = Psp.(ModoS(s))(:,z-1) .* ( 1-normPot );
+                                Pap.(ModoS(s))(:,z-1) = Pap.(ModoS(s))(:,z-1) .* ( 1-normPot );
                             end
-                        else % ultima iteracion - usar mejores globales
-                            if weight >=0.95 || fallos_seguidos >2
-                                sprintf('mejor resultado posible...')
-                                normPot = for_best_normPot; weight = for_best_weight;
-                                break_flag = 1;
-                            end
-                        end
-    
-                    else % mejora el resultado
-                        fallos_seguidos = 0;
-                        weight_change_flag = 0;
-                        if while_count>1 && best_Actual>Logro(1)
-                            best_normPot = normPot; best_weight = weight; best_Actual = Logro(1);
-                        end
-                    end
-    
-                    for z = 1:1:Nz %Iteraciones a lo largo del EDFA  
-                        sig_xx = 0;
-                        sig_yy = 0;                    % Inicialización de variables
-                        ase_xx = 0;
-                        ase_yy = 0;
-                        pmp_xx = 0;
-                        pmp_yy = 0;
-    
-                        % GEF - Filtro de equalización
-                        
-                        if (z == round(Nz/2,0) && Q == QQ) % Centro de la fibra
-                            if while_count == 1
-                                offsetPot = Psp.(ModoS(1))(:,Nz) - min( Psp.(ModoS(1))(:,Nz) );    % Curva trasladada a cero
-                                maxDiffPot = max( Psp.(ModoS(1))(:,Nz) ) - min( Psp.(ModoS(1))(:,Nz) ); % "Amplitud"
-                                normPot = offsetPot./maxDiffPot ; % curva en cero normalizada
-                                for s = 1:1:Smod  
-                                    weight = 0.35; % 0.35 para OptiSystem ; 0.85 VPI / 5m largo 250mw
-                                    Psp.(ModoS(s))(:,z-1) = Psp.(ModoS(s))(:,z-1) .* ( 1-weight*normPot );
-                                    Pap.(ModoS(s))(:,z-1) = Pap.(ModoS(s))(:,z-1) .* ( 1-weight*normPot );
-                                end
-                                sdm.(ch).GEF.Iteracion1 = weight*normPot ; 
-                                best_normPot = normPot; best_weight = weight; best_Actual = Logro(1);
-    
-                            else
-                                ajuste = 0.015; % 0.03
-    %                             if while_count > 3
-    %                                 ajuste = 0.01;
-                                 if while_count > 12
-                                    ajuste = 0.005;
-    %                             elseif while_count > 30
-    %                                 ajuste = 0.0001;
-                                end
-    
-                                Nwl = length(Signal.lambda.(ModoS(1)));
-    
-                                % Ajustar Valores del polinomio (filtro)
-                                if break_flag==0 % Si no se encontró mejor resultado usa el mejor polinomio guardado
-                                    for f=1:Nwl
-                                        if Psp.(ModoS(1))(f,Nz) > minGain
-                                            normPot(f) = normPot(f)-ajuste;
-                                            if normPot(f)>1
-                                                normPot(f) = 1;
-                                            elseif normPot(f)<0
-                                                normPot(f) = 0;
-                                            end
-                                        elseif Psp.(ModoS(1))(f,Nz) < minGain
-                                            normPot(f) = normPot(f)+ajuste;
-                                            if normPot(f)>1
-                                                normPot(f)=1;
-                                            elseif normPot(f)<0
-                                                normPot(f) = 0;
+                            sdm.(ch).GEF.Iteracion1 = normPot ; 
+                            best_normPot = normPot;  best_Ripple = Logro(1);
+
+                        else
+
+                            Nwl = length(Signal.lambda.(ModoS(1)));
+
+                            % Ajustar Valores del polinomio (filtro)
+                            
+                            if break_flag == 0 % Itera buscando mejor resultado
+                                channels_larger_average = 0;
+                                %plot(normPot) ; hold on;
+                                for f=1:Nwl
+                                    if ( GEF_gain(f) - mean(GEF_gain) ) >= 0 % canales sobre el promedio
+                                        channels_larger_average = channels_larger_average +1 ;
+                                    end
+                                    if gainRipple_dB(f) > Umbral_Ripple / 2    % gainRipple entrega el signo del ajuste
+                                        normPot(f) = normPot(f) + 0.1*gainRipple_dB(f)/maxRipple_dB;
+
+                                        if reducir_paso == 1
+                                            if maxRipple_dB>0.8
+                                                normPot(f) = normPot(f) + 0.05*gainRipple_dB(f)/maxRipple_dB;
+                                            else
+                                                normPot(f) = normPot(f) + 0.01*gainRipple_dB(f)/maxRipple_dB;
                                             end
                                         end
+
+                                        
+                                        if patience_flag == 1 % cuando es solo 1 o 2 canales los que se escapan del promedio
+                                            if ( GEF_gain(f) - mean(GEF_gain) ) >= 0
+                                                normPot(:) = normPot(:) + 0.05;
+                                                reducir_paso = 0;
+                                            end
+                                        end
+
+
+                                        if normPot(f)>=1
+                                            normPot(f)=0.995; % Evita eliminar canales
+                                        elseif normPot(f)<0
+                                            normPot(f) = 0;
+                                        end
                                     end
-                                    sdm.(ch).GEF.(strcat('Iteracion',num2str(while_count))) = weight*normPot ;
-                                elseif break_flag==1
-                                    sdm.(ch).GEF.best_weight_Function = weight*normPot ;
+                                    
+                                    if channels_larger_average > Nwl - 5
+                                        patience_flag = 1 ;
+                                    else
+                                        patience_flag = 0 ;
+                                    end
                                 end
+
+                                % ----- DEBUG ----- %   
+                                % figure(1) ; plot(normPot) ; hold on; title('Filter') ;
                                 
-                                % Aplicar filtro
-                                for s = 1:1:Smod  
-                                    Psp.(ModoS(s))(:,z-1) = Psp.(ModoS(s))(:,z-1) .* ( 1-weight*normPot );
-                                    Pap.(ModoS(s))(:,z-1) = Pap.(ModoS(s))(:,z-1) .* ( 1-weight*normPot );
-                                end
-                            end
-                        end
-        
-                        % Siguientes Primeras Iteraciones
-                        if(z == 1)
-                            % Potencia Bombeo
-                            parfor p = 1:Pmod
-                                Nwlp = length(Pump.lambda.(ModoP(p)));
-                                lambda_p = Pump.lambda.(ModoP(p)); v_p = c./lambda_p;
-                                for i=1:1:Nwlp
-                                    Gamma_p = gamma_p.(ModoP(p)){i};
-                                    Pp0 = P_p0.(ModoP(p))(i);
-        
-                                    pmp_xx = pmp_xx + (sigma_abs(lambda_p(i)))*(Pp0*Gamma_p/A_p.(ModoP(p)))/(h*v_p(i));                                   % Termino en numerador
-                                    pmp_yy = pmp_yy + (sigma_abs(lambda_p(i)) + sigma_ems(lambda_p(i)))*(Pp0*Gamma_p/A_p.(ModoP(p)))/(h*v_p(i));          % Termino en denominador
-                                end
-                            end
-                            % Potencia de señal
-                            parfor s = 1:Smod
-                                Nwl = length(Signal.lambda.(ModoS(s)));
-                                lambda_s = Signal.lambda.(ModoS(s)); v_s = c./lambda_s;
-                                for i = 1:1:Nwl
-                                    Gamma_s = gamma_s.(ModoS(s)){i};
-                                    Ps0 = P_s0.(ModoS(s))(i);
-        
-                                    sig_xx = sig_xx+(sigma_abs(lambda_s(i))*(Ps0*Gamma_s/A_s.(ModoS(s)))/(h*v_s(i)));                        % Termino en numerador
-                                    sig_yy = sig_yy+(sigma_abs(lambda_s(i))+sigma_ems(lambda_s(i)))*(Ps0*Gamma_s/A_s.(ModoS(s)))/(h*v_s(i)); % Termino en denominador
-                                end
-                            end
-                            % Potencia ASE
-                            parfor s=1:1:Smod
-                                Nwl = length(Signal.lambda.(ModoS(s)));
-                                lambda_s = Signal.lambda.(ModoS(s)); v_s = c./lambda_s;
-                                for i = 1:1:Nwl
-                                    Gamma_s = gamma_s.(ModoS(s)){i};
-        
-                                    ase_xx = ase_xx+ sigma_abs(lambda_s(i))*(P_ase0*Gamma_s/A_s.(ModoS(s)))/(h*v_s(i));                           % Termino en numerador
-                                    ase_yy = ase_yy+(sigma_abs(lambda_s(i)) + sigma_ems(lambda_s(i)) )*(P_ase0*Gamma_s/A_s.(ModoS(s)))/(h*v_s(i)); % Termino en denominador
-                                end
-                            end
-        
-                        else
-                            % Iteraciones Restantes z>1
-                            % Bombeo
-                            parfor p = 1:Pmod
-                                Nwlp = length(Pump.lambda.(ModoP(p)));
-                                lambda_p = Pump.lambda.(ModoP(p)); v_p = c./lambda_p;
-                                for i = 1:1:Nwlp
-                                    Gamma_p = gamma_p.(ModoP(p)){i};
-        
-                                    pmp_xx = pmp_xx + sigma_abs(lambda_p(i))*(Ppp.(ModoP(p))(i,z-1)*Gamma_p/A_p.(ModoP(p)))/(h*v_p(i));                        % Termino en numerador
-                                    pmp_yy = pmp_yy + (sigma_abs(lambda_p(i)) + sigma_ems(lambda_p(i)))*(Ppp.(ModoP(p))(i,z-1)*Gamma_p/A_p.(ModoP(p)))/(h*v_p(i));           % Termino en denominador
-                                end
-                            end
-        
-                            % Señal
-                            parfor s = 1:Smod
-                                Nwl = length(Signal.lambda.(ModoS(s)));
-                                lambda_s = Signal.lambda.(ModoS(s)); v_s = c./lambda_s;
-                                for i = 1:1:Nwl
-                                    Gamma_s = gamma_s.(ModoS(s)){i};
-        
-                                    sig_xx = sig_xx + (sigma_abs(lambda_s(i))*(Psp.(ModoS(s))(i,z-1)*Gamma_s/A_s.(ModoS(s)))/(h*v_s(i)));
-                                    sig_yy = sig_yy + (sigma_abs(lambda_s(i)) + sigma_ems(lambda_s(i))) * (Psp.(ModoS(s))(i,z-1)*Gamma_s/A_s.(ModoS(s)))/(h*v_s(i));
-                                end
-                            end
-        
-                            % ASE
-                            parfor s = 1:Smod
-                                Nwl = length(Signal.lambda.(ModoS(s)));
-                                lambda_s = Signal.lambda.(ModoS(s)); v_s = c./lambda_s;
-                                for i = 1:1:Nwl
-                                    Gamma_s = gamma_s.(ModoS(s)){i};
-        
-                                    ase_xx = ase_xx + (sigma_abs(lambda_s(i))*(Pase.(ModoS(s))(i,z-1)*Gamma_s/A_s.(ModoS(s)))/(h*v_s(i)));
-                                    ase_yy = ase_yy + ( sigma_abs(lambda_s(i)) + sigma_ems(lambda_s(i)) )*(Pase.(ModoS(s))(i,z-1)*Gamma_s/A_s.(ModoS(s)))/(h*v_s(i));
-                                end
-                            end
-                        end
-        
-                        N2(z) = ( (pmp_xx + sig_xx + ase_xx)/(pmp_yy + sig_yy + ase_yy + (1/tau)) )*N;             % Densidad de iones de Erbio en estado excitado
-                        N1(z) = N-N2(z);                                                               % Densidad de iones de Erbio en estado basal
-                        Nt(z) = N1(z) + N2(z);
-        
-                        % % Ecuaciones de Potencias
-        
-                        % Ecuacion diferencial para bombeo en direccion +z
-                        for p = 1:1:Pmod      % Iteracion en cada modo de bombeo
-                            Nwlp = length(Pump.lambda.(ModoP(p)));
-                            lambda_p = Pump.lambda.(ModoP(p));
-                            if(z == 1)
-                                parfor i = 1:Nwlp
-                                    Gamma_p = gamma_p.(ModoP(p)){i};
-                                    Pp0 = P_p0.(ModoP(p))(i);
-                                    PppAux(i) = Pp0
-                                end
-                                Ppp.(ModoP(p))(:,z) = PppAux(:);
-                            else
-                                parfor i = 1:Nwlp
-                                    Gamma_p = gamma_p.(ModoP(p)){i};
-                                    PppAux(i) = Ppp.(ModoP(p))(i,z-1) + ((N2(z))*sigma_ems(lambda_p(i)) - (N1(z))*sigma_abs(lambda_p(i)))*Gamma_p*Ppp.(ModoP(p))(i,z-1)*del_z;
-                                end
-                                Ppp.(ModoP(p))(:,z) = PppAux(:);
-                            end
-                        end
-        
-                        % Añadiendo PCC en cada modo de bombeo
-                        Ppp_aux=Ppp;
-                        for pu = 1:1:Pmod
-                            for pv=1:Pmod
-                                if (pu~=pv)
-                                        Ppp.(ModoP(pu))=Ppp_aux.(ModoP(pu))-h_pccP(pu,pv).*(Ppp_aux.(ModoP(pu))-Ppp_aux.(ModoP(pv)));
-                                end
-                            end
-                        end
-        
-                        % Ecuacion diferencial para señal en direccion +z
-                        for s = 1:1:Smod
-                            Nwl = length(Signal.lambda.(ModoS(s)));
-                            lambda_s = Signal.lambda.(ModoS(s));
-                            if(z == 1)
-                                parfor i = 1:Nwl
-                                    Gamma_s = gamma_s.(ModoS(s)){i};
-                                    Ps0 = P_s0.(ModoS(s))(i);
-                                    PspAux(i) = Ps0 
-                                end
-                                Psp.(ModoS(s))(:,z) = PspAux(:);
-                            else
-                                parfor i = 1:Nwl
-                                    Gamma_s = gamma_s.(ModoS(s)){i};
-                                    PspAux(i) = Psp.(ModoS(s))(i,z-1) + ((N2(z))*sigma_ems(lambda_s(i))-(N1(z))*sigma_abs(lambda_s(i)))*Gamma_s*Psp.(ModoS(s))(i,z-1)*del_z;
-                                end
-                                Psp.(ModoS(s))(:,z) = PspAux(:);
-                            end
-                        end
-                        Psp_aux=Psp;
-                         % Añadiendo PCC en cada modo de señal
-                        for su = 1:1:Smod
-                           for sv=1:Smod
-                                if (su~=sv)
-                                    Psp.(ModoS(su))=Psp_aux.(ModoS(su))-h_pccS(su,sv).*(Psp_aux.(ModoS(su))-Psp_aux.(ModoS(sv)));
-                                end
-                           end
-                        end
-        
-                        % Ecuacion diferencial para ASE en direccion +z
-                        for s = 1:1:Smod
-                            Nwl = length(Signal.lambda.(ModoS(s)));
-                            lambda_s = Signal.lambda.(ModoS(s)); v_s = c./lambda_s;
-                            if(z == 1)
-                                parfor i = 1:Nwl
-                                    Gamma_s = gamma_s.(ModoS(s)){i};
-                                    PapAux(i) = P_ase0 %+ (((N2(z))*sigma_ems(lambda_s(i)) - (N1(z))*sigma_abs(lambda_s(i)))*Gamma_s*P_ase0 + 2*(N2(z))*sigma_ems(lambda_s(i))*Gamma_s*h*v_s(i)*d_vk)*del_z/(1+P_ase0/Psat);
-                                end
-                                Pap.(ModoS(s))(:,z) = PapAux(:);
-                            else
-                                parfor i = 1:Nwl
-                                    Gamma_s = gamma_s.(ModoS(s)){i};
-                                    PapAux(i) = Pap.(ModoS(s))(i,z-1) + (((N2(z))*sigma_ems(lambda_s(i)) - (N1(z))*sigma_abs(lambda_s(i)))*Gamma_s*Pap.(ModoS(s))(i,z-1) + 2*(N2(z))*sigma_ems(lambda_s(i))*Gamma_s*h*v_s(i)*d_vk)*del_z;
-                                end
-                                Pap.(ModoS(s))(:,z) = PapAux(:);
-                            end
-                        end
-        
-                        % Ecuacion diferencial para ASE en direccion -z
-                        for s = 1:1:Smod
-                            Nwl = length(Signal.lambda.(ModoS(s)));
-                            lambda_s = Signal.lambda.(ModoS(s)); v_s = c./lambda_s;
-                            if(z == 1)
-                                for i = 1:Nwl
-                                    Gamma_s = gamma_s.(ModoS(s)){i};
-                                    Pan.(ModoS(s))(i,Nz-z+1) = P_ase0+(((N2(Nz-z+1))*sigma_ems(lambda_s(i))-(N1(Nz-z+1))*sigma_abs(lambda_s(i)))*Gamma_s*P_ase0 + 2*(N2(Nz-z+1))*sigma_ems(lambda_s(i))*Gamma_s*h*v_s(i)*d_vk)*del_z;
-                                    %PanAux(i) = P_ase0+(((N2(Nz-z+1))*sigma_ems(lambda_s(i))-(N1(Nz-z+1))*sigma_abs(lambda_s(i)))*Gamma_s*P_ase0 + 2*(N2(Nz-z+1))*sigma_ems(lambda_s(i))*Gamma_s*h*v_s(i)*d_vk)*del_z;
-                                end
-                                %Pan.(ModoS(s))(:,Nz-z+1) = PanAux(:);
-                            else
-                                for i = 1:Nwl
-                                    Gamma_s = gamma_s.(ModoS(s)){i};
-                                    Pan.(ModoS(s))(i,Nz-z+1) = Pan.(ModoS(s))(i,Nz-z+1+1) + (((N2(Nz-z+1))*sigma_ems(lambda_s(i)) - (N1(Nz-z+1))*sigma_abs(lambda_s(i)))*Gamma_s*Pan.(ModoS(s))(i,Nz-z+1+1) + 2*(N2(Nz-z+1))*sigma_ems(lambda_s(i))*Gamma_s*h*v_s(i)*d_vk)*del_z;
-                                    %PanAux(i) = Pan.(ModoS(s))(i,Nz-z+1+1) + (((N2(Nz-z+1))*sigma_ems(lambda_s(i)) - (N1(Nz-z+1))*sigma_abs(lambda_s(i)))*Gamma_s*Pan.(ModoS(s))(i,Nz-z+1+1) + 2*(N2(Nz-z+1))*sigma_ems(lambda_s(i))*Gamma_s*h*v_s(i)*d_vk)*del_z/(1+Pan.(ModoS(s))(i,Nz-z+1+1)/Psat);
-                                end
-                                %Pan.(ModoS(s))(:,Nz-z+1) = PanAux(:);
-                            end
-                        end
-    
-                        for s = 1:1:Smod
-                            Pase.(ModoS(s))(:,z) = Pap.(ModoS(s))(:,z);%+Pan.(ModoS(s))(:,z);
-                        end
-    
-                        % Mostrar % de avance como prints en pantalla:
-                        if Fibra.Avance
-                            if Fibra.ASEFlag == 0
-                                if weight_change_flag==1 && break_flag==0
-                                    clc ; fprintf("Cálculo a lo largo del EDFA: \n") ; fprintf('%.2f %% , Iteracion GEF: %.0f \n Actual/Initial = %.2f \n No hay mejora, modificando weight... \n' ,  (z/Nz)*(1/QQ)* 50 + ((Q-1)/QQ) * 50 , while_count , ActualDiffPot/InitialDiffPot) % Mostrar % de avance del cálculo
-                                elseif break_flag==1
-                                    clc ; fprintf("Cálculo a lo largo del EDFA: \n") ; fprintf('%.2f %% , Iteracion GEF: %.0f \n  Actual/Initial = %.2f \n Utilizando mejor filtro encontrado... \n' ,  (z/Nz)*(1/QQ)* 100 + ((Q-1)/QQ) * 100 , while_count , best_Actual) % Mostrar % de avance del cálculo
-                                else
-                                    clc ; fprintf("Cálculo a lo largo del EDFA: \n") ; fprintf('%.2f %% , Iteracion GEF: %.0f \n Actual/Initial = %.2f \n ' ,  (z/Nz)*(1/QQ)* 50 + ((Q-1)/QQ) * 50 , while_count , ActualDiffPot/InitialDiffPot) % Mostrar % de avance del cálculo
-                                end
-                                fprintf('For iteration %.0f de %.0f \n',for_count , length(for_options))
-                            else
-                                if weight_change_flag==1 && break_flag==0
-                                    clc ; fprintf("Cálculo a lo largo del EDFA: \n") ; fprintf('%.2f %% , Iteracion GEF: %.0f \n  Actual/Initial = %.2f \n No hay mejora, modificando weight... \n' ,  (z/Nz)*(1/QQ)* 100 + ((Q-1)/QQ) * 100 , while_count , ActualDiffPot/InitialDiffPot) % Mostrar % de avance del cálculo
-                                elseif break_flag==1
-                                    clc ; fprintf("Cálculo a lo largo del EDFA: \n") ; fprintf('%.2f %% , Iteracion GEF: %.0f \n  Actual/Initial = %.2f \n Utilizando mejor filtro encontrado... \n' ,  (z/Nz)*(1/QQ)* 100 + ((Q-1)/QQ) * 100 , while_count , best_Actual) % Mostrar % de avance del cálculo
-                                else
-                                    clc ; fprintf("Cálculo a lo largo del EDFA: \n") ; fprintf('%.2f %% , Iteracion GEF: %.0f \n  Actual/Initial = %.2f \n ' ,  (z/Nz)*(1/QQ)* 100 + ((Q-1)/QQ) * 100 , while_count , ActualDiffPot/InitialDiffPot) % Mostrar % de avance del cálculo
-                                end
-                                fprintf('For iteration %.0f de %.0f \n',for_count , length(for_options))
+                                sdm.(ch).GEF.(strcat('Iteracion',num2str(while_count))) = normPot ;
+                            
+                            elseif break_flag==1 || final_flag == 1 % Si no se encontró mejor resultado usa el mejor polinomio guardado
+                                normPot = best_normPot;
+                                sdm.(ch).GEF.best_weight_Function = normPot ;
+                            
                             end
                             
-                        end
-                        % Mostrar % de avance como WaitBar:
-                        if Fibra.WaitBar
-                            if Fibra.ASEFlag == 0
-                                avance = ((z/Nz)*(1/QQ) + ((Q-1)/QQ))/2 ; waitbar(avance , z_waitbar ,  sprintf("Cálculo a lo largo del EDFA: \n %.2f %%",avance*100 ) ) ; set(z_waitbar,'Visible', 'on');
-                            else
-                                avance = (z/Nz)*(1/QQ) + ((Q-1)/QQ) ; waitbar(avance , z_waitbar ,  sprintf("Cálculo a lo largo del EDFA: \n %.2f %%",avance*100 ) ) ; set(z_waitbar,'Visible', 'on');
+                            % Aplicar filtro
+                            for s = 1:1:Smod  
+                                Psp.(ModoS(s))(:,z-1) = Psp.(ModoS(s))(:,z-1) .* ( 1 - normPot );
+                                Pap.(ModoS(s))(:,z-1) = Pap.(ModoS(s))(:,z-1) .* ( 1 - normPot );
                             end
                         end
-                    end % fin iteraciones en largo de fibra
-                    ActualDiffPot = max( Psp.(ModoS(1))(:,Nz) ) - min( Psp.(ModoS(1))(:,Nz) );
-                    if g_weight ~= 0
-                        minGain = g_weight*mean(Psp.(ModoS(1))(:,Nz));
                     end
-                    if break_flag==1
-                        break
+    
+                    % Siguientes Primeras Iteraciones
+                    if(z == 1)
+                        % Potencia Bombeo
+                        parfor p = 1:Pmod
+                            Nwlp = length(Pump.lambda.(ModoP(p)));
+                            lambda_p = Pump.lambda.(ModoP(p)); v_p = c./lambda_p;
+                            for i=1:1:Nwlp
+                                Gamma_p = gamma_p.(ModoP(p)){i};
+                                Pp0 = P_p0.(ModoP(p))(i);
+    
+                                pmp_xx = pmp_xx + (sigma_abs(lambda_p(i)))*(Pp0*Gamma_p/A_p.(ModoP(p)))/(h*v_p(i));                                   % Termino en numerador
+                                pmp_yy = pmp_yy + (sigma_abs(lambda_p(i)) + sigma_ems(lambda_p(i)))*(Pp0*Gamma_p/A_p.(ModoP(p)))/(h*v_p(i));          % Termino en denominador
+                            end
+                        end
+                        % Potencia de señal
+                        parfor s = 1:Smod
+                            Nwl = length(Signal.lambda.(ModoS(s)));
+                            lambda_s = Signal.lambda.(ModoS(s)); v_s = c./lambda_s;
+                            for i = 1:1:Nwl
+                                Gamma_s = gamma_s.(ModoS(s)){i};
+                                Ps0 = P_s0.(ModoS(s))(i);
+    
+                                sig_xx = sig_xx+(sigma_abs(lambda_s(i))*(Ps0*Gamma_s/A_s.(ModoS(s)))/(h*v_s(i)));                        % Termino en numerador
+                                sig_yy = sig_yy+(sigma_abs(lambda_s(i))+sigma_ems(lambda_s(i)))*(Ps0*Gamma_s/A_s.(ModoS(s)))/(h*v_s(i)); % Termino en denominador
+                            end
+                        end
+                        % Potencia ASE
+                        parfor s=1:1:Smod
+                            Nwl = length(Signal.lambda.(ModoS(s)));
+                            lambda_s = Signal.lambda.(ModoS(s)); v_s = c./lambda_s;
+                            for i = 1:1:Nwl
+                                Gamma_s = gamma_s.(ModoS(s)){i};
+    
+                                ase_xx = ase_xx+ sigma_abs(lambda_s(i))*(P_ase0*Gamma_s/A_s.(ModoS(s)))/(h*v_s(i));                           % Termino en numerador
+                                ase_yy = ase_yy+(sigma_abs(lambda_s(i)) + sigma_ems(lambda_s(i)) )*(P_ase0*Gamma_s/A_s.(ModoS(s)))/(h*v_s(i)); % Termino en denominador
+                            end
+                        end
+    
+                    else
+                        % Iteraciones Restantes z>1
+                        % Bombeo
+                        parfor p = 1:Pmod
+                            Nwlp = length(Pump.lambda.(ModoP(p)));
+                            lambda_p = Pump.lambda.(ModoP(p)); v_p = c./lambda_p;
+                            for i = 1:1:Nwlp
+                                Gamma_p = gamma_p.(ModoP(p)){i};
+    
+                                pmp_xx = pmp_xx + sigma_abs(lambda_p(i))*(Ppp.(ModoP(p))(i,z-1)*Gamma_p/A_p.(ModoP(p)))/(h*v_p(i));                        % Termino en numerador
+                                pmp_yy = pmp_yy + (sigma_abs(lambda_p(i)) + sigma_ems(lambda_p(i)))*(Ppp.(ModoP(p))(i,z-1)*Gamma_p/A_p.(ModoP(p)))/(h*v_p(i));           % Termino en denominador
+                            end
+                        end
+    
+                        % Señal
+                        parfor s = 1:Smod
+                            Nwl = length(Signal.lambda.(ModoS(s)));
+                            lambda_s = Signal.lambda.(ModoS(s)); v_s = c./lambda_s;
+                            for i = 1:1:Nwl
+                                Gamma_s = gamma_s.(ModoS(s)){i};
+    
+                                sig_xx = sig_xx + (sigma_abs(lambda_s(i))*(Psp.(ModoS(s))(i,z-1)*Gamma_s/A_s.(ModoS(s)))/(h*v_s(i)));
+                                sig_yy = sig_yy + (sigma_abs(lambda_s(i)) + sigma_ems(lambda_s(i))) * (Psp.(ModoS(s))(i,z-1)*Gamma_s/A_s.(ModoS(s)))/(h*v_s(i));
+                            end
+                        end
+    
+                        % ASE
+                        parfor s = 1:Smod
+                            Nwl = length(Signal.lambda.(ModoS(s)));
+                            lambda_s = Signal.lambda.(ModoS(s)); v_s = c./lambda_s;
+                            for i = 1:1:Nwl
+                                Gamma_s = gamma_s.(ModoS(s)){i};
+    
+                                ase_xx = ase_xx + (sigma_abs(lambda_s(i))*(Pase.(ModoS(s))(i,z-1)*Gamma_s/A_s.(ModoS(s)))/(h*v_s(i)));
+                                ase_yy = ase_yy + ( sigma_abs(lambda_s(i)) + sigma_ems(lambda_s(i)) )*(Pase.(ModoS(s))(i,z-1)*Gamma_s/A_s.(ModoS(s)))/(h*v_s(i));
+                            end
+                        end
                     end
-                end % END WHILE GEF
-            end     % END FOR - GEF
+    
+                    N2(z) = ( (pmp_xx + sig_xx + ase_xx)/(pmp_yy + sig_yy + ase_yy + (1/tau)) )*N;             % Densidad de iones de Erbio en estado excitado
+                    N1(z) = N-N2(z);                                                               % Densidad de iones de Erbio en estado basal
+                    Nt(z) = N1(z) + N2(z);
+    
+                    % % Ecuaciones de Potencias
+    
+                    % Ecuacion diferencial para bombeo en direccion +z
+                    for p = 1:1:Pmod      % Iteracion en cada modo de bombeo
+                        Nwlp = length(Pump.lambda.(ModoP(p)));
+                        lambda_p = Pump.lambda.(ModoP(p));
+                        if(z == 1)
+                            parfor i = 1:Nwlp
+                                Gamma_p = gamma_p.(ModoP(p)){i};
+                                Pp0 = P_p0.(ModoP(p))(i);
+                                PppAux(i) = Pp0
+                            end
+                            Ppp.(ModoP(p))(:,z) = PppAux(:);
+                        else
+                            parfor i = 1:Nwlp
+                                Gamma_p = gamma_p.(ModoP(p)){i};
+                                PppAux(i) = Ppp.(ModoP(p))(i,z-1) + ((N2(z))*sigma_ems(lambda_p(i)) - (N1(z))*sigma_abs(lambda_p(i)))*Gamma_p*Ppp.(ModoP(p))(i,z-1)*del_z;
+                            end
+                            Ppp.(ModoP(p))(:,z) = PppAux(:);
+                        end
+                    end
+    
+                    % Añadiendo PCC en cada modo de bombeo
+                    Ppp_aux=Ppp;
+                    for pu = 1:1:Pmod
+                        for pv=1:Pmod
+                            if (pu~=pv)
+                                    Ppp.(ModoP(pu))=Ppp_aux.(ModoP(pu))-h_pccP(pu,pv).*(Ppp_aux.(ModoP(pu))-Ppp_aux.(ModoP(pv)));
+                            end
+                        end
+                    end
+    
+                    % Ecuacion diferencial para señal en direccion +z
+                    for s = 1:1:Smod
+                        Nwl = length(Signal.lambda.(ModoS(s)));
+                        lambda_s = Signal.lambda.(ModoS(s));
+                        if(z == 1)
+                            parfor i = 1:Nwl
+                                Gamma_s = gamma_s.(ModoS(s)){i};
+                                Ps0 = P_s0.(ModoS(s))(i);
+                                PspAux(i) = Ps0 
+                            end
+                            Psp.(ModoS(s))(:,z) = PspAux(:);
+                        else
+                            parfor i = 1:Nwl
+                                Gamma_s = gamma_s.(ModoS(s)){i};
+                                PspAux(i) = Psp.(ModoS(s))(i,z-1) + ((N2(z))*sigma_ems(lambda_s(i))-(N1(z))*sigma_abs(lambda_s(i)))*Gamma_s*Psp.(ModoS(s))(i,z-1)*del_z;
+                            end
+                            Psp.(ModoS(s))(:,z) = PspAux(:);
+                        end
+                    end
+                    Psp_aux=Psp;
+                     % Añadiendo PCC en cada modo de señal
+                    for su = 1:1:Smod
+                       for sv=1:Smod
+                            if (su~=sv)
+                                Psp.(ModoS(su))=Psp_aux.(ModoS(su))-h_pccS(su,sv).*(Psp_aux.(ModoS(su))-Psp_aux.(ModoS(sv)));
+                            end
+                       end
+                    end
+    
+                    % Ecuacion diferencial para ASE en direccion +z
+                    for s = 1:1:Smod
+                        Nwl = length(Signal.lambda.(ModoS(s)));
+                        lambda_s = Signal.lambda.(ModoS(s)); v_s = c./lambda_s;
+                        if(z == 1)
+                            parfor i = 1:Nwl
+                                Gamma_s = gamma_s.(ModoS(s)){i};
+                                PapAux(i) = P_ase0 %+ (((N2(z))*sigma_ems(lambda_s(i)) - (N1(z))*sigma_abs(lambda_s(i)))*Gamma_s*P_ase0 + 2*(N2(z))*sigma_ems(lambda_s(i))*Gamma_s*h*v_s(i)*d_vk)*del_z/(1+P_ase0/Psat);
+                            end
+                            Pap.(ModoS(s))(:,z) = PapAux(:);
+                        else
+                            parfor i = 1:Nwl
+                                Gamma_s = gamma_s.(ModoS(s)){i};
+                                PapAux(i) = Pap.(ModoS(s))(i,z-1) + (((N2(z))*sigma_ems(lambda_s(i)) - (N1(z))*sigma_abs(lambda_s(i)))*Gamma_s*Pap.(ModoS(s))(i,z-1) + 2*(N2(z))*sigma_ems(lambda_s(i))*Gamma_s*h*v_s(i)*d_vk)*del_z;
+                            end
+                            Pap.(ModoS(s))(:,z) = PapAux(:);
+                        end
+                    end
+    
+                    % Ecuacion diferencial para ASE en direccion -z
+                    for s = 1:1:Smod
+                        Nwl = length(Signal.lambda.(ModoS(s)));
+                        lambda_s = Signal.lambda.(ModoS(s)); v_s = c./lambda_s;
+                        if(z == 1)
+                            for i = 1:Nwl
+                                Gamma_s = gamma_s.(ModoS(s)){i};
+                                Pan.(ModoS(s))(i,Nz-z+1) = P_ase0+(((N2(Nz-z+1))*sigma_ems(lambda_s(i))-(N1(Nz-z+1))*sigma_abs(lambda_s(i)))*Gamma_s*P_ase0 + 2*(N2(Nz-z+1))*sigma_ems(lambda_s(i))*Gamma_s*h*v_s(i)*d_vk)*del_z;
+                                %PanAux(i) = P_ase0+(((N2(Nz-z+1))*sigma_ems(lambda_s(i))-(N1(Nz-z+1))*sigma_abs(lambda_s(i)))*Gamma_s*P_ase0 + 2*(N2(Nz-z+1))*sigma_ems(lambda_s(i))*Gamma_s*h*v_s(i)*d_vk)*del_z;
+                            end
+                            %Pan.(ModoS(s))(:,Nz-z+1) = PanAux(:);
+                        else
+                            for i = 1:Nwl
+                                Gamma_s = gamma_s.(ModoS(s)){i};
+                                Pan.(ModoS(s))(i,Nz-z+1) = Pan.(ModoS(s))(i,Nz-z+1+1) + (((N2(Nz-z+1))*sigma_ems(lambda_s(i)) - (N1(Nz-z+1))*sigma_abs(lambda_s(i)))*Gamma_s*Pan.(ModoS(s))(i,Nz-z+1+1) + 2*(N2(Nz-z+1))*sigma_ems(lambda_s(i))*Gamma_s*h*v_s(i)*d_vk)*del_z;
+                                %PanAux(i) = Pan.(ModoS(s))(i,Nz-z+1+1) + (((N2(Nz-z+1))*sigma_ems(lambda_s(i)) - (N1(Nz-z+1))*sigma_abs(lambda_s(i)))*Gamma_s*Pan.(ModoS(s))(i,Nz-z+1+1) + 2*(N2(Nz-z+1))*sigma_ems(lambda_s(i))*Gamma_s*h*v_s(i)*d_vk)*del_z/(1+Pan.(ModoS(s))(i,Nz-z+1+1)/Psat);
+                            end
+                            %Pan.(ModoS(s))(:,Nz-z+1) = PanAux(:);
+                        end
+                    end
+
+                    for s = 1:1:Smod
+                        Pase.(ModoS(s))(:,z) = Pap.(ModoS(s))(:,z);%+Pan.(ModoS(s))(:,z);
+                    end
+
+                    % Mostrar % de avance como prints en pantalla:
+                    if Fibra.Avance
+                        if Fibra.ASEFlag == 0
+                            if break_flag==1
+                                clc ; fprintf("Cálculo a lo largo del EDFA: \n") ; fprintf('%.2f %% , Iteracion GEF: %.0f \n  Ripple dB = %.2f \n Utilizando mejor filtro encontrado... \n' ,  (z/Nz)*(1/QQ)* 100 + ((Q-1)/QQ) * 100 , while_count , best_Ripple) % Mostrar % de avance del cálculo
+                            else
+                                clc ; fprintf("Cálculo a lo largo del EDFA: \n") ; fprintf('%.2f %% , Iteracion GEF: %.0f \n Ripple dB = %.2f \n ' ,  (z/Nz)*(1/QQ)* 50 + ((Q-1)/QQ) * 50 , while_count , maxRipple_dB) % Mostrar % de avance del cálculo
+                            end
+                        else
+                            if break_flag==1
+                                clc ; fprintf("Cálculo a lo largo del EDFA: \n") ; fprintf('%.2f %% , Iteracion GEF: %.0f \n  Ripple dB = %.2f \n Utilizando mejor filtro encontrado... \n' ,  (z/Nz)*(1/QQ)* 100 + ((Q-1)/QQ) * 100 , while_count , best_Ripple) % Mostrar % de avance del cálculo
+                            else
+                                clc ; fprintf("Cálculo a lo largo del EDFA: \n") ; fprintf('%.2f %% , Iteracion GEF: %.0f \n  Ripple dB = %.2f \n ' ,  (z/Nz)*(1/QQ)* 100 + ((Q-1)/QQ) * 100 , while_count , maxRipple_dB) % Mostrar % de avance del cálculo
+                            end
+                        end
+                        
+                    end
+                    % Mostrar % de avance como WaitBar:
+                    if Fibra.WaitBar
+                        if Fibra.ASEFlag == 0
+                            avance = ((z/Nz)*(1/QQ) + ((Q-1)/QQ))/2 ; waitbar(avance , z_waitbar ,  sprintf("Cálculo a lo largo del EDFA: \n %.2f %%",avance*100 ) ) ; set(z_waitbar,'Visible', 'on');
+                        else
+                            avance = (z/Nz)*(1/QQ) + ((Q-1)/QQ) ; waitbar(avance , z_waitbar ,  sprintf("Cálculo a lo largo del EDFA: \n %.2f %%",avance*100 ) ) ; set(z_waitbar,'Visible', 'on');
+                        end
+                    end
+                end % fin iteraciones en largo de fibra
+                GEF_gain = 10*log10( Psp.(ModoS(1))(:,end) ./ Psp.(ModoS(1))(:,1 ) );
+                gainRipple_dB = GEF_gain - mean(GEF_gain);
+                maxRipple_dB = max(GEF_gain) - min(GEF_gain) ;
+                if maxRipple_dB <= Umbral_Ripple
+                    if Fibra.Avance
+                        if Fibra.ASEFlag == 0
+                            clc ; fprintf("Cálculo a lo largo del EDFA: \n") ; fprintf('%.2f %% , Iteracion GEF: %.0f \n  Ripple dB = %.2f \n Objetivo de Ripple logrado!! \n' ,  (z/Nz)*(1/QQ)* 100 + ((Q-1)/QQ) * 100 , while_count , maxRipple_dB) % Mostrar % de avance del cálculo
+                        else
+                            clc ; fprintf("Cálculo a lo largo del EDFA: \n") ; fprintf('%.2f %% , Iteracion GEF: %.0f \n  Ripple dB = %.2f \n Objetivo de Ripple logrado!! \n' ,  (z/Nz)*(1/QQ)* 100 + ((Q-1)/QQ) * 100 , while_count , maxRipple_dB) % Mostrar % de avance del cálculo
+                        end
+                    end
+                end
+
+
+%                 % DEBUG
+%                 figure(2) ; plot(gainRipple_dB) ; hold on; title ('GainRipple');
+%                 figure(3) ; plot(10*log10( Psp.(ModoS(1))(:,end)/Psp.(ModoS(1))(:,1 ) )) ; title('Gain') ; hold on ;
+%                 figure(4) ; plot(gainRipple_dB/maxRipple_dB) ; title ('gainRipple dB / maxRipple dB') ; hold on;
+
+                if break_flag==1
+                    break
+                end
+            end % END WHILE GEF
+            sdm.(ch).GEF.Ripple = maxRipple_dB ;
+
         end
         
     end % Fin iteraciones para estabilizar ganancias
@@ -1128,8 +1155,7 @@ for n = 1:1:Sch     % Iteración en nucleos
         sdm.(ch).salida.ganancias.(ModoS(s)) = gain.(ModoS(s));
         sdm.(ch).NF.(ModoS(s)) = OSNR.(ModoS(s))(:,1)./OSNR.(ModoS(s))(:,end);
     end
-    sdm.(ch).GEF.best_weight = best_weight;
-
+    
     sdm.(ch).signal.lambdas = lambda_s ; sdm.(ch).pump.lambdas = lambda_p;
     sdm.(ch).OSNR = OSNR ;
     sdm.(ch).salida.OSNR = OSNR(:,end);

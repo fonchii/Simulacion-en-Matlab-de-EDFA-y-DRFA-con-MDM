@@ -60,14 +60,14 @@ P_ase0 = 1e-3*10.^(ASE/10);             % Potencia ASE entrada en Watts
 % %   Espectros emision y absorción
 
 %       % % Datos obtenidos de VPI
-% VPI = load('Erbium_VPI.dat');
-% Sa = VPI(:,3); Se = VPI(:,2);
-% lambda_cross = VPI(:,1).*1e-9;
+VPI = load('Erbium_VPI.dat');
+Sa = VPI(:,3); Se = VPI(:,2);
+lambda_cross = VPI(:,1).*1e-9;
 
 % %       % % Datos OptiSystem
-OptiSystem = load('Erbium_OptiSystem.dat');
-Sa = OptiSystem(:,2); Se = OptiSystem(:,3);
-lambda_cross = OptiSystem(:,1).*1e-9;
+% OptiSystem = load('Erbium_OptiSystem.dat');
+% Sa = OptiSystem(:,2); Se = OptiSystem(:,3);
+% lambda_cross = OptiSystem(:,1).*1e-9;
 
 
 sigma_abs = fit(lambda_cross,Sa,'linearinterp');
@@ -652,7 +652,7 @@ for n = 1:1:Sch     % Iteración en nucleos
             
             for g_weight = for_options
             
-                while_count = 0; weight_change_flag = 0; break_flag = 0; 
+                while_count = 0; weight_change_flag = 0; break_flag = 0; fallos_seguidos = 0;
                 for_count = for_count +1;
                 if for_count == 2 % guardar mejores de 1era iteracion
                     for_best_weight = best_weight; for_best_normPot = best_normPot;
@@ -671,7 +671,7 @@ for n = 1:1:Sch     % Iteración en nucleos
                     
                     Logro(2) = Logro(1) ; Logro(1) = ActualDiffPot/InitialDiffPot  ; 
                     
-                    if Logro(1) > Logro(2) % Empeora el resultado
+                    if round(Logro(1),3) > round(Logro(2),3) % Empeora el resultado
                         fallos_seguidos = fallos_seguidos +1;
                         normPot = best_normPot;
                         weight = weight+0.05 ; weight_change_flag = 1;
@@ -723,8 +723,8 @@ for n = 1:1:Sch     % Iteración en nucleos
                                 ajuste = 0.015; % 0.03
     %                             if while_count > 3
     %                                 ajuste = 0.01;
-                                 if while_count > 12
-                                    ajuste = 0.01;%0.005;
+                                 if while_count > 50%12
+                                    ajuste = 0.03;%0.005;
     %                             elseif while_count > 30
     %                                 ajuste = 0.0001;
                                 end

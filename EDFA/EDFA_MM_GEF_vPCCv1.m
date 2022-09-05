@@ -705,13 +705,13 @@ for n = 1:1:Sch     % Iteración en nucleos
                             best_normPot = normPot; best_weight = weight; best_ActualInitial = Logro(1);
 
                         else
-                            ajuste = 0.015;%0.01; % 0.03
+                            ajuste = 0.01;%0.01; % 0.03
 %                             if fallos_seguidos==1
 %                                 ajuste = 0.01;
 %                             if while_count > 3
 %                                 ajuste = 0.01;
-                             if while_count > 12
-                                ajuste = 0.01;%0.005;
+                             if while_count > 60%12
+                                ajuste = 0.005;
 %                             elseif while_count > 30
 %                                 ajuste = 0.0001;
                             end
