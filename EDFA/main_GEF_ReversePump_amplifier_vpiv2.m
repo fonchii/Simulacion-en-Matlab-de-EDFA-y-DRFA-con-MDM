@@ -3,16 +3,19 @@ clear all; clc ; close all
 
 % Parámetros de entrada
 
+c=299.792458e6; % [m/s]
+h=6.62607015*10^(-34);
+
     % Modos y canales de señal y bombeo
 
-signal.modos = ["11_a" "21_a"] ;
+signal.modos = ["01" "11_a" "21_a"] ;
 
-Signal.NumberOfChannels=41;
-Wavelength_gridS=linspace(1530,1570,Signal.NumberOfChannels).*1e-9; % Banda C
-c=299.792458e6; % [m/s]
+Signal.NumberOfChannels=31;
+Wavelength_gridS=linspace(1530,1560,Signal.NumberOfChannels).*1e-9;
 
 
-Pin=0; %[dBm]
+
+Pin=-15; %[dBm]
 
 signal.lambda.LP_11_a     = Wavelength_gridS;                                   P0_signal.LP_11_a     = Pin*ones(1,length(signal.lambda.LP_11_a));
 signal.lambda.LP_21_a   = Wavelength_gridS;                                     P0_signal.LP_21_a   = Pin*ones(1,length(signal.lambda.LP_21_a));
@@ -34,19 +37,20 @@ for i=1:length(signal.modos)        % Potencia de señal a W
         P0_signal.(ModoS(i))(j) = 1e-3*10^(P0_signal.(ModoS(i))(j)/10);
     end
 end ;clear i j;
+
 signal.P0 = P0_signal; 
 pump.P0 = P0_pump;
-h=6.62607015*10^(-34);
-P.Np=2; 
-P.Fc=c/Wavelength_gridS(ceil(length(Wavelength_gridS)/2)); P.Fb = 50e9; 
 ASE= -200;
 
     % Datos de la fibra
 fibra.nucleos = 1;
-fibra.largo = 5; fibra.radio = 5.5e-6 ; fibra.N = 7e24; 
+fibra.largo = 5; fibra.radio = 5e-6 ; fibra.N = 7e24; 
+
 fibra.n1 = 1.45 ;   fibra.IndexContrast=0.01;
 fibra.AN=fibra.n1*sqrt(2*fibra.IndexContrast);
 fibra.n2 =sqrt((fibra.n1^2-fibra.AN^2));
+
+P.Np=2; P.Fc=c/Wavelength_gridS(ceil(length(Wavelength_gridS)/2)); P.Fb = 50e9; 
 fibra.dvk=P.Fb;
 fibra.PumpMode = "reverse";
 
@@ -55,8 +59,8 @@ fibra.ASEFlag = 1;                      % 1 : Evita Calculo Espectro ASE ; 0 : L
 
 %%
 tic;
-EDFA_RP = EDFA_ReversePump_MMvPCCv3(fibra,signal,pump,ASE);
-EDFA = EDFA_MMvPCCv3(fibra,signal,pump,ASE);
+EDFA_RP = EDFA_ReversePump_MMvPCCv3_GEF(fibra,signal,pump,ASE);
+EDFA = EDFA_MMvPCCv3_GEF(fibra,signal,pump,ASE);
 t_end = toc; fprintf('Tiempo de cómputo: %.2f segundos\n', t_end);
 
 
@@ -116,40 +120,42 @@ end
 
 
 % % Ganancias
-% figure(4)
-% for s = 1:length(signal.modos)
-%     graf.ganancias = EDFA.("Nucleo1").salida.ganancias;
-%     ejex = signal.lambda.LP_01.*1e9;
-%     plot(ejex,graf.ganancias.(strcat("LP_",signal.modos(s))) , '-o' , 'DisplayName',strcat("LP",signal.modos(s)) ) ; hold on ;
-% end
-% set(gca,'ColorOrderIndex',1,'FontSize',8)
-% for s = 1:length(signal.modos)
-%     
-%     grafReverse.ganancias = EDFA_RP.("Nucleo1").salida.ganancias;
-%     ejex = signal.lambda.LP_01.*1e9;
-%     plot(ejex,grafReverse.ganancias.(strcat("LP_",signal.modos(s))) , '-*' , 'DisplayName', strcat("Backward Pump " , "LP",signal.modos(s)) )
-%      
-% end
-% title('Ganancias','FontSize',14) ; xlabel('Longitud de Onda [nm]','FontSize',14) ; ylabel("Magnitud [dB]",'FontSize',14) ;
-% legend('Location', 'southoutside','Orientation','horizontal','Box','off', "NumColumns" , 2,'FontSize', 9);
-% 
-% 
+figure(4)
+for s = 1:length(signal.modos)
+    graf.ganancias = EDFA.("Nucleo1").salida.ganancias;
+    ejex = signal.lambda.(strcat('LP_',signal.modos(1))).*1e9;
+    plot(ejex,graf.ganancias.(strcat("LP_",signal.modos(s))) , '-o' , 'DisplayName',strcat("LP",signal.modos(s)) ) ; hold on ;
+end
+set(gca,'ColorOrderIndex',1,'FontSize',8)
+for s = 1:length(signal.modos)
+    
+    grafReverse.ganancias = EDFA_RP.("Nucleo1").salida.ganancias;
+    ejex = signal.lambda.(strcat('LP_',signal.modos(1))).*1e9;
+    plot(ejex,grafReverse.ganancias.(strcat("LP_",signal.modos(s))) , '-*' , 'DisplayName', strcat("Backward Pump " , "LP",signal.modos(s)) )
+     
+end
+title('Ganancias','FontSize',14) ; xlabel('Longitud de Onda [nm]','FontSize',14) ; ylabel("Magnitud [dB]",'FontSize',14) ;
+legend('Location', 'southoutside','Orientation','horizontal','Box','off', "NumColumns" , 2,'FontSize', 9);
+
+
 % % Figuras de Ruido
-% figure(n+2+length(signal.modos)-1)
-% for s = 1:length(signal.modos)
-%     graf.NF = EDFA.("Nucleo1").NF;
-%     ejex = signal.lambda.LP_01.*1e9;
-%     plot(ejex,graf.NF.(strcat("LP_",signal.modos(s))) , '-o' , 'DisplayName',strcat("LP",smodos(s)) ) ; hold on ; 
-% end
-% set(gca,'ColorOrderIndex',1,'FontSize',8)
-% for s = 1:length(signal.modos)
-%     grafReverse.NF = EDFA_RP.("Nucleo1").NF;
-%     ejex = signal.lambda.LP_01.*1e9;
-%     plot(ejex,grafReverse.NF.(strcat("LP_",signal.modos(s))) , '-*' , 'DisplayName', strcat( "Backward Pump " ,"LP",smodos(s)) )
-% end
-% legend('Location', 'southoutside','Orientation','horizontal','Box','off', "NumColumns" , 2,'FontSize', 9)
-% title('Figuras de Ruido','FontSize', 14) ; %grid on ; 
-% xlabel('Longitud de Onda [nm]','FontSize', 14) ; ylabel("Magnitud [dB]",'FontSize', 14) ; 
+%figure(n+2+length(signal.modos)-1)
+figure(5)
+
+for s = 1:length(signal.modos)
+    graf.NF = EDFA.("Nucleo1").NF;
+    ejex = signal.lambda.(strcat('LP_',signal.modos(1))).*1e9;
+    plot(ejex,graf.NF.(strcat("LP_",signal.modos(s))) , '-o' , 'DisplayName',strcat("LP",smodos(s)) ) ; hold on ; 
+end
+set(gca,'ColorOrderIndex',1,'FontSize',8)
+for s = 1:length(signal.modos)
+    grafReverse.NF = EDFA_RP.("Nucleo1").NF;
+    ejex = signal.lambda.(strcat('LP_',signal.modos(1))).*1e9;
+    plot(ejex,grafReverse.NF.(strcat("LP_",signal.modos(s))) , '-*' , 'DisplayName', strcat( "Backward Pump " ,"LP",smodos(s)) )
+end
+legend('Location', 'southoutside','Orientation','horizontal','Box','off', "NumColumns" , 2,'FontSize', 9)
+title('Figuras de Ruido','FontSize', 14) ; %grid on ; 
+xlabel('Longitud de Onda [nm]','FontSize', 14) ; ylabel("Magnitud [dB]",'FontSize', 14) ; 
 
 
 

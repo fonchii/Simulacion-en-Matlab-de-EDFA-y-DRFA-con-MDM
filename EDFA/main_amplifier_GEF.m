@@ -50,14 +50,9 @@ Fibra.ASEFlag = 1;                      % 1 : Evita Calculo Espectro ASE ; 0 : L
 
 %%
 tic;
-%EDFA = EDFA_MM(fibra,signal,pump,ASE);         % Sin efecto acomplamiento de Potencia intermodal
 
-%EDFA = EDFA_MMvPCCv3(Fibra,Signal,Pump,ASE);      % Con efecto acomplamiento de Potencia intermodal
-
-%EDFAVPI= EDFA_MMvpi2(Fibra,Signal,Pump,ASE);
-
-EDFA = EDFA_MM_GEF_Calcv4(Fibra,Signal,Pump,ASE); % Filtrado de equalizacion de ganancias
-%Original_EDFA = EDFA_MMvPCCv3(Fibra,Signal,Pump,ASE);   
+%EDFA = EDFA_MM_GEF_Calcv3(Fibra,Signal,Pump,ASE); % v3 - v4 / Filtrado de equalizacion de ganancias
+EDFA = EDFA_MM_GEF_Use(Fibra,Signal,Pump,ASE)  ;
 t_end = toc; fprintf('Tiempo de cómputo: %.2f segundos\n', t_end);
 
 
@@ -173,9 +168,9 @@ end ; clear s ejex leyenda;
 dim = [.132 .63 .4 .3]; str = strcat("Ripple: ",num2str(round(EDFA.Nucleo1.GEF.Ripple,2)) , ' dB en Modo LP01');
 annotation('textbox',dim,'String',str,'FitBoxToText','on');
  
-figure(2)
-plot(Signal.lambda.(strcat("LP_",Signal.modos(1))).*1e9 , EDFA.Nucleo1.GEF.best_weight_Function ) 
-title('Filtro utilizado') ; xlabel('Longitud de onda [nm]') ; ylabel('Magnitud')
+% figure(2)
+% plot(Signal.lambda.(strcat("LP_",Signal.modos(1))).*1e9 , EDFA.Nucleo1.GEF.best_weight_Function ) 
+% title('Filtro utilizado') ; xlabel('Longitud de onda [nm]') ; ylabel('Magnitud')
 
 % plot(EDFA.Nucleo1.Pase.LP_01(2,:)) ; ylim([-60 -20])
 % plot(EDFA.Nucleo1.salida.OSNR.LP_01(2,:)) ; ylim([25 50])

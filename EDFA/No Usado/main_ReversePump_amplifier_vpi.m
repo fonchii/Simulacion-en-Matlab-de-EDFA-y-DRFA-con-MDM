@@ -22,11 +22,11 @@ Pin=0; %[dBm]
 signal.lambda.LP_01     = Wavelength_gridS;                                  P0_signal.LP_01     = Pin*ones(1,length(signal.lambda.LP_01));
 signal.lambda.LP_11_a   = Wavelength_gridS;                                  P0_signal.LP_11_a   = Pin*ones(1,length(signal.lambda.LP_11_a));
 
-pump.modos = "12_a" ;
+pump.modos = "01" ;
 Wavelength_gridP=980e-9;
 Ppump= 1000e-3; %[W]
 
-pump.lambda.LP_12_a   = Wavelength_gridP;                         P0_pump.LP_12_a   = Ppump  ;  
+pump.lambda.LP_01   = Wavelength_gridP;                         P0_pump.LP_01   = Ppump  ;  
 
 ModoS=strcat("LP_",signal.modos(:));
 ModoP=strcat("LP_",pump.modos(:));

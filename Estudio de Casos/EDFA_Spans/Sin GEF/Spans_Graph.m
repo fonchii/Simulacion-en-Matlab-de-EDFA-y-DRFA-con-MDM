@@ -4,28 +4,29 @@ clear all; clc ; close all
 % Parámetros de entrada
 
     % Modos y canales de señal y bombeo
+Signal.NumberOfChannels=41;
+Signal.modos = ["01" "11_a"] ;
 
+% Ejemplo Pump01 - channels 20
+%Frequency_gridS=linspace(191.07234e12,196.7723e12,Signal.NumberOfChannels);
+% Ejemplo Pump12 - channels 50
+
+%Frequency_gridS=linspace(191.19421875e12,193.64421875e12,Signal.NumberOfChannels);
 c=299.792458e6; % [m/s]
+%Wavelength_gridS=c./Frequency_gridS;
 
-Signal.NumberOfChannels=31;
-Wavelength_gridS=linspace(1530,1560,Signal.NumberOfChannels).*1e-9; % Banda C
+Wavelength_gridS=linspace(1530,1570,Signal.NumberOfChannels).*1e-9; % Banda C
 
-
-
-Pin = -15; %[dBm]
-Signal.modos = ["01" "11_a" "21_a"] ;
+Pin=0; %[dBm]
 
 Signal.lambda.LP_01     = Wavelength_gridS;                                  P0_signal.LP_01     = Pin*ones(1,length(Signal.lambda.LP_01));
 Signal.lambda.LP_11_a   = Wavelength_gridS;                                  P0_signal.LP_11_a   = Pin*ones(1,length(Signal.lambda.LP_11_a));
-Signal.lambda.LP_21_a   = Wavelength_gridS;                                  P0_signal.LP_21_a   = Pin*ones(1,length(Signal.lambda.LP_21_a));
-Signal.lambda.LP_02     = Wavelength_gridS;                                  P0_signal.LP_02     = Pin*ones(1,length(Signal.lambda.LP_02));
 
-
-Pump.modos = "01" ;
+Pump.modos = "12_a" ;
 Wavelength_gridP=980e-9;
-Ppump= 300e-3; %[W]
+Ppump= 1000e-3; %[W]
 
-Pump.lambda.LP_01   = Wavelength_gridP;                         P0_pump.LP_01   = Ppump  ;  
+Pump.lambda.LP_12_a   = Wavelength_gridP;                         P0_pump.LP_12_a   = Ppump  ;  
 
 ModoS=strcat("LP_",Signal.modos(:));
 ModoP=strcat("LP_",Pump.modos(:));
@@ -47,7 +48,7 @@ ASE= -200;
 
     % Datos de la fibra
 Fibra.nucleos = 1;                                           % Numero de nucleos
-Fibra.largo = 5; Fibra.radio = 5e-6 ; Fibra.N = 7e24; 
+Fibra.largo = 3; Fibra.radio = 5.5e-6 ; Fibra.N = 7e24; 
 Fibra.n1 = 1.45 ;   Fibra.IndexContrast=0.01;
 Fibra.AN=Fibra.n1*sqrt(2*Fibra.IndexContrast);
 Fibra.n2 =sqrt((Fibra.n1^2-Fibra.AN^2));
@@ -57,19 +58,57 @@ Fibra.dvk=P.Fb;
 Fibra.WaitBar = 1; Fibra.Avance = 1;    % Despliegue de info
 Fibra.ASEFlag = 1;                      % 1 : Evita Calculo Espectro ASE ; 0 : Lo Calcula (lento)
 
+%% Primer Amplificador
+tic;
+%EDFA = EDFA_MMvpi2(Fibra,Signal,Pump,ASE);%EDFA_MMvPCCv3(fibra,signal,pump,ASE);
+% EDFA = EDFA_MM(fibra,signal,pump,ASE); %197.82 segundos
+t_end = toc; fprintf('Tiempo de cómputo: %.2f segundos\n', t_end);
+
+
+%% Iterar en varios Spans de fibra-Amplificación
 
 Nspans = 3;
-LargoFibra = 90;        % [km]
+LargoFibra = 100;        % [km]
+
+%alp = load('Dynamic_Attenuation.dat');
+%Attenuation = @(f) interp1( (alp(:,1).*1e-9) , (alp(:,2)) ,f);
+
+%alpha = Attenuation(Wavelength_gridS);               % [dB/km]
+%Att = alpha*LargoFibra;
+
+%Span.EDFA1 = EDFA;
+
+%tic;
+%Fibra.Nspans = Nspans+1;
+%for span=1:Nspans
+%     Fibra.span = span+1;
+%     fprintf('Iniciando Span %.0f de %.0f\n', span+1,Nspans+1);
+% 
+%     %  %% ---- Actualizar señales de entrada ---- %% %
+%     % Señal y ASE
+%     for i=1:length(Signal.modos)        % Potencia de señal y ASE a W
+%             P0_signal.(ModoS(i)) = 1e-3*10.^(( (Span.(strcat("EDFA",num2str(span))).Nucleo1.salida.signal.potencia_dBm.(ModoS(i)))' -Att)/10);
+%             P0_ASE.(ModoS(i)) = 1e-3*10.^(( (Span.(strcat("EDFA",num2str(span))).Nucleo1.Pap.(ModoS(i))(:,end)) -Att' )/10);
+%     end ;clear i;
+%     Signal.P0 = P0_signal; 
+%     EDFA = Span_EDFA_MMvpi2(Fibra,Signal,Pump,P0_ASE);
+% 
+%     %  %% ---- Guardar Datos de Iteracion  ---- %% %
+%     Span.(strcat("EDFA",num2str(span+1))) = EDFA;
+% end
+% span_time=toc; fprintf('Tiempo Total de cómputo: %.2f segundos\n', t_end+span_time )
 
 
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%% Graficos
+clear all; clc
+load("Span.mat")
+Nspans = length(fieldnames(Span))-1; LargoFibra = 100;
+Signal.modos = ["01" "11a"] ; ModoS = ["01" "11_a"] ; 
+Pump.modos = "12a" ; ModoP = "12_a" ; 
+Signal.NumberOfChannels=41 ; Wavelength_gridS=linspace(1530,1570,Signal.NumberOfChannels).*1e-9; 
+Signal.lambda.LP_01 = Wavelength_gridS;  Signal.lambda.LP_11_a   = Wavelength_gridS; 
 
-clc
-load("Datos_Span.mat")
-Nspans = length(fieldnames(Span))-1; LargoFibra = 40;
-ModoS = Signal.modos ; 
-Pump.modos = "01" ; ModoP = "01" ; 
 
 
 GrafSpans.z_total = [Span.EDFA1.Nucleo1.z]; 
@@ -78,63 +117,55 @@ GrafSpans.ASE_total = Span.EDFA1.Nucleo1.Pap;
 
 z = Span.EDFA1.Nucleo1.z;
 
-% for span = 1:Nspans
-%     GrafSpans.z_total = [GrafSpans.z_total (z+(0.1*LargoFibra+GrafSpans.z_total(end)))];
-%     for i=1:length(Signal.modos)
-%         GrafSpans.Signal_total.(strcat("LP_",ModoS(i))) = [GrafSpans.Signal_total.(strcat("LP_",ModoS(i))) Span.(strcat("EDFA",num2str(span+1))).Nucleo1.signal.Potencia_dBm.(strcat("LP_",ModoS(i)))];
-%         GrafSpans.ASE_total.(strcat("LP_",ModoS(i))) = [GrafSpans.ASE_total.(strcat("LP_",ModoS(i))) Span.(strcat("EDFA",num2str(span+1))).Nucleo1.Pap.(strcat("LP_",ModoS(i)))];
-%     end ; clear i;
-% end
+for span = 1:Nspans
+    GrafSpans.z_total = [GrafSpans.z_total (z+(0.1*LargoFibra+GrafSpans.z_total(end)))];
+    for i=1:length(Signal.modos)
+        GrafSpans.Signal_total.(strcat("LP_",ModoS(i))) = [GrafSpans.Signal_total.(strcat("LP_",ModoS(i))) Span.(strcat("EDFA",num2str(span+1))).Nucleo1.signal.Potencia_dBm.(strcat("LP_",ModoS(i)))];
+        GrafSpans.ASE_total.(strcat("LP_",ModoS(i))) = [GrafSpans.ASE_total.(strcat("LP_",ModoS(i))) Span.(strcat("EDFA",num2str(span+1))).Nucleo1.Pap.(strcat("LP_",ModoS(i)))];
+    end ; clear i;
+end
 
     % % Graficos
 
 set( gcf,'PaperSize',[29.7 21.0], 'PaperPosition',[0 0 29.7 21.0])
-% % SAVE:
-% % print -dpdf 'NAME'
-% 
+% SAVE:
+% print -dpdf 'NAME'
+
 close all
- 
+
 graf.Nc = length(fieldnames(Span.EDFA1)); 
 graf.z = Span.EDFA1.(strcat('Nucleo',int2str(1))).z;
 xlab = 'Posición en fibra [m]'; ylab = 'Potencia [dBm]';
 
-Name_Modos = ["LP01" "LP11a" "LP21a"];
 
-% %%% Power Out
-% s=3;
+% Power Out
+% s=2;
 % for span = 1:Nspans+1
 %     set(gca,'FontSize',8)
 %     graf.SignalPump_OUT.(strcat("LP_",ModoS(s))) = Span.(strcat("EDFA",num2str(span))).Nucleo1.salida.signal.potencia_dBm.(strcat("LP_",ModoS(s)))(:,end);
 %     leyenda = strcat(" EDFA ",num2str(span) );
 %     ejex = Signal.lambda.(strcat("LP_",ModoS(s))).*1e9;
 %     plot(ejex,graf.SignalPump_OUT.(strcat("LP_",ModoS(s))) , '-o' , 'DisplayName',leyenda ) ; hold on ; 
-%     title(strcat('Potencia de Salida en Modo LP',Name_Modos(s)),'FontSize',14) ; 
+%     title(strcat('Potencia de Salida en Modo LP',Signal.modos(s)),'FontSize',14) ; 
 %     legend('Location', 'southoutside','Orientation','horizontal','Box','off', "NumColumns" , 4,'FontSize',9); 
 %     xlabel('Longitud de Onda [nm]','FontSize',14) ; ylabel('Magnitud [dB]','FontSize',14)
-%     ylim([-15 0]);
 % end ; clear s ejex leyenda;
-% 
-% set( gcf,'PaperSize',[29.7 21.0], 'PaperPosition',[0 0 29.7 21.0])
-% print -dpdf 'Cascada_PotenciaSalida21a'
 
 
 
  % Ganancias
  % LP01
-% s=1;
-% figure(s)
-% for span = 1:Nspans+1
-%     set(gca,'FontSize',8)
-%     graf.ganancias.(strcat("LP_",ModoS(s))) = Span.(strcat("EDFA",num2str(span))).Nucleo1.salida.ganancias.(strcat("LP_",ModoS(s)));
-%     leyenda = strcat(" EDFA ",num2str(span) );
-%     ejex = Signal.lambda.(strcat("LP_",ModoS(s))).*1e9;
-%     plot(ejex,graf.ganancias.(strcat("LP_",ModoS(s))) , '-o' , 'DisplayName',leyenda ) ; hold on ; 
-%     title(strcat('Ganancias Por Amplificador en Modo LP',Signal.modos(s)),'FontSize',14) ; legend('Location', 'southoutside','Orientation','horizontal','Box','off', "NumColumns" , 4,'FontSize',9); 
-%     xlabel('Longitud de Onda [nm]','FontSize',14) ; ylabel('Magnitud [dB]','FontSize',14)
-%     ylim([15 20])
-% end ; clear s ejex leyenda;
-% set( gcf,'PaperSize',[29.7 21.0], 'PaperPosition',[0 0 29.7 21.0])
-% print -dpdf 'Cascada_Ganancias_LP01'
+ s=1;
+figure(s)
+for span = 1:Nspans+1
+    set(gca,'FontSize',8)
+    graf.ganancias.(strcat("LP_",ModoS(s))) = Span.(strcat("EDFA",num2str(span))).Nucleo1.salida.ganancias.(strcat("LP_",ModoS(s)));
+    leyenda = strcat(" EDFA ",num2str(span) );
+    ejex = Signal.lambda.(strcat("LP_",ModoS(s))).*1e9;
+    plot(ejex,graf.ganancias.(strcat("LP_",ModoS(s))) , '-o' , 'DisplayName',leyenda ) ; hold on ; 
+    title(strcat('Ganancias Por Amplificador en Modo LP',Signal.modos(s)),'FontSize',14) ; legend('Location', 'southoutside','Orientation','horizontal','Box','off', "NumColumns" , 4,'FontSize',9); 
+    xlabel('Longitud de Onda [nm]','FontSize',14) ; ylabel('Magnitud [dB]','FontSize',14)
+end ; clear s ejex leyenda;
 
  % LP11a
 % s=2;
@@ -145,32 +176,14 @@ Name_Modos = ["LP01" "LP11a" "LP21a"];
 %     leyenda = strcat(" EDFA ",num2str(span) );
 %     ejex = Signal.lambda.(strcat("LP_",ModoS(s))).*1e9;
 %     plot(ejex,graf.ganancias.(strcat("LP_",ModoS(s))) , '-o' , 'DisplayName',leyenda ) ; hold on ; 
-%     title('Ganancias Por Amplificador en Modo LP 11a','FontSize',14) ; legend('Location', 'southoutside','Orientation','horizontal','Box','off', "NumColumns" , 4,'FontSize',9); 
+%     title(strcat('Ganancias Por Amplificador en Modo LP',Signal.modos(s)),'FontSize',14) ; legend('Location', 'southoutside','Orientation','horizontal','Box','off', "NumColumns" , 4,'FontSize',9); 
 %     xlabel('Longitud de Onda [nm]','FontSize',14) ; ylabel('Magnitud [dB]','FontSize',14)
-%     ylim([13.5 18])
 % end ; clear s ejex leyenda;
-% set( gcf,'PaperSize',[29.7 21.0], 'PaperPosition',[0 0 29.7 21.0])
-% print -dpdf 'Cascada_Ganancias_LP11a'
-
- % LP21a
-% s=3;
-% figure
-% for span = 1:Nspans+1
-%     set(gca,'FontSize',8)
-%     graf.ganancias.(strcat("LP_",ModoS(s))) = Span.(strcat("EDFA",num2str(span))).Nucleo1.salida.ganancias.(strcat("LP_",ModoS(s)));
-%     leyenda = strcat(" EDFA ",num2str(span) );
-%     ejex = Signal.lambda.(strcat("LP_",ModoS(s))).*1e9;
-%     plot(ejex,graf.ganancias.(strcat("LP_",ModoS(s))) , '-o' , 'DisplayName',leyenda ) ; hold on ; 
-%     title(strcat('Ganancias Por Amplificador en Modo LP 21a'),'FontSize',14) ; legend('Location', 'southoutside','Orientation','horizontal','Box','off', "NumColumns" , 4,'FontSize',9); 
-%     xlabel('Longitud de Onda [nm]','FontSize',14) ; ylabel('Magnitud [dB]','FontSize',14)
-%     ylim([11 16])
-% end ; clear s ejex leyenda;
-% set( gcf,'PaperSize',[29.7 21.0], 'PaperPosition',[0 0 29.7 21.0])
-% print -dpdf 'Cascada_Ganancias_LP21a'
 
 
 %  % NF
 % LP01
+% figure()
 % s=1;
 % for span = 1:Nspans+1
 %     set(gca,'FontSize',8)
@@ -178,15 +191,13 @@ Name_Modos = ["LP01" "LP11a" "LP21a"];
 %     leyenda = strcat(" EDFA ",num2str(span) );
 %     ejex = Signal.lambda.(strcat("LP_",ModoS(s))).*1e9;
 %     plot(ejex,graf.NF.(strcat("LP_",ModoS(s))) , '-o' , 'DisplayName',leyenda ) ; hold on ; 
-%     title('Figuras de Ruido Por Amplificador en Modo LP 01','FontSize',14) ; 
+%     title(strcat('Figuras de Ruido Por Amplificador en Modo LP',Signal.modos(s)),'FontSize',14) ; 
 %     legend('Location', 'southoutside','Orientation','horizontal','Box','off', "NumColumns" , 4,'FontSize',9); 
 %     xlabel('Longitud de Onda [nm]','FontSize',14) ; ylabel('Magnitud [dB]','FontSize',14)
-%     ylim([0 10])
 % end ; clear s ejex leyenda;
-% set( gcf,'PaperSize',[29.7 21.0], 'PaperPosition',[0 0 29.7 21.0])
-% print -dpdf 'Cascada_NF01'
 
-% % LP11a
+% LP11a
+% figure()
 % s=2;
 % for span = 1:Nspans+1
 %     set(gca,'FontSize',8)
@@ -194,34 +205,16 @@ Name_Modos = ["LP01" "LP11a" "LP21a"];
 %     leyenda = strcat(" EDFA ",num2str(span) );
 %     ejex = Signal.lambda.(strcat("LP_",ModoS(s))).*1e9;
 %     plot(ejex,graf.NF.(strcat("LP_",ModoS(s))) , '-o' , 'DisplayName',leyenda ) ; hold on ; 
-%     title('Figuras de Ruido Por Amplificador en Modo LP11a','FontSize',14) ; 
+%     title(strcat('Figuras de Ruido Por Amplificador en Modo LP',Signal.modos(s)),'FontSize',14) ; 
 %     legend('Location', 'southoutside','Orientation','horizontal','Box','off', "NumColumns" , 4,'FontSize',9); 
 %     xlabel('Longitud de Onda [nm]','FontSize',14) ; ylabel('Magnitud [dB]','FontSize',14)
-%     ylim([0 10])
 % end ; clear s ejex leyenda;
-% set( gcf,'PaperSize',[29.7 21.0], 'PaperPosition',[0 0 29.7 21.0])
-% print -dpdf 'Cascada_NF11a'
-
-% % LP21a
-% s=3;
-% for span = 1:Nspans+1
-%     set(gca,'FontSize',8)
-%     graf.NF.(strcat("LP_",ModoS(s))) = Span.(strcat("EDFA",num2str(span))).Nucleo1.NF.(strcat("LP_",ModoS(s)));
-%     leyenda = strcat(" EDFA ",num2str(span) );
-%     ejex = Signal.lambda.(strcat("LP_",ModoS(s))).*1e9;
-%     plot(ejex,graf.NF.(strcat("LP_",ModoS(s))) , '-o' , 'DisplayName',leyenda ) ; hold on ; 
-%     title('Figuras de Ruido Por Amplificador en Modo LP 21a','FontSize',14) ; 
-%     legend('Location', 'southoutside','Orientation','horizontal','Box','off', "NumColumns" , 4,'FontSize',9); 
-%     xlabel('Longitud de Onda [nm]','FontSize',14) ; ylabel('Magnitud [dB]','FontSize',14)
-%     ylim([0 10])
-% end ; clear s ejex leyenda;
-% set( gcf,'PaperSize',[29.7 21.0], 'PaperPosition',[0 0 29.7 21.0])
-% print -dpdf 'Cascada_NF21a'
 
 
 % % OSRN OUT
 
-%LP11a
+%LP01
+
 % s=1;
 % for span = 1:Nspans+1
 %     set(gca,'FontSize',8)
@@ -229,14 +222,14 @@ Name_Modos = ["LP01" "LP11a" "LP21a"];
 %     leyenda = strcat(" EDFA ",num2str(span) );
 %     ejex = Signal.lambda.(strcat("LP_",ModoS(s))).*1e9;
 %     plot(ejex,graf.OSNR_OUT.(strcat("LP_",ModoS(s))) , '-o' , 'DisplayName',leyenda ) ; hold on ; 
-%     title('OSNR en Modo LP01','FontSize',14) ; 
+%     title(strcat('OSNR en Modo LP',Signal.modos(s)),'FontSize',14) ; 
 %     legend('Location', 'southoutside','Orientation','horizontal','Box','off', "NumColumns" , 4,'FontSize',9); 
 %     xlabel('Longitud de Onda [nm]','FontSize',14) ; ylabel('Magnitud [dB]','FontSize',14)
 % end ; clear s ejex leyenda;
-% set( gcf,'PaperSize',[29.7 21.0], 'PaperPosition',[0 0 29.7 21.0])
-% print -dpdf 'Cascada_OSNR01'
 
-% %LP21a
+
+%LP11a
+
 % s=2;
 % for span = 1:Nspans+1
 %     set(gca,'FontSize',8)
@@ -244,27 +237,10 @@ Name_Modos = ["LP01" "LP11a" "LP21a"];
 %     leyenda = strcat(" EDFA ",num2str(span) );
 %     ejex = Signal.lambda.(strcat("LP_",ModoS(s))).*1e9;
 %     plot(ejex,graf.OSNR_OUT.(strcat("LP_",ModoS(s))) , '-o' , 'DisplayName',leyenda ) ; hold on ; 
-%     title('OSNR en Modo LP11a','FontSize',14) ; 
+%     title(strcat('OSNR en Modo LP',Signal.modos(s)),'FontSize',14) ; 
 %     legend('Location', 'southoutside','Orientation','horizontal','Box','off', "NumColumns" , 4,'FontSize',9); 
 %     xlabel('Longitud de Onda [nm]','FontSize',14) ; ylabel('Magnitud [dB]','FontSize',14)
 % end ; clear s ejex leyenda;
-% set( gcf,'PaperSize',[29.7 21.0], 'PaperPosition',[0 0 29.7 21.0])
-% print -dpdf 'Cascada_OSNR11a'
-
-%LP02
-% s=3;
-% for span = 1:Nspans+1
-%     set(gca,'FontSize',8)
-%     graf.OSNR_OUT.(strcat("LP_",ModoS(s))) = Span.(strcat("EDFA",num2str(span))).Nucleo1.OSNR.(strcat("LP_",ModoS(s)))(:,end);
-%     leyenda = strcat(" EDFA ",num2str(span) );
-%     ejex = Signal.lambda.(strcat("LP_",ModoS(s))).*1e9;
-%     plot(ejex,graf.OSNR_OUT.(strcat("LP_",ModoS(s))) , '-o' , 'DisplayName',leyenda ) ; hold on ; 
-%     title('OSNR en Modo LP21a','FontSize',14) ; 
-%     legend('Location', 'southoutside','Orientation','horizontal','Box','off', "NumColumns" , 4,'FontSize',9); 
-%     xlabel('Longitud de Onda [nm]','FontSize',14) ; ylabel('Magnitud [dB]','FontSize',14)
-% end ; clear s ejex leyenda;
-% set( gcf,'PaperSize',[29.7 21.0], 'PaperPosition',[0 0 29.7 21.0])
-% print -dpdf 'Cascada_OSNR21a'
 
 
 % span_ver=4;

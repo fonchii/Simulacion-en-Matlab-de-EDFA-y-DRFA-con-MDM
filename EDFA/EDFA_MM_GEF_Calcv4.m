@@ -1,4 +1,4 @@
-function edfa = EDFA_MM_GEF_vPCCv3(Fibra,Signal,Pump,ASE)
+function edfa = EDFA_MM_GEF_Calcv4(Fibra,Signal,Pump,ASE)
 % Datos de entrada:
 % signal (struct)
 %       signal.lambda -> int [nm]
@@ -640,7 +640,9 @@ for n = 1:1:Sch     % Iteración en nucleos
         
         % Ultima iteracion - GEF
         InitialPsp = Psp;
-        InitialPap = Pap;
+        InitialPap = Pap; InitialPase = Pase; InitialPan = Pan;
+        InitialN2 = N2;  InitialN1 = N1;  InitialNt = Nt;
+        InitialPpp = Ppp;
         Umbral_Ripple = 0.2;
 
         elseif Q == QQ  
@@ -650,11 +652,14 @@ for n = 1:1:Sch     % Iteración en nucleos
             maxRipple_dB = max(GEF_gain) - min(GEF_gain) ; best_Ripple = maxRipple_dB;
             Logro = [maxRipple_dB , 1 ] ; 
             
-            while_count = 0 ; break_flag = 0; EarlyStop_flag = 0; reducir_paso = 0; patience = 0; patience_flag = 0;
+            while_count = 0 ; break_flag = 0; EarlyStop_flag = 0; reducir_paso = 0; patience = 0; patience_flag = 0; peso = 1;
 
             %while ActualDiffPot>0.15*InitialDiffPot
             while maxRipple_dB > Umbral_Ripple  %true
                 Psp = InitialPsp; Pap = InitialPap;
+                N2 = InitialN2 ; N1 = InitialN1 ; Nt = InitialNt;
+                Pase = InitialPase; Ppp = InitialPpp; Pan = InitialPan;
+
                 while_count = while_count +1;
                 
                 Logro(2) = Logro(1) ; Logro(1) = maxRipple_dB  ; 
@@ -686,7 +691,7 @@ for n = 1:1:Sch     % Iteración en nucleos
                     EarlyStop_flag = 0;
                 end
 
-                if maxRipple_dB < Umbral_Ripple || while_count > 100 || ( best_Ripple < maxRipple_dB - 10 && while_count>25) || (EarlyStop_flag > 7 && reducir_paso == 1 )                     break_flag = 1;
+                if maxRipple_dB < Umbral_Ripple || while_count > 120 || ( best_Ripple < maxRipple_dB - 10 && while_count>25) || (EarlyStop_flag > 7 && reducir_paso == 1 )                     break_flag = 1;
                         final_flag = 1;
                 end
 
@@ -706,7 +711,7 @@ for n = 1:1:Sch     % Iteración en nucleos
 
                             offsetPot = Psp.(ModoS(1))(:,Nz) - min( Psp.(ModoS(1))(:,Nz) );             % Curva trasladada a cero
                             maxDiffPot = max( Psp.(ModoS(1))(:,Nz) ) - min( Psp.(ModoS(1))(:,Nz) );     % "Amplitud"
-                            normPot = 0.5*offsetPot./maxDiffPot ;                                      % curva en cero normalizada
+                            normPot = 0.1*offsetPot./maxDiffPot ;      % 0.1  / 0.4                     % curva en cero normalizada
 
                             for s = 1:1:Smod  
                                 Psp.(ModoS(s))(:,z-1) = Psp.(ModoS(s))(:,z-1) .* ( 1-normPot );
@@ -729,24 +734,21 @@ for n = 1:1:Sch     % Iteración en nucleos
                                         channels_larger_average = channels_larger_average +1 ;
                                     end
                                     if gainRipple_dB(f) > Umbral_Ripple / 2    % gainRipple entrega el signo del ajuste
-                                        normPot(f) = normPot(f) + 0.1*gainRipple_dB(f)/maxRipple_dB;
+                                        
 
                                         if reducir_paso == 1
                                             if maxRipple_dB>0.8
-                                                normPot(f) = normPot(f) + 0.05*gainRipple_dB(f)/maxRipple_dB;
+                                                normPot(f) = normPot(f) + peso*0.025*gainRipple_dB(f)/maxRipple_dB; % 0.05
                                             else
-                                                normPot(f) = normPot(f) + 0.01*gainRipple_dB(f)/maxRipple_dB;
+                                                normPot(f) = normPot(f) + peso*0.01*gainRipple_dB(f)/maxRipple_dB;
                                             end
+                                        else
+                                            normPot(f) = normPot(f) + peso*0.05*gainRipple_dB(f)/maxRipple_dB; % 0.1
                                         end
 
-                                        
-                                        if patience_flag == 1 % cuando es solo 1 o 2 canales los que se escapan del promedio
-                                            if ( GEF_gain(f) - mean(GEF_gain) ) >= 0
-                                                normPot(:) = normPot(:) + 0.05;
-                                                reducir_paso = 0;
-                                            end
+                                        if peso > 1
+                                            peso = peso - 0.1 ;
                                         end
-
 
                                         if normPot(f)>=1
                                             normPot(f)=0.995; % Evita eliminar canales
@@ -755,12 +757,29 @@ for n = 1:1:Sch     % Iteración en nucleos
                                         end
                                     end
                                     
-                                    if channels_larger_average > Nwl - 5
+                                end % for f=1:Nwl
+
+                                if channels_larger_average > Nwl - 8 % cuando pocos canales escapan a la tendencia
+                                    if patience > 2 
                                         patience_flag = 1 ;
+                                        patience = 0; peso = 1.5;
                                     else
-                                        patience_flag = 0 ;
+                                        patience = patience + 1; reducir_paso = 0;
                                     end
+                                else
+                                    patience_flag = 0 ; patience = 0;
                                 end
+
+                                if patience_flag == 1 % cuando pocos canales escapan a la tendencia
+                                    for f = 1 : Nwl % Reduce los canales sobre el promedio 
+                                        if GEF_gain(f) > mean(GEF_gain)
+                                            normPot(f) = normPot(f) + 0.04;
+                                        end
+                                    end
+                                    reducir_paso = 0;
+
+                                end
+
 
                                 % ----- DEBUG ----- %   
                                 % figure(1) ; plot(normPot) ; hold on; title('Filter') ;
@@ -780,7 +799,8 @@ for n = 1:1:Sch     % Iteración en nucleos
                             end
                         end
                     end
-    
+
+                    
                     % Siguientes Primeras Iteraciones
                     if(z == 1)
                         % Potencia Bombeo
@@ -1009,7 +1029,7 @@ for n = 1:1:Sch     % Iteración en nucleos
 
 %                 % DEBUG
 %                 figure(2) ; plot(gainRipple_dB) ; hold on; title ('GainRipple');
-%                 figure(3) ; plot(10*log10( Psp.(ModoS(1))(:,end)/Psp.(ModoS(1))(:,1 ) )) ; title('Gain') ; hold on ;
+                 close all ; figure(3) ; plot( GEF_gain , '-o') ; title('Gain') ; hold on ; yline( mean(GEF_gain)) ;
 %                 figure(4) ; plot(gainRipple_dB/maxRipple_dB) ; title ('gainRipple dB / maxRipple dB') ; hold on;
 
                 if break_flag==1

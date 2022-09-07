@@ -3,19 +3,14 @@ clear all; clc ; close all
 
 % Parámetros de entrada
 
-c=299.792458e6; % [m/s]
-h=6.62607015*10^(-34);
-
     % Modos y canales de señal y bombeo
-
 signal.modos = ["11_a" "21_a"] ;
 
-Signal.NumberOfChannels=31;
-Wavelength_gridS=linspace(1530,1560,Signal.NumberOfChannels).*1e-9;
+Signal.NumberOfChannels=41;
+Wavelength_gridS=linspace(1530,1570,Signal.NumberOfChannels).*1e-9; % Banda C
+c=299.792458e6; % [m/s]
 
-
-
-Pin=-15; %[dBm]
+Pin=0; %[dBm]
 
 signal.lambda.LP_11_a     = Wavelength_gridS;                                   P0_signal.LP_11_a     = Pin*ones(1,length(signal.lambda.LP_11_a));
 signal.lambda.LP_21_a   = Wavelength_gridS;                                     P0_signal.LP_21_a   = Pin*ones(1,length(signal.lambda.LP_21_a));
@@ -29,7 +24,6 @@ pump.lambda.LP_01   = Wavelength_gridP;                         P0_pump.LP_01   
 ModoS=strcat("LP_",signal.modos(:));
 ModoP=strcat("LP_",pump.modos(:));
 
-
     % POTENCIAS
 
 for i=1:length(signal.modos)        % Potencia de señal a W
@@ -37,20 +31,19 @@ for i=1:length(signal.modos)        % Potencia de señal a W
         P0_signal.(ModoS(i))(j) = 1e-3*10^(P0_signal.(ModoS(i))(j)/10);
     end
 end ;clear i j;
-
 signal.P0 = P0_signal; 
 pump.P0 = P0_pump;
+h=6.62607015*10^(-34);
+P.Np=2; 
+P.Fc=c/Wavelength_gridS(ceil(length(Wavelength_gridS)/2)); P.Fb = 50e9; 
 ASE= -200;
 
     % Datos de la fibra
 fibra.nucleos = 1;
-fibra.largo = 5; fibra.radio = 5e-6 ; fibra.N = 7e24; 
-
+fibra.largo = 5; fibra.radio = 5.5e-6 ; fibra.N = 7e24; 
 fibra.n1 = 1.45 ;   fibra.IndexContrast=0.01;
 fibra.AN=fibra.n1*sqrt(2*fibra.IndexContrast);
 fibra.n2 =sqrt((fibra.n1^2-fibra.AN^2));
-
-P.Np=2; P.Fc=c/Wavelength_gridS(ceil(length(Wavelength_gridS)/2)); P.Fb = 50e9; 
 fibra.dvk=P.Fb;
 fibra.PumpMode = "reverse";
 
