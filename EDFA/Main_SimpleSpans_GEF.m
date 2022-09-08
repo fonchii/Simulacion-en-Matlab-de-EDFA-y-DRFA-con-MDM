@@ -59,6 +59,7 @@ Fibra.largo = 5; Fibra.radio = 5e-6 ; Fibra.N = 7e24;
 Fibra.n1 = 1.45 ;   Fibra.IndexContrast=0.01;
 Fibra.AN=Fibra.n1*sqrt(2*Fibra.IndexContrast);
 Fibra.n2 =sqrt((Fibra.n1^2-Fibra.AN^2));
+Fibra.GEF = load('GEF_Filters/EDFA_5m_300mw_OptiSystem') ;
 
 Fibra.dvk=P.Fb;
 

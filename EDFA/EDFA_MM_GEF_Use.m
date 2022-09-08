@@ -706,7 +706,8 @@ for n = 1:1:Sch     % Iteración en nucleos
 
                 else
                     if (z == round(Nz/2,0) ) % Aplicar Filtro Equalizador
-                        load('GEF_Filters/EDFA_5m_300mw_OptiSystem.mat') ;
+                        %load('GEF_Filters/EDFA_5m_300mw_OptiSystem.mat') ;
+                        Filtro = Fibra.GEF.Filtro;
                         lambda = Signal.lambda.(ModoS(1));
                         GEF = fit(lambda',Filtro,'linearinterp');
     

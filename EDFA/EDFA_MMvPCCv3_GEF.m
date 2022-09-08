@@ -434,15 +434,16 @@ for n = 1:1:Sch     % Iteración en nucleos
                 else % Iteraciones Restantes z>1
 
                     if (z == round(Nz/2,0) && Q == QQ) % Aplicar Filtro Equalizador
-                        load('GEF_Filters/EDFA_5m_300mw_OptiSystem') ;
+                        %load('GEF_Filters/EDFA_5m_300mw_OptiSystem') ;
+                        Filtro = Fibra.GEF.Filtro;
                         lambda = Signal.lambda.(ModoS(1));
                         GEF = fit(lambda',Filtro,'linearinterp');
     
                         % Aplicar filtro
                         for s = 1:1:Smod  
                             for f = 1:length(lambda)
-                                Psp.(ModoS(s))(f,z-1) = Psp.(ModoS(s))(f,z-1) * ( 1 - 0.9*GEF(lambda(f)) );
-                                Pap.(ModoS(s))(f,z-1) = Pap.(ModoS(s))(f,z-1) * ( 1 - 0.9*GEF(lambda(f)) );
+                                Psp.(ModoS(s))(f,z-1) = Psp.(ModoS(s))(f,z-1) * ( 1 - GEF(lambda(f)) );
+                                Pap.(ModoS(s))(f,z-1) = Pap.(ModoS(s))(f,z-1) * ( 1 - GEF(lambda(f)) );
                             end
                         end
                     end

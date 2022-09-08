@@ -709,8 +709,9 @@ for n = 1:1:Sch     % Iteración en nucleos
 
                             offsetPot = Psp.(ModoS(1))(:,Nz) - min( Psp.(ModoS(1))(:,Nz) );             % Curva trasladada a cero
                             maxDiffPot = max( Psp.(ModoS(1))(:,Nz) ) - min( Psp.(ModoS(1))(:,Nz) );     % "Amplitud"
-                            normPot = 0.4*offsetPot./maxDiffPot ;   % 0.3 to 0.9                                   % curva en cero normalizada
-
+                            normPot = 0.36*offsetPot./maxDiffPot ;   % 0.3 to 0.9 -- 0.4 bueno           % curva en cero normalizada
+                            %normPot = 0.36*offsetPot./maxDiffPot ; 5m 100mw
+                            %normPot = 0.4*offsetPot./maxDiffPot ; 10m 150mw
                             for s = 1:1:Smod  
                                 Psp.(ModoS(s))(:,z-1) = Psp.(ModoS(s))(:,z-1) .* ( 1-normPot );
                                 Pap.(ModoS(s))(:,z-1) = Pap.(ModoS(s))(:,z-1) .* ( 1-normPot );
@@ -739,7 +740,7 @@ for n = 1:1:Sch     % Iteración en nucleos
                                                 normPot(f) = normPot(f) + (gainRipple_dB(f)/maxRipple_dB)*0.01; %0.01;
                                             end
                                         else
-                                            normPot(f) = normPot(f) + (gainRipple_dB(f)/maxRipple_dB)*0.1; %0.1;
+                                            normPot(f) = normPot(f) + (gainRipple_dB(f)/maxRipple_dB)*0.05; %0.1 -> 10m 150mw
                                         end
 
                                         if normPot(f)>=1

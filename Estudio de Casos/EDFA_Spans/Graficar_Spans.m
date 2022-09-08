@@ -1,6 +1,6 @@
 % Graficos de Spans
 close all; clear all; clc
-load("Datos_Span.mat")
+load("Datos_Span5m_100mw.mat")
 
 set( gcf,'PaperSize',[29.7 21.0], 'PaperPosition',[0 0 29.7 21.0])
 % SAVE:
@@ -16,7 +16,9 @@ GrafSpans.z_total = [Span.EDFA1.Nucleo1.z];
 GrafSpans.Signal_total = Span.EDFA1.Nucleo1.signal.Potencia_dBm;
 GrafSpans.ASE_total = Span.EDFA1.Nucleo1.Pap;
 
-z = Span.EDFA1.Nucleo1.z; Nspans = 3; LargoFibra = 90; LargoEDFA = 5;
+z = Span.EDFA1.Nucleo1.z; Nspans = 3; LargoFibra = 175; LargoEDFA = 10;
+
+ymin = -60 ; ymax = 0;
 
 ModoS = ["01" "11_a" "21_a"];
 modos_LP = ["LP_01" "LP_11_a" "LP_21_a"];
@@ -50,7 +52,6 @@ fibra2_02 = [Amp2.(modos_LP(3))(:,end) Amp3.(modos_LP(3))(:,1)];
 fibra3_02 = [Amp3.(modos_LP(3))(:,end) Amp4.(modos_LP(3))(:,1)];
 z_fibra = [0 LargoFibra]; lambdas = Span.EDFA4.Nucleo1.signal.lambdas.*1e9;
 
-ymin = -25 ; ymax = 10;
 
 % Grafico 1 - EDFA 1
 ax1 = axes(t);
@@ -150,4 +151,6 @@ ylim(ax7,[ymin ymax])
 title(t,'Propagación de Señal a 1555 nm',"FontSize",14)
 ylabel(t,'Potencia [dBm]')
 
+set( gcf,'PaperSize',[29.7 21.0], 'PaperPosition',[0 0 29.7 21.0])
+print -dpdf 'Cascada_1555nm'
 
