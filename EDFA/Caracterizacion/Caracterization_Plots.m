@@ -6,10 +6,10 @@ close all ; clear all
 
 % ---------- Ganancias vs lamda ---------- %
 % %%load(strcat("Data_GananciavsLargo_OptiSystem.mat")) ; 
-% load(strcat("Data_GananciaEspectro.mat")) ; 
+% load(strcat("Data_GainSpectrum_5m-100mw.mat")) ; 
 % for larg=[3 5 7 10 15 20] %1:length(fieldnames(Largos))
 %     cont=1;
-%     for j=["150mw" "200mw" "250mw" "300mw" "400mw" "500mw" "700mw" "1000mw"]
+%     for j=["50mw" "100mw"  "150mw" "200mw" "300mw" "400mw" "500mw"]
 %         Ganancias.(strcat('L',num2str(larg),'m'))(cont,:) = GainSpectrum.(strcat("L",num2str(larg),'m')).(strcat("EDFA_",j)).Nucleo1.salida.ganancias.LP_01; 
 %         cont=cont+1;
 %     end
@@ -80,37 +80,38 @@ set( gcf,'PaperSize',[29.7 21.0], 'PaperPosition',[0 0 29.7 21.0])
 
 % ---------- Ganancia vs Lambda ---------- %
 
-% load("Ganancias_OptiSystem.mat")
-% larg = ["3m" "5m" "7m" "10m" "15m" "20m"];
-% pots = ["150mw" "200mw" "250mw" "300mw" "400mw" "500mw" "700mw" "1000mw"];
-% cont = 1;
-% 
-% for l = "L10m" %larg
+load("Struct_SpectralGain_5m-100mw.mat")
+larg = ["3m" "5m" "7m" "10m" "15m" "20m"];
+pots = ["50mw" "100mw" "150mw" "200mw"  "300mw"  "400mw"  "500mw" ];
+cont = 1;
+
+% for l = "L5m" %larg
 %     figure(cont)
-%     for p = 1:length(Ganancias.L10m(:,1))
+%     for p = 1:length(Ganancias.L5m(:,1))
 %         leyenda = strcat('Pump ',pots(p));
 %         ejex = Ganancias.ejex.*1e9;
 %         plot(ejex,Ganancias.(l)(p,:) , '-o' , 'DisplayName',leyenda ) ; hold on ; 
 %     end %; clear s ejex leyenda;
 %     set(gca,'FontSize',8)
 %     legend(Location="southoutside",FontSize=9,Box="off",Orientation="horizontal", NumColumns=4);  
-%     title('Distribución espectral de Ganancias para EDFA de largo 10m','FontSize',14) ; xlabel('Longitud de onda [nm]','FontSize',14) ; ylabel('Magnitud [dB]','FontSize',14)
-%     ylim([0 35])
+%     title('Distribución espectral de Ganancias para EDFA de largo 5m','FontSize',14) ; xlabel('Longitud de onda [nm]','FontSize',14) ; ylabel('Magnitud [dB]','FontSize',14)
+%     ylim([5 30])
 %     cont = cont + 1;
 % end
-
+% set( gcf,'PaperSize',[29.7 21.0], 'PaperPosition',[0 0 29.7 21.0]) ; print -dpdf 'GananciaEspectral_vsPump_5m' 
 
 % ---------- GANANCIA VS PumpPower ---------- %
 % load("Struct_GananciavsPumpPower_OptiSystem2_5m100mw.mat")
-% ejex = [100:50:500]; %ejex = [150:50:1000];
+% ejex = [50:50:500]; %ejex = [150:50:1000];
 % for j=["3m" "5m" "7m" "10m" "15m" ]%for j=["3m" "5m" "7m" "10m" "15m" "20m"]
 %     %plot(ejex , PotenciasvsLargo.(strcat("L",j)) , 'DisplayName' , strcat('Largo= ',j)  )  ; hold on;
-%     plot(ejex , GananciasvsPot.(strcat("L",j))(2:end) , 'DisplayName' , strcat('Largo= ',j)  )  ; hold on;
+%     plot(ejex , GananciasvsPot.(strcat("L",j))(1:end) , 'DisplayName' , strcat('Largo= ',j)  )  ; hold on;
 % end ; clear s ejex leyenda;
 % set(gca,'FontSize',8)
 % legend(Location="southoutside",FontSize=9,Box="off",Orientation="horizontal",NumColumns=3)
 % title('Ganancia vs Potencia de Bombeo para canal de 1555 nm','FontSize',14) ; xlabel('Potencia de Bombeo [mw]','FontSize',14) ; ylabel('Ganancia [dB]','FontSize',14)
 % set( gcf,'PaperSize',[29.7 21.0], 'PaperPosition',[0 0 29.7 21.0])
+% ylim([5 30])
 % % % SAVE:
 % print -dpdf 'GananciavsPumpPower'
 

@@ -88,17 +88,17 @@ tic;
 
 % --------- Ganancias Espectral --------- %
 % % Cambiar arriba a estos datos:
-% %Signal.lambda.LP_01     = linspace(1530e-9,1570e-9,41);              P0_signal.LP_01     = -15*ones(1,length(Signal.lambda.LP_01)); Signal.NumberOfChannels=41;
+% %Signal.lambda.LP_01 ;    P0_signal.LP_01   ;
 
-% cont = 1;
-% for largos=[3 5 7 10 15 20]
-%     for potencias=50:50:500
-%         P0_pump.LP_01 = potencias.*1e-3; Pump.P0 = P0_pump;
-%         fprintf('Iniciando Fibra %.0f de %.0f\n', cont,(length(50:50:500)*length([3 5 7 10 15 20]))); cont = cont+1;
-%         Fibra.largo = largos; % 3,5,7,10
-%         GainSpectrum.(strcat('L',num2str(largos),'m')).(strcat("EDFA_",num2str(potencias),'mw')) = EDFA_MMvPCCv3(Fibra,Signal,Pump,ASE);       % Con efecto acomplamiento de Potencia intermodal
-%     end
-% end
+cont = 1;
+for largos=[3 5 7 10 15 20]
+    for potencias=50:50:500
+        P0_pump.LP_01 = potencias.*1e-3; Pump.P0 = P0_pump;
+        fprintf('Iniciando Fibra %.0f de %.0f\n', cont,(length(50:50:500)*length([3 5 7 10 15 20]))); cont = cont+1;
+        Fibra.largo = largos; % 3,5,7,10
+        GainSpectrum.(strcat('L',num2str(largos),'m')).(strcat("EDFA_",num2str(potencias),'mw')) = EDFA_MMvPCCv3(Fibra,Signal,Pump,ASE);       % Con efecto acomplamiento de Potencia intermodal
+    end
+end
 
 
 

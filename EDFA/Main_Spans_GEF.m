@@ -62,10 +62,10 @@ Fibra.n2 =sqrt((Fibra.n1^2-Fibra.AN^2));
 Fibra.GEF = load('GEF_Filters/EDFA_5m_100mw_OptiSystem') ; % GEF_Filters/EDFA_10m_150mw_OptiSystem
 
 
-Fibra.dvk=P.Fb;
+Fibra.dvk=50e9;%P.Fb;
 
 Fibra.WaitBar = 1; Fibra.Avance = 1;    % Despliegue de info
-Fibra.ASEFlag = 1;                      % 1 : Evita Calculo Espectro ASE ; 0 : Lo Calcula (lento)
+Fibra.ASEFlag = 0;                      % 1 : Evita Calculo Espectro ASE ; 0 : Lo Calcula (lento)
 
 %% Primer Amplificador
 tic;
