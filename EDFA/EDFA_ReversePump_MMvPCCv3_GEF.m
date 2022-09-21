@@ -29,7 +29,7 @@ if length(Z)<20                         % Correccion para EDFA muy corto
 end
 Nz = length(Z);
 
-d_vk = 125*10^9;                        % 1 nm - Noise Bandwidth
+d_vk = Fibra.dvk; %125*10^9;                        % 1 nm - Noise Bandwidth
 tau = 10e-3;
 nucleos = Fibra.nucleos;
 Sch = nucleos;                          % N° de nucleos
@@ -47,6 +47,11 @@ Smod = length(ModoS);                   % N° de modos de señal
 Pmod = length(ModoP);                   % N° de modos de bombeo
 
 P_ase0 = 1e-3*10.^(ASE/10);             % Potencia ASE entrada en Watts
+
+F_ase1= c / Signal.lambda.(ModoS(1))(end);  %189.25e12; % (Ex DifPump:191.19421875e12)
+F_ase_end= c / Signal.lambda.(ModoS(1))(1);  %198.85e12; % (Ex DifPump: 193.64421875e12)
+delta_noise=12.5e9;
+
 
 % %   Espectros emision y absorción
 
@@ -113,12 +118,15 @@ for s = 1:1:Smod
 end
 allwavelengths = sort(allwavelengths);
 
-if Fibra.ASEFlag == 1  % retorna [0,0,0], evita calcular espectro ASE
-    lambda_ase = ase_lambdas(allwavelengths,1);
-else
-    %lambda_ase = ase_lambdas(allwavelengths);
-    lambda_ase = 1520e-9 : 1*1e-9: 1600e-9;
-end
+% if Fibra.ASEFlag == 1  % retorna [0,0,0], evita calcular espectro ASE
+%     lambda_ase = ase_lambdas(allwavelengths,1);
+% else
+%     %lambda_ase = ase_lambdas(allwavelengths);
+%     lambda_ase = 1520e-9 : 1*1e-9: 1600e-9;
+% end
+
+[lambda_ase,frequency_ase]= ase_freqVPI(F_ase1,F_ase_end,delta_noise,c);
+
 
 
 %%
@@ -492,7 +500,8 @@ for n = 1:1:Sch     % Iteración en nucleos
                 else
 
                     if (z == round(Nz/2,0) && Q == QQ) % Aplicar Filtro Equalizador
-                        load('GEF_Filters/EDFA_5m_300mw_OptiSystem') ;
+                        %load('GEF_Filters/EDFA_5m_300mw_OptiSystem') ;
+                        Filtro = Fibra.GEF.Filtro;
                         lambda = Signal.lambda.(ModoS(1));
                         GEF = fit(lambda',Filtro,'linearinterp');
     
@@ -674,9 +683,10 @@ for n = 1:1:Sch     % Iteración en nucleos
 
     %% ASE SPECTRUM :
     % Ecuacion diferencial para ASE en direccion +z
+
     v_s_sp = c./lambda_ase;
     Nch_ase = length(lambda_ase);
-    d_vk = abs(c/lambda_ase(1) - c/lambda_ase(2));
+    d_vk_sp = abs(c/lambda_ase(1) - c/lambda_ase(2));
     if ~(Fibra.ASEFlag == 1)
         for z = 1:Nz
             for s = 1:1:Smod
@@ -689,13 +699,23 @@ for n = 1:1:Sch     % Iteración en nucleos
                     Pap_sp.(ModoS(s))(:,z) = AuxMatrix(:) ;
         
                 else
+                    if (z == round(Nz/2,0) && Q == QQ) % Aplicar Filtro Equalizador
+                        Filtro = Fibra.GEF.Filtro;
+                        lambda = Signal.lambda.(ModoS(1));
+                        GEF = fit(lambda',Filtro,'linearinterp');
+    
+                        % Aplicar filtro
+                        for f = 1:Nch_ase
+                            Pap_sp.(ModoS(s))(f,z-1) = Pap_sp.(ModoS(s))(f,z-1) * ( 1 - GEF(lambda_ase(f)) );
+                        end
+                    end
                     parfor i = 1:Nch_ase
                         if (i==1)
-                            d_vk=abs(v_s_sp(i)-v_s_sp(i+1));
+                            d_vk_sp=abs(v_s_sp(i)-v_s_sp(i+1));
                         else
-                            d_vk=abs(v_s_sp(i-1)-v_s_sp(i));
+                            d_vk_sp=abs(v_s_sp(i-1)-v_s_sp(i));
                         end
-                        AuxMatrix(i) = Pap_sp.(ModoS(s))(i,z-1) + (((N2(z))*sigma_ems(lambda_ase(i)) - (N1(z))*sigma_abs(lambda_ase(i)))*Gamma_s*Pap_sp.(ModoS(s))(i,z-1) + 2*(N2(z))*sigma_ems(lambda_ase(i))*Gamma_s*h*v_s_sp(i)*d_vk)*del_z;
+                        AuxMatrix(i) = Pap_sp.(ModoS(s))(i,z-1) + (((N2(z))*sigma_ems(lambda_ase(i)) - (N1(z))*sigma_abs(lambda_ase(i)))*Gamma_s*Pap_sp.(ModoS(s))(i,z-1) + 2*(N2(z))*sigma_ems(lambda_ase(i))*Gamma_s*h*v_s_sp(i)*d_vk_sp)*del_z;
                     end
                     Pap_sp.(ModoS(s))(:,z) = AuxMatrix(:) ;
                 end
@@ -714,17 +734,17 @@ for n = 1:1:Sch     % Iteración en nucleos
                 Gamma_s = sum(cell2mat(gamma_s.(ModoS(s))))/length(cell2mat(gamma_s.(ModoS(s))));
                 if(z == 1)
                     parfor i = 1:Nch_ase
-                        AuxMatrix(i) = P_ase0_sp%+(((N2(Nz-z+1))*sigma_ems(lambda_ase(i)) - (N1(Nz-z+1))*sigma_abs(lambda_ase(i)))*Gamma_s*P_ase0_sp + 2*(N2(Nz-z+1))*sigma_ems(lambda_ase(i))*Gamma_s*h*v_s_sp(i)*d_vk)*del_z;
+                        AuxMatrix(i) = P_ase0_sp
                     end
                     Pan_sp.(ModoS(s))(:,Nz-z+1) = AuxMatrix(:) ;
                 else
                     parfor i = 1:Nch_ase
                         if (i==1)
-                            d_vk=abs(v_s_sp(i)-v_s_sp(i+1));
+                            d_vk_sp=abs(v_s_sp(i)-v_s_sp(i+1));
                         else
-                            d_vk=abs(v_s_sp(i-1)-v_s_sp(i));
+                            d_vk_sp=abs(v_s_sp(i-1)-v_s_sp(i));
                         end
-                        AuxMatrix(i) = Pan_sp.(ModoS(s))(i,Nz-z+1+1) + (((N2(Nz-z+1))*sigma_ems(lambda_ase(i)) - (N1(Nz-z+1))*sigma_abs(lambda_ase(i)))*Gamma_s*Pan_sp.(ModoS(s))(i,Nz-z+1+1) + 2*(N2(Nz-z+1))*sigma_ems(lambda_ase(i))*Gamma_s*h*v_s_sp(i)*d_vk)*del_z;
+                        AuxMatrix(i) = Pan_sp.(ModoS(s))(i,Nz-z+1+1) + (((N2(Nz-z+1))*sigma_ems(lambda_ase(i)) - (N1(Nz-z+1))*sigma_abs(lambda_ase(i)))*Gamma_s*Pan_sp.(ModoS(s))(i,Nz-z+1+1) + 2*(N2(Nz-z+1))*sigma_ems(lambda_ase(i))*Gamma_s*h*v_s_sp(i)*d_vk_sp)*del_z;
                     end
                     Pan_sp.(ModoS(s))(:,Nz-z+1) = AuxMatrix(:) ;
                 end
@@ -752,6 +772,52 @@ for n = 1:1:Sch     % Iteración en nucleos
         close(z_waitbar)
     end
 
+    % ---- Representation using Noise Bins ---- %
+    TotalNoise_bandwidth=F_ase_end-F_ase1;
+    NoiseBin_num=floor(TotalNoise_bandwidth/d_vk) + 1; % Number of Noise Bins
+    NoiseBin_aux=d_vk/delta_noise;
+
+    for s = 1:Smod
+        Pap_spectrum.(ModoS(s))(:) = Pap_sp.(ModoS(s))(:,end);
+        aux_f=1;
+        for i=1:NoiseBin_num % Noise Bins power 
+            if(i==1)
+                f_left(i) = frequency_ase(aux_f)-d_vk/2;
+                f_right(i) = frequency_ase(aux_f+NoiseBin_aux/2);
+                NoiseBin_power.(ModoS(s))(i) = mean(Pap_spectrum.(ModoS(s))(aux_f:NoiseBin_aux/2+1));
+                NoiseBin_power_z.(ModoS(s))(i,:) = mean(Pap_sp.(ModoS(s))(aux_f:NoiseBin_aux/2+1,:));
+                aux_f = NoiseBin_aux/2+1;
+            else if (i<NoiseBin_num)
+                f_left(i) = frequency_ase(aux_f);
+                f_right(i) = frequency_ase(aux_f+NoiseBin_aux);
+                NoiseBin_power.(ModoS(s))(i) = mean(Pap_spectrum.(ModoS(s))(aux_f:aux_f+NoiseBin_aux));
+                NoiseBin_power_z.(ModoS(s))(i,:) = mean(Pap_sp.(ModoS(s))(aux_f:aux_f+NoiseBin_aux,:));
+                aux_f = aux_f+NoiseBin_aux;
+            else % i==NoiseBin_num
+                f_left(i) = frequency_ase(aux_f);
+                f_right(i) = frequency_ase(aux_f+NoiseBin_aux/2);
+                NoiseBin_power.(ModoS(s))(i) = mean(Pap_spectrum.(ModoS(s))(aux_f:aux_f+NoiseBin_aux/2));
+                NoiseBin_power_z.(ModoS(s))(i,:) = mean(Pap_sp.(ModoS(s))(aux_f:aux_f+NoiseBin_aux/2,:));
+            end
+            end
+        end
+        Frequency_gridS = c./Signal.lambda.(ModoS(s)) ;
+        for j = 1:length(Frequency_gridS)
+            for jj = 1:NoiseBin_num
+                if(f_left(jj)<Frequency_gridS(j))&&(Frequency_gridS(j)<f_right(jj))
+                    Pap_forsignal.(ModoS(s))(j) = NoiseBin_power.(ModoS(s))(jj);
+                    Pap_forsignal_z.(ModoS(s))(length(Frequency_gridS)+1-j,:) = NoiseBin_power_z.(ModoS(s))(jj,:);
+                elseif jj == NoiseBin_num
+                    if(f_left(end)<=Frequency_gridS(j))&&(Frequency_gridS(j)<=frequency_ase(end))
+                        Pap_forsignal.(ModoS(s))(j) = NoiseBin_power.(ModoS(s))(jj); 
+                        Pap_forsignal_z.(ModoS(s))(length(Frequency_gridS)+1-j,:) = NoiseBin_power_z.(ModoS(s))(jj,:); 
+                    end
+                end
+            end
+        end
+        Pap_forsignal.(ModoS(s)) = fliplr(Pap_forsignal.(ModoS(s))); % ASE Noise a la salida por canal por modo
+    end
+
 
 
     %%
@@ -761,7 +827,11 @@ for n = 1:1:Sch     % Iteración en nucleos
         Nwl = length(Signal.lambda.(ModoS(s)));
         for i = 1:1:Nwl
             OSNR.(ModoS(s))(i,:) = 10*log10(Psp.(ModoS(s))(i,:)/1e-3) - 10*log10(Pase.(ModoS(s))(i,:)/1e-3);
+            OSNRForward.(ModoS(s))(i) = 10*log10(Psp.(ModoS(s))(i,end)/1e-3) - 10*log10(Pap_forsignal.(ModoS(s))(i)/1e-3);
+            OSNRForward_z.(ModoS(s))(i,:) = 10*log10(Psp.(ModoS(s))(i,:)/1e-3) - 10*log10(Pap_forsignal_z.(ModoS(s))(i,:)/1e-3);
             gain.(ModoS(s))(1,i) = 10*log10(Psp.(ModoS(s))(i,end)/Psp.(ModoS(s))(i,1));
+            freq = c/Signal.lambda.(ModoS(s))(i);
+            sdm.(ch).NF_v2.(ModoS(s))(i) = 10*log10( (( (Pap_forsignal_z.(ModoS(s))(i,end))/(h*freq*d_vk) ) + 1 )* (Psp.(ModoS(s))(i,1)/Psp.(ModoS(s))(i,end))   );
         end
     end
 
@@ -804,11 +874,14 @@ for n = 1:1:Sch     % Iteración en nucleos
 
         sdm.(ch).salida.ganancias.(ModoS(s)) = gain.(ModoS(s));
         sdm.(ch).NF.(ModoS(s)) = OSNR.(ModoS(s))(:,1)./OSNR.(ModoS(s))(:,end);
+        sdm.(ch).NF_NoiseBins.(ModoS(s)) = OSNRForward_z.(ModoS(s))(:,2) - OSNRForward_z.(ModoS(s))(:,end);
     end
 
     sdm.(ch).signal.lambdas = lambda_s ; sdm.(ch).pump.lambdas = lambda_p;
     sdm.(ch).OSNR = OSNR ;
     sdm.(ch).salida.OSNR = OSNR(:,end);
+    sdm.(ch).OSNRF= OSNRForward;
+    sdm.(ch).OSNRF_z = OSNRForward_z ;
     sdm.(ch).z = Z;
     sdm.(ch).ASE_Spectrum.mag = ASE_SP;
     sdm.(ch).ASE_Spectrum.fun = ASESpectFun;

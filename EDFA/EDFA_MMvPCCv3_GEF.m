@@ -64,14 +64,18 @@ delta_noise=12.5e9;
 % ----- Espectros emision y absorción ----- %
 
 % --- Datos obtenidos de VPI --- %
-% VPI = load('Erbium_VPI.dat');
-% Sa = VPI(:,3); Se = VPI(:,2);
-% lambda_cross = VPI(:,1).*1e-9;
+if Fibra.SigmaSpectrum == "VPI"
+    VPI = load('Erbium_VPI.dat');
+    Sa = VPI(:,3); Se = VPI(:,2);
+    lambda_cross = VPI(:,1).*1e-9;
+end
 
 % --- Datos OptiSystem --- %
-OptiSystem = load('Erbium_OptiSystem.dat');
-Sa = OptiSystem(:,2); Se = OptiSystem(:,3);
-lambda_cross = OptiSystem(:,1).*1e-9;
+if Fibra.SigmaSpectrum == "OptiSystem"
+    OptiSystem = load('Erbium_OptiSystem.dat');
+    Sa = OptiSystem(:,2); Se = OptiSystem(:,3);
+    lambda_cross = OptiSystem(:,1).*1e-9;
+end
 
 
 sigma_abs = fit(lambda_cross,Sa,'linearinterp');
@@ -263,6 +267,12 @@ for n = 1:1:Sch     % Iteración en nucleos
                 N2(z) = ( (pmp_xx + sig_xx + ase_xx) / (pmp_yy + sig_yy + ase_yy + (1/tau)) )*N;        % Densidad de iones de Erbio en estado excitado
                 N1(z) = N-N2(z);                                                                        % Densidad de iones de Erbio en estado basal
                 Nt(z) = N1(z) + N2(z);
+%                 if z==1
+%                     N1(z) = N-N2(z);                                                                        % Densidad de iones de Erbio en estado basal
+%                 else
+%                     N1(z) = N1(z-1);
+%                 end
+%                 Nt(z) = N;%N1(z) + N2(z);
 
 
 
@@ -352,7 +362,7 @@ for n = 1:1:Sch     % Iteración en nucleos
 
                 % Calculo de Potencia ASE
                 for s = 1:1:Smod
-                    Pase.(ModoS(s))(:,z) = Pap.(ModoS(s))(:,z); %+Pan.(ModoS(s))(:,z);
+                    Pase.(ModoS(s))(:,z) = Pap.(ModoS(s))(:,z)+Pan.(ModoS(s))(:,z);
                 end
                 % Mostrar avance como prints en pantalla:
                 if Fibra.Avance
@@ -380,7 +390,7 @@ for n = 1:1:Sch     % Iteración en nucleos
             for s = 1:1:Smod
                 Nwl = length(Signal.lambda.(ModoS(s)));
                 for i = 1:1:Nwl
-                    OSNR_sinGEF.(ModoS(s))(i,:) = 10*log10(Psp.(ModoS(s))(i,:)/1e-3) - 10*log10(Pase.(ModoS(s))(i,:)/1e-3);
+                    OSNR_sinGEF.(ModoS(s))(i,:) = 10*log10(Psp.(ModoS(s))(i,:)/1e-3) - 10*log10(Pap.(ModoS(s))(i,:)/1e-3); % Pase
                     gain_sinGEF.(ModoS(s))(1,i) = 10*log10(Psp.(ModoS(s))(i,end)/Psp.(ModoS(s))(i,1));
                 end
                 sdm.(ch).DatosSinGEF.NF.(ModoS(s)) = OSNR_sinGEF.(ModoS(s))(:,1)./OSNR_sinGEF.(ModoS(s))(:,end);
@@ -493,6 +503,12 @@ for n = 1:1:Sch     % Iteración en nucleos
                 N2(z) = ( (pmp_xx + sig_xx + ase_xx)/(pmp_yy + sig_yy + ase_yy + (1/tau)) )*N;             % Densidad de iones de Erbio en estado excitado
                 N1(z) = N-N2(z);                                                               % Densidad de iones de Erbio en estado basal
                 Nt(z) = N1(z) + N2(z);
+%                 if z==1
+%                     N1(z) = N-N2(z);                                                                        % Densidad de iones de Erbio en estado basal
+%                 else
+%                     N1(z) = N1(z-1);
+%                 end
+%                 Nt(z) = N;%N1(z) + N2(z);
 
                 % % Ecuaciones de Potencias
 
@@ -596,7 +612,7 @@ for n = 1:1:Sch     % Iteración en nucleos
                 end
                 
                 for s = 1:1:Smod
-                    Pase.(ModoS(s))(:,z) = Pap.(ModoS(s))(:,z);%Pap.(ModoS(s))(:,z)+Pan.(ModoS(s))(:,z);
+                    Pase.(ModoS(s))(:,z) = Pap.(ModoS(s))(:,z)+Pan.(ModoS(s))(:,z);
                 end
                 % Mostrar % de avance como prints en pantalla:
                 if Fibra.Avance
@@ -638,6 +654,16 @@ for n = 1:1:Sch     % Iteración en nucleos
                     Pap_sp.(ModoS(s))(:,z) = AuxMatrix(:) ;
         
                 else
+                    if (z == round(Nz/2,0) && Q == QQ) % Aplicar Filtro Equalizador
+                        Filtro = Fibra.GEF.Filtro;
+                        lambda = Signal.lambda.(ModoS(1));
+                        GEF = fit(lambda',Filtro,'linearinterp');
+    
+                        % Aplicar filtro
+                        for f = 1:Nch_ase
+                            Pap_sp.(ModoS(s))(f,z-1) = Pap_sp.(ModoS(s))(f,z-1) * ( 1 - GEF(lambda_ase(f)) );
+                        end
+                    end
                     parfor i = 1:Nch_ase
                         if (i==1)
                             d_vk_sp=abs(v_s_sp(i)-v_s_sp(i+1));
@@ -758,10 +784,12 @@ for n = 1:1:Sch     % Iteración en nucleos
     for s = 1:1:Smod
         Nwl = length(Signal.lambda.(ModoS(s)));
         for i = 1:1:Nwl
-            OSNR.(ModoS(s))(i,:) = 10*log10(Psp.(ModoS(s))(i,:)/1e-3) - 10*log10(Pase.(ModoS(s))(i,:)/1e-3);
+            OSNR.(ModoS(s))(i,:) = 10*log10(Psp.(ModoS(s))(i,:)/1e-3) - 10*log10(Pap.(ModoS(s))(i,:)/1e-3); %Pase
             OSNRForward.(ModoS(s))(i) = 10*log10(Psp.(ModoS(s))(i,end)/1e-3) - 10*log10(Pap_forsignal.(ModoS(s))(i)/1e-3);
             OSNRForward_z.(ModoS(s))(i,:) = 10*log10(Psp.(ModoS(s))(i,:)/1e-3) - 10*log10(Pap_forsignal_z.(ModoS(s))(i,:)/1e-3);
             gain.(ModoS(s))(1,i) = 10*log10(Psp.(ModoS(s))(i,end)/Psp.(ModoS(s))(i,1));
+            freq = c/Signal.lambda.(ModoS(s))(i);
+            sdm.(ch).NF_v2.(ModoS(s))(i) = 10*log10( (( (Pase.(ModoS(s))(i,end))/(h*freq*d_vk) ) + 1 )* (Psp.(ModoS(s))(i,1)/Psp.(ModoS(s))(i,end))   );
         end
     end
 
@@ -806,7 +834,9 @@ for n = 1:1:Sch     % Iteración en nucleos
 
         sdm.(ch).salida.ganancias.(ModoS(s)) = gain.(ModoS(s));
         sdm.(ch).NF.(ModoS(s)) = OSNR.(ModoS(s))(:,2) - OSNR.(ModoS(s))(:,end);
-        sdm.(ch).NF_NoiseBins = OSNRForward_z.(ModoS(s))(:,2) - OSNRForward_z.(ModoS(s))(:,end);
+        sdm.(ch).NF_NoiseBins.(ModoS(s)) = OSNRForward_z.(ModoS(s))(:,2) - OSNRForward_z.(ModoS(s))(:,end);
+        
+
     end
 
     sdm.(ch).signal.lambdas = lambda_s ; sdm.(ch).pump.lambdas = lambda_p;

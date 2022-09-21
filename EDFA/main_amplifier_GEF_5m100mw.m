@@ -37,16 +37,17 @@ Signal.NumberOfChannels=NCh;
 Fibra.nucleos = 1;                                           % Numero de nucleos
 Fibra.largo = 5     ; Fibra.radio = 5e-6   ; Fibra.N = 7e24; % fibra.N = 3e24; 
 
-Fibra.dvk=300e9;
+Fibra.dvk=25e9;
 Signal.NumberOfChannels=NCh;
 
 Fibra.CrossSectionParameters = "OptiSystem"; % "OptiSystem" , "VPI"
+Fibra.SigmaSpectrum = "OptiSystem"; % "OptiSystem"
 Fibra.n1 = 1.45 ;   
 Fibra.n2 = 1.4354 ;
 %Fibra.dvk= P.OpticalBW; % diferencia : max_lambda - min_lambda 
 
 Fibra.WaitBar = 1; Fibra.Avance = 1;    % Despliegue de info
-Fibra.ASEFlag = 1;                      % 1 : Evita Calculo Espectro ASE ; 0 : Lo Calcula (lento)
+Fibra.ASEFlag = 0;                      % 1 : Evita Calculo Espectro ASE ; 0 : Lo Calcula (lento)
 
 
 %%
@@ -61,6 +62,7 @@ tic;
 
 Fibra.GEF = load('GEF_Filters/EDFA_5m_100mw_OptiSystem') ;
 EDFA = EDFA_MM_GEF_Use(Fibra,Signal,Pump,ASE)  ;
+%EDFA = EDFA_MMvPCCv3_GEF(Fibra,Signal,Pump,ASE);
 t_end = toc; fprintf('Tiempo de cómputo: %.2f segundos\n', t_end);
 
 % --------- SaveFilter ---------- %
@@ -103,8 +105,9 @@ annotation('textbox',dim,'String',str,'FitBoxToText','on');
 
 % figure(2)
 % plot(Signal.lambda.(strcat("LP_",Signal.modos(1))).*1e9 , EDFA.Nucleo1.GEF.best_weight_Function ) 
-% title('Filtro utilizado') ; xlabel('Longitud de onda [nm]') ; ylabel('Magnitud')
-% 
+% set(gca,'FontSize',8);
+% title('Filtro Ecualizador' , 'FontSize',14) ; xlabel('Longitud de onda [nm]','FontSize',14) ; ylabel('Magnitud [-]', 'FontSize',14)
+
 % % % %----- Save ----- %
 % set( gcf,'PaperSize',[29.7 21.0], 'PaperPosition',[0 0 29.7 21.0])
 % print -dpdf 'FiltroEqualizador_5m-100mw' 

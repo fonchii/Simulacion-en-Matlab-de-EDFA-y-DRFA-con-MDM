@@ -54,8 +54,9 @@ close all ; clear all
 % end
 
 
-% % ----------- Ganancias vs Potencia Entrada ---------- %
+% % ----------- Ganancias vs Potencia Entrada ---------- %   Pout vs Pin
 % load("Data_Gain-vs-PsIn_5m-100mw") % Data_Gain-vs-PsIn_10m-150mw.mat
+% load("Data_Gain-vs-PsIn_10m-200mw.mat")
 % %for i=[3,5,7,9,11,13,15,17,19] 
 % row = 0;
 % for Pin=10:2:50
@@ -144,6 +145,7 @@ cont = 1;
 % % % % SAVE:
 % print -dpdf 'GananciaEspectral_vsPin' ;% close all;
 
+% %% ----- Pout vs Pin ----- %%
 
 % figure(2)
 % for i = [1530,1540,1550,1560]

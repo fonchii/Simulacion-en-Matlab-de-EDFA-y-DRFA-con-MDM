@@ -22,8 +22,8 @@ Signal.modos = ["01" "11_a" ] ; % "01" "11_a" "21_a"
 
 Signal.lambda.LP_01     = Wavelength_gridS;                                  P0_signal.LP_01     = Pin*ones(1,length(Signal.lambda.LP_01));
 Signal.lambda.LP_11_a   = Wavelength_gridS;                                  P0_signal.LP_11_a   = Pin*ones(1,length(Signal.lambda.LP_11_a));
-% Signal.lambda.LP_21_a   = Wavelength_gridS;                                  P0_signal.LP_21_a   = Pin*ones(1,length(Signal.lambda.LP_21_a));
-% Signal.lambda.LP_02     = Wavelength_gridS;                                  P0_signal.LP_02     = Pin*ones(1,length(Signal.lambda.LP_02));
+Signal.lambda.LP_21_a   = Wavelength_gridS;                                  P0_signal.LP_21_a   = Pin*ones(1,length(Signal.lambda.LP_21_a));
+Signal.lambda.LP_02     = Wavelength_gridS;                                  P0_signal.LP_02     = Pin*ones(1,length(Signal.lambda.LP_02));
 
 
 %Pump.modos = "12_a" ;
@@ -48,9 +48,9 @@ end ;clear i j;
 Signal.P0 = P0_signal; 
 Pump.P0 = P0_pump;
 
-P.Np = 2; 
-P.Fc  =c/Wavelength_gridS(ceil(length(Wavelength_gridS)/2)); P.Fb = 50e9; 
-ASE = -200;%-200;
+P.Np=2; 
+P.Fc=c/Wavelength_gridS(ceil(length(Wavelength_gridS)/2)); P.Fb = 50e9; 
+ASE= -200;%-200;
 
     % Datos de la fibra
 Fibra.nucleos = 1;                                           % Numero de nucleos
@@ -59,11 +59,8 @@ Fibra.radio = 5e-6 ; Fibra.N = 7e24;
 Fibra.n1 = 1.45 ;   Fibra.IndexContrast=0.01;
 Fibra.AN=Fibra.n1*sqrt(2*Fibra.IndexContrast);
 Fibra.n2 =sqrt((Fibra.n1^2-Fibra.AN^2));
-Fibra.SigmaSpectrum = "OptiSystem"; % "VPI"
-
-% ----- GEF ----- %
 Fibra.GEF = load('GEF_Filters/EDFA_5m_100mw_OptiSystem') ; % GEF_Filters/EDFA_10m_150mw_OptiSystem
-%Fibra.GEF.Filtro = zeros(length(Wavelength_gridS),1); % Filtro Desactivado
+
 
 Fibra.dvk=50e9;%P.Fb;
 
@@ -81,7 +78,7 @@ t_end = toc; fprintf('Tiempo de cómputo: %.2f segundos\n', t_end);
 
 %% Iterar en varios Spans de fibra-Amplificación
 
-Nspans = 3; %3;
+Nspans = 2; %3;
 LargoFibra = 90;   % 87,28 -> 5m_100mw  175,73 -> 10m_150mw [km]
 
 alp = load('Dynamic_Attenuation.dat');
@@ -106,8 +103,8 @@ for span=1:Nspans
     %  %% ---- Actualizar señales de entrada ---- %% %
     % --- Señal y ASE --- %
     for i=1:length(Signal.modos)        % Potencia de señal y ASE a W
-        P0_signal.(ModoS(i)) = 1e-3*10.^(( (Span.(strcat("EDFA",num2str(span))).Nucleo1.salida.signal.potencia_dBm.(ModoS(i)))' -Att)/10);
-        P0_ASE.(ModoS(i)) = 1e-3*10.^(( (Span.(strcat("EDFA",num2str(span))).Nucleo1.Pap.(ModoS(i))(:,end)) -Att' )/10);
+            P0_signal.(ModoS(i)) = 1e-3*10.^(( (Span.(strcat("EDFA",num2str(span))).Nucleo1.salida.signal.potencia_dBm.(ModoS(i)))' -Att)/10);
+            P0_ASE.(ModoS(i)) = 1e-3*10.^(( (Span.(strcat("EDFA",num2str(span))).Nucleo1.Pap.(ModoS(i))(:,end)) -Att' )/10);
     end ;clear i;
    Signal.P0 = P0_signal; 
 
