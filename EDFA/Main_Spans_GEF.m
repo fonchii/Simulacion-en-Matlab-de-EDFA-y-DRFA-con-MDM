@@ -107,7 +107,11 @@ for span=1:Nspans
     % --- Señal y ASE --- %
     for i=1:length(Signal.modos)        % Potencia de señal y ASE a W
         P0_signal.(ModoS(i)) = 1e-3*10.^(( (Span.(strcat("EDFA",num2str(span))).Nucleo1.salida.signal.potencia_dBm.(ModoS(i)))' -Att)/10);
-        P0_ASE.(ModoS(i)) = 1e-3*10.^(( (Span.(strcat("EDFA",num2str(span))).Nucleo1.Pap.(ModoS(i))(:,end)) -Att' )/10);
+        if span == 1
+            P0_ASE.(ModoS(i)) = 1e-3*10.^(( (Span.(strcat("EDFA",num2str(span))).Nucleo1.Pase.(ModoS(i))(:,end)) - Att' )/10);
+        else
+            P0_ASE.(ModoS(i)) = 1e-3*10.^(( (Span.(strcat("EDFA",num2str(span))).Nucleo1.Pap_tot.(ModoS(i))(:,end)) - Att' )/10);
+        end
     end ;clear i;
    Signal.P0 = P0_signal; 
 
