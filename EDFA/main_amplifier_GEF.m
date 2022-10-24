@@ -58,8 +58,8 @@ Fibra.ASEFlag = 1;                      % 1 : Evita Calculo Espectro ASE ; 0 : L
 %%
 tic;
 
-%EDFA = EDFA_MM_GEF_Calcv3(Fibra,Signal,Pump,ASE); % v3 - v4 / Filtrado de equalizacion de ganancias
-EDFA = EDFA_MM_GEF_Use(Fibra,Signal,Pump,ASE)  ;
+EDFA = EDFA_MM_GEF_Calcv3(Fibra,Signal,Pump,ASE); % v3 - v4 / Filtrado de equalizacion de ganancias
+%EDFA = EDFA_MM_GEF_Use(Fibra,Signal,Pump,ASE)  ;
 t_end = toc; fprintf('Tiempo de cómputo: %.2f segundos\n', t_end);
 
 

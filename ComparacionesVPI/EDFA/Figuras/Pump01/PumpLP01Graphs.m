@@ -219,19 +219,19 @@ zvpi = linspace(0,3,length(vpiedfamm.axialdist.Sig.LP_01(:,1)));
 
 % %%    LP11a
 
-for i=0:6
-    plot(z , Pap.LP_11_a(1+3*i,:) , "DisplayName", strcat(int2str(DAT(1+3*i,1)*1e9) , " nm")) ; hold on
-end
-
-% ASE- Matlab
-set(gca,'ColorOrderIndex',1,'FontSize',8)
-for i=0:6
-    plot(z , Pan.LP_11_a(1+3*i,:) , "DisplayName", strcat(int2str(DAT(1+3*i,1)*1e9) , " nm") ) ; hold on
-end
-
-legend('Location', 'southoutside','Orientation','horizontal','Box','on', "NumColumns" , 7,'FontSize',9)
-xlabel('Posición Axial [m]','FontSize',14) ; ylabel('Potencia [dBm]','FontSize',14); title('Distribución Axial de Ruido ASE Total en modo LP11a','FontSize',14)
-ylim([-100 -10])
+% for i=0:6
+%     plot(z , Pap.LP_11_a(1+3*i,:) , "DisplayName", strcat(int2str(DAT(1+3*i,1)*1e9) , " nm")) ; hold on
+% end
+% 
+% % ASE- Matlab
+% set(gca,'ColorOrderIndex',1,'FontSize',8)
+% for i=0:6
+%     plot(z , Pan.LP_11_a(1+3*i,:) , "DisplayName", strcat(int2str(DAT(1+3*i,1)*1e9) , " nm") ) ; hold on
+% end
+% 
+% legend('Location', 'southoutside','Orientation','horizontal','Box','on', "NumColumns" , 7,'FontSize',9)
+% xlabel('Posición Axial [m]','FontSize',14) ; ylabel('Potencia [dBm]','FontSize',14); title('Distribución Axial de Ruido ASE Total en modo LP11a','FontSize',14)
+% ylim([-100 -10])
 
 
 
@@ -275,11 +275,12 @@ ylim([-100 -10])
 
 %% N1 y N2
 
-% plot(z,EDFA.Nucleo1.N1 , "DisplayName" , "Iones en estado basal (N1)") ; hold on
-% plot(z,EDFA.Nucleo1.N2 , "DisplayName" , "Iones en estado basal (N2)")
-% 
-% legend('Location', 'southoutside','Orientation','horizontal','Box','off', "NumColumns" , 1)
-% xlabel('Posición Axial [m]') ; ylabel('Cantidad de Iones'); title('Distribución Axial de Densidades Poblacionenales de Iones')
+plot(z,EDFA.Nucleo1.N1 , "DisplayName" , "Iones en estado basal (N1)") ; hold on
+plot(z,EDFA.Nucleo1.N2 , "DisplayName" , "Iones en estado excitado (N2)")
+
+legend('Location', 'southoutside','Orientation','horizontal','Box','off', "NumColumns" , 1)
+xlabel('Posición Axial [m]') ; ylabel('Cantidad de Iones'); title('Distribución Axial de Densidades Poblacionenales de Iones')
+% print -dpdf 'PoblacionIonesPump01'
 
 %% Cargar resultado vpi.. desde columna ec
 % VPISignal = resultadovpipropagacionaxial;

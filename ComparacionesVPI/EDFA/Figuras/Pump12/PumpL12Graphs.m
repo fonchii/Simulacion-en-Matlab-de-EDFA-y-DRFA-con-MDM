@@ -282,12 +282,13 @@ Pap = EDFA.Nucleo1.Pap;
 
 %% N1 y N2
 
-% plot(z,EDFA.Nucleo1.N1 , "DisplayName" , "Iones en estado basal (N1)") ; hold on
-% plot(z,EDFA.Nucleo1.N2 , "DisplayName" , "Iones en estado basal (N2)")
-% set(gca,'ColorOrderIndex',1,'FontSize',8)
-% 
-% legend('Location', 'southoutside','Orientation','horizontal','Box','off', "NumColumns" , 1,'FontSize',9)
-% xlabel('Posición Axial [m]','FontSize',14) ; ylabel('Cantidad de Iones','FontSize',14); title('Distribución Axial de Densidades Poblacionenales de Iones','FontSize',14)
+plot(z,EDFA.Nucleo1.N1 , "DisplayName" , "Iones en estado basal (N1)") ; hold on
+plot(z,EDFA.Nucleo1.N2 , "DisplayName" , "Iones en estado excitado (N2)")
+set(gca,'ColorOrderIndex',1,'FontSize',8)
+
+legend('Location', 'southoutside','Orientation','horizontal','Box','off', "NumColumns" , 1,'FontSize',9)
+xlabel('Posición Axial [m]','FontSize',14) ; ylabel('Cantidad de Iones','FontSize',14); title('Distribución Axial de Densidades Poblacionenales de Iones','FontSize',14)
+% print -dpdf 'PoblacionIonesPump12'
 
 % %% Inversion Fraccional
 load("VPI_InversionFraction.mat")
