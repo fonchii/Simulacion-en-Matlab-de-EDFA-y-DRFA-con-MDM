@@ -73,7 +73,7 @@ load('VPI_EDFAmm_axialdist.mat') % Bombeo LP01
 
 %               Propagación SEÑAL LP01
 % figure(3)
-
+% 
 % z = linspace(0,3,length(S01(1,:)));
 % zvpi = linspace(0,3,length(vpiedfamm.axialdist.Sig.LP_01(:,1)));
 % 
@@ -83,14 +83,19 @@ load('VPI_EDFAmm_axialdist.mat') % Bombeo LP01
 %     % plot(z , S01(2,:)) 
 %     % plot(z , S01(3,:)) 
 % end
-% set(gca,'ColorOrderIndex',1)
+% set(gca,'ColorOrderIndex',1,'FontSize',13)
 % for i=0:6
 %     plot(zvpi , vpiedfamm.axialdist.Sig.LP_01(:,1+3*i) , "DisplayName", strcat(int2str(DAT(1+3*i,1)*1e9) , " nm") , LineStyle="--" )
 %     % plot(zvpi , vpiedfamm.axialdist.Sig.LP_01(:,2) , LineStyle="--")
 %     % plot(zvpi , vpiedfamm.axialdist.Sig.LP_01(:,3) , LineStyle="--")
 % end
-% legend('Location', 'southoutside','Orientation','horizontal','Box','off', "NumColumns" , 7)
-% xlabel('Posición Axial [m]') ; ylabel('Potencia [dBm]'); title('Distribución Axial de la Potencia de Señal LP01')
+% legend('Location', 'southoutside','Orientation','horizontal','Box','off', "NumColumns" , 7,'FontSize',13)
+% xlabel('Posición Axial [m]','FontSize',16) ; ylabel('Potencia [dBm]','FontSize',16); title('Distribución Axial de la Potencia de Señal LP01','FontSize',18)
+% annotation('textbox', [0.04, 0.1595, 0, 0], 'string', 'Matlab','FontSize',13)
+% annotation('textbox', [0.04, 0.131, 0, 0], 'string', 'VPIphotonics','FontSize',13)
+% % % % SAVE:
+% set( gcf,'PaperSize',[29.7 21.0], 'PaperPosition',[0 0 29.7 21.0])
+% print -dpdf 'PotenciaSignalPumpLP01'
 
 
 %               Propagacion SEÑAL LP11
@@ -104,14 +109,19 @@ load('VPI_EDFAmm_axialdist.mat') % Bombeo LP01
 %     % plot(z , S01(2,:)) 
 %     % plot(z , S01(3,:)) 
 % end
-% set(gca,'ColorOrderIndex',1)
+% set(gca,'ColorOrderIndex',1,'FontSize',13)
 % for i=0:6
 %     plot(zvpi , vpiedfamm.axialdist.Sig.LP_11a(:,1+3*i) , "DisplayName", strcat(int2str(DAT(1+3*i,1)*1e9) , " nm") , LineStyle="--" )
 %     % plot(zvpi , vpiedfamm.axialdist.Sig.LP_01(:,2) , LineStyle="--")
 %     % plot(zvpi , vpiedfamm.axialdist.Sig.LP_01(:,3) , LineStyle="--")
 % end
-% legend('Location', 'southoutside','Orientation','horizontal','Box','off', "NumColumns" , 7)
-% xlabel('Posición Axial [m]') ; ylabel('Potencia [dBm]'); title('Distribución Axial de la Potencia de Señal LP11a')
+% legend('Location', 'southoutside','Orientation','horizontal','Box','off', "NumColumns" , 7,'FontSize',13)
+% xlabel('Posición Axial [m]','FontSize',16) ; ylabel('Potencia [dBm]','FontSize',16); title('Distribución Axial de la Potencia de Señal LP11a','FontSize',18)
+% annotation('textbox', [0.04, 0.1595, 0, 0], 'string', 'Matlab','FontSize',13)
+% annotation('textbox', [0.04, 0.131, 0, 0], 'string', 'VPIphotonics','FontSize',13)
+% % % % SAVE:
+% set( gcf,'PaperSize',[29.7 21.0], 'PaperPosition',[0 0 29.7 21.0])
+% print -dpdf 'PotenciaSignal11aPumpLP01'
 
 
 %               Propagación Bombeo
@@ -119,14 +129,17 @@ load('VPI_EDFAmm_axialdist.mat') % Bombeo LP01
 % z = linspace(0,3,length(S01(1,:)));
 % zvpi = linspace(0,3,length(vpiedfamm.axialdist.Sig.LP_01(:,1)));
 % 
-% 
+% set(gca,'ColorOrderIndex',1,'FontSize',13)
 % plot(z , EDFA.Nucleo1.pump.Potencia_dBm.LP_01(1,:) , "DisplayName", "Matlab") ; hold on
 % 
 % plot(zvpi , vpiedfamm.axialdist.Pump(:,1) , "DisplayName", "VPIphotonics" )% ,LineStyle="--" )
 % 
 % 
-% legend('Location', 'southoutside','Orientation','horizontal','Box','off', "NumColumns" , 7)
-% xlabel('Posición Axial [m]') ; ylabel('Potencia [dBm]'); title('Distribución Axial de la Potencia de Bombeo LP01')
+% legend('Location', 'southoutside','Orientation','horizontal','Box','off', "NumColumns" , 7,'FontSize',13)
+% xlabel('Posición Axial [m]','FontSize',16) ; ylabel('Potencia [dBm]','FontSize',16); title('Distribución Axial de la Potencia de Bombeo LP01','FontSize',18)
+% % % % SAVE:
+% set( gcf,'PaperSize',[29.7 21.0], 'PaperPosition',[0 0 29.7 21.0])
+% print -dpdf 'PotenciaPumpLP01'
 
 
 %% %               Propagación ASE , OSNR , NF
@@ -142,16 +155,12 @@ zvpi = linspace(0,3,length(vpiedfamm.axialdist.Sig.LP_01(:,1)));
 % for i=0:6
 %     plot(z , Pap.LP_01(1+3*i,:) , "DisplayName", strcat(int2str(DAT(1+3*i,1)*1e9) , " nm")) ; hold on
 % end
-% % ASE+ VPI
-% 
-% set(gca,'ColorOrderIndex',1)
+% ASE+ VPI
+
+% set(gca,'ColorOrderIndex',1,'FontSize',13)
 % for i=1:length(vpiasePos)
 %     plot(zvpi , vpiedfamm.axialdist.ASE.LP_01(:,vpiasePos(i)) , "DisplayName", strcat(int2str(vpiedfamm.ASElam(1,vpiasePos(i))*1e9) , " nm") , LineStyle="--" )
 % end
-% 
-% legend('Location', 'southoutside','Orientation','horizontal','Box','off', "NumColumns" , 7)
-% xlabel('Posición Axial [m]') ; ylabel('Potencia [dBm]'); title('Distribución Axial de la Potencia de Ruido ASE+ en modo LP01')
-% ylim([-100 -10])
 % 
 % maxAseDif = -100000;
 % for i = 0:6
@@ -160,13 +169,22 @@ zvpi = linspace(0,3,length(vpiedfamm.axialdist.Sig.LP_01(:,1)));
 %         maxdiffLambda = (DAT(1+3*i,1)*1e9);
 %     end
 % end
-%dB
+% % % % %dB
 % for i = 0:6
 %     if maxAseDif < abs( 1e-3*10.^(Pap.LP_01(1+3*i,end)) - 1e-3*10.^(vpiedfamm.axialdist.ASE.LP_01(end,vpiasePos(i+1))) )
 %         maxAseDifdB = 10*log10( abs( 1e-3*10.^(Pap.LP_01(1+3*i,end)) - 1e-3*10.^(vpiedfamm.axialdist.ASE.LP_01(end,vpiasePos(i+1))) )/1e3) ;
 %         maxdiffLambda = (DAT(1+3*i,1)*1e9);
 %     end
 % end
+% 
+% legend('Location', 'southoutside','Orientation','horizontal','Box','off', "NumColumns" , 7,'FontSize',13)
+% xlabel('Posición Axial [m]','FontSize',16) ; ylabel('Potencia [dBm]','FontSize',16); title('Distribución Axial de la Potencia de Ruido ASE+ en modo LP01','FontSize',18)
+% ylim([-60 -10])
+% annotation('textbox', [0.04, 0.1595, 0, 0], 'string', 'Matlab','FontSize',13)
+% annotation('textbox', [0.04, 0.131, 0, 0], 'string', 'VPIphotonics','FontSize',13)
+% % % SAVE:
+% set( gcf,'PaperSize',[29.7 21.0], 'PaperPosition',[0 0 29.7 21.0])
+% print -dpdf 'PotenciaASEP01Pump01'
 
     % LP11a
 
@@ -175,14 +193,14 @@ zvpi = linspace(0,3,length(vpiedfamm.axialdist.Sig.LP_01(:,1)));
 % end
 % % ASE+ VPI
 % 
-% set(gca,'ColorOrderIndex',1)
+% set(gca,'ColorOrderIndex',1 ,'FontSize',13)
 % for i=1:length(vpiasePos)
 %     plot(zvpi , vpiedfamm.axialdist.ASE.LP_11a(:,vpiasePos(i)) , "DisplayName", strcat(int2str(vpiedfamm.ASElam(1,vpiasePos(i))*1e9) , " nm") , LineStyle="--" )
 % end
 % 
-% legend('Location', 'southoutside','Orientation','horizontal','Box','off', "NumColumns" , 7)
-% xlabel('Posición Axial [m]') ; ylabel('Potencia [dBm]'); title('Distribución Axial de la Potencia de Ruido ASE+ en modo LP11a')
-% ylim([-100 -10])
+% legend('Location', 'southoutside','Orientation','horizontal','Box','off', "NumColumns" , 7,'FontSize',13)
+% xlabel('Posición Axial [m]','FontSize',16) ; ylabel('Potencia [dBm]','FontSize',16); title('Distribución Axial de la Potencia de Ruido ASE+ en modo LP11a','FontSize',18)
+% ylim([-60 -10])
 % 
 % maxAseDif = -100000;
 % for i = 0:6
@@ -191,31 +209,44 @@ zvpi = linspace(0,3,length(vpiedfamm.axialdist.Sig.LP_01(:,1)));
 %         maxdiffLambda = (DAT(1+3*i,1)*1e9);
 %     end
 % end
+% % SAVE:
+% set( gcf,'PaperSize',[29.7 21.0], 'PaperPosition',[0 0 29.7 21.0])
+% print -dpdf 'PotenciaASEP01+-Pump01'
+% annotation('textbox', [0.04, 0.1595, 0, 0], 'string', 'Matlab','FontSize',13)
+% annotation('textbox', [0.04, 0.131, 0, 0], 'string', 'VPIphotonics','FontSize',13)
+% % % SAVE:
+% set( gcf,'PaperSize',[29.7 21.0], 'PaperPosition',[0 0 29.7 21.0])
+% print -dpdf 'PotenciaASEP11aPump01'
 
 %               Propagación ASE + -
 
-Pan = EDFA.Nucleo1.Pan;
-Pap = EDFA.Nucleo1.Pap;
-Pase = EDFA.Nucleo1.Pase;
-
-z = linspace(0,3,length(S01(1,:)));
-zvpi = linspace(0,3,length(vpiedfamm.axialdist.Sig.LP_01(:,1)));
-
-% %%    LP01
-% ASE+ Matlab
+% Pan = EDFA.Nucleo1.Pan;
+% Pap = EDFA.Nucleo1.Pap;
+% Pase = EDFA.Nucleo1.Pase;
+% 
+% z = linspace(0,3,length(S01(1,:)));
+% zvpi = linspace(0,3,length(vpiedfamm.axialdist.Sig.LP_01(:,1)));
+% 
+% % %%    LP01
+% % ASE+ Matlab
 % for i=0:6
 %     plot(z , Pap.LP_01(1+3*i,:) , "DisplayName", strcat(int2str(DAT(1+3*i,1)*1e9) , " nm")) ; hold on
 % end
 % 
 % % ASE- Matlab
-% set(gca,'ColorOrderIndex',1,'FontSize',8)
+% set(gca,'ColorOrderIndex',1,'FontSize',13)
 % for i=0:6
-%     plot(z , Pan.LP_01(1+3*i,:) , "DisplayName", strcat(int2str(DAT(1+3*i,1)*1e9) , " nm") ) ; hold on
+%     plot(z , Pan.LP_01(1+3*i,:) , '--' , "DisplayName", strcat(int2str(DAT(1+3*i,1)*1e9) , " nm") ) ; hold on
 % end
 % 
-% legend('Location', 'southoutside','Orientation','horizontal','Box','off', "NumColumns" , 7,'FontSize',9)
-% xlabel('Posición Axial [m]','FontSize',14) ; ylabel('Potencia [dBm]','FontSize',14); title('Distribución Axial de Ruido ASE Total en modo LP01','FontSize',14)
-% ylim([-100 -10])
+% legend('Location', 'southoutside','Orientation','horizontal','Box','off', "NumColumns" , 7,'FontSize',13)
+% xlabel('Posición Axial [m]','FontSize',16) ; ylabel('Potencia [dBm]','FontSize',16); title('Distribución Axial de Ruido ASE Total en modo LP01','FontSize',18)
+% ylim([-60 -10])
+% annotation('textbox', [0.1, 0.156, 0, 0], 'string', 'ASE(+)')
+% annotation('textbox', [0.1, 0.129, 0, 0], 'string', 'ASE(-)')
+% % % SAVE:
+% set( gcf,'PaperSize',[29.7 21.0], 'PaperPosition',[0 0 29.7 21.0])
+% print -dpdf 'PotenciaASEP01+-Pump01'
 
 % %%    LP11a
 
@@ -224,14 +255,19 @@ zvpi = linspace(0,3,length(vpiedfamm.axialdist.Sig.LP_01(:,1)));
 % end
 % 
 % % ASE- Matlab
-% set(gca,'ColorOrderIndex',1,'FontSize',8)
+% set(gca,'ColorOrderIndex',1,'FontSize',13)
 % for i=0:6
-%     plot(z , Pan.LP_11_a(1+3*i,:) , "DisplayName", strcat(int2str(DAT(1+3*i,1)*1e9) , " nm") ) ; hold on
+%     plot(z , Pan.LP_11_a(1+3*i,:) , '--', "DisplayName", strcat(int2str(DAT(1+3*i,1)*1e9) , " nm") ) ; hold on
 % end
 % 
-% legend('Location', 'southoutside','Orientation','horizontal','Box','on', "NumColumns" , 7,'FontSize',9)
-% xlabel('Posición Axial [m]','FontSize',14) ; ylabel('Potencia [dBm]','FontSize',14); title('Distribución Axial de Ruido ASE Total en modo LP11a','FontSize',14)
-% ylim([-100 -10])
+% legend('Location', 'southoutside','Orientation','horizontal','Box','off', "NumColumns" , 7,'FontSize',13)
+% xlabel('Posición Axial [m]','FontSize',16) ; ylabel('Potencia [dBm]','FontSize',16); title('Distribución Axial de Ruido ASE Total en modo LP11a','FontSize',18)
+% ylim([-60 -10])
+% annotation('textbox', [0.1, 0.158, 0, 0], 'string', 'ASE(+)')
+% annotation('textbox', [0.1, 0.13, 0, 0], 'string', 'ASE(-)')
+% % % SAVE:
+% set( gcf,'PaperSize',[29.7 21.0], 'PaperPosition',[0 0 29.7 21.0])
+% print -dpdf 'PotenciaASEP11a+-Pump01'
 
 
 
@@ -275,12 +311,13 @@ zvpi = linspace(0,3,length(vpiedfamm.axialdist.Sig.LP_01(:,1)));
 
 %% N1 y N2
 
+set(gca,'ColorOrderIndex',1,'FontSize',13)
 plot(z,EDFA.Nucleo1.N1 , "DisplayName" , "Iones en estado basal (N1)") ; hold on
 plot(z,EDFA.Nucleo1.N2 , "DisplayName" , "Iones en estado excitado (N2)")
 
-legend('Location', 'southoutside','Orientation','horizontal','Box','off', "NumColumns" , 1)
-xlabel('Posición Axial [m]') ; ylabel('Cantidad de Iones'); title('Distribución Axial de Densidades Poblacionenales de Iones')
-% print -dpdf 'PoblacionIonesPump01'
+legend('Location', 'southoutside','Orientation','horizontal','Box','off', "NumColumns" , 1,'FontSize',13)
+xlabel('Posición Axial [m]','FontSize',16) ; ylabel('Densidad de Iones [iones/m^3]','FontSize',16); title('Distribución Axial de Densidades Poblacionenales de Iones','FontSize',18)
+print -dpdf 'PoblacionIonesPump01'
 
 %% Cargar resultado vpi.. desde columna ec
 % VPISignal = resultadovpipropagacionaxial;
