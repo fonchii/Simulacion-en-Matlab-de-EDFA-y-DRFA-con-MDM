@@ -26,7 +26,6 @@ Signal.lambda.LP_11_a   = Wavelength_gridS;                                  P0_
 % Signal.lambda.LP_02     = Wavelength_gridS;                                  P0_signal.LP_02     = Pin*ones(1,length(Signal.lambda.LP_02));
 
 
-%Pump.modos = "12_a" ;
 Pump.modos = "01" ;
 Wavelength_gridP = 980e-9;
 Ppump= 100e-3;  %150e-3; %[W]
@@ -50,7 +49,7 @@ Pump.P0 = P0_pump;
 
 P.Np = 2; 
 P.Fc  =c/Wavelength_gridS(ceil(length(Wavelength_gridS)/2)); P.Fb = 50e9; 
-ASE = -200;%-200;
+ASE = -58;%-200;
 
     % Datos de la fibra
 Fibra.nucleos = 1;                                           % Numero de nucleos

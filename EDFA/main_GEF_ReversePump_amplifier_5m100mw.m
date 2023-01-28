@@ -55,6 +55,7 @@ fibra.dvk=P.Fb;
 fibra.PumpMode = "reverse";
 fibra.GEF = load('GEF_Filters/EDFA_5m_100mw_OptiSystem') ; % GEF_Filters/EDFA_10m_150mw_OptiSystem
 
+fibra.SigmaSpectrum = "VPI";
 fibra.WaitBar = 1; fibra.Avance = 1;    % Despliegue de info
 fibra.ASEFlag = 0;                      % 1 : Evita Calculo Espectro ASE ; 0 : Lo Calcula (lento)
 
