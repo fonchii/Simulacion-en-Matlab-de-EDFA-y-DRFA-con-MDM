@@ -19,7 +19,7 @@ wavelenghts_matlab = ( c./linspace(c/(1.66551366e-6) , c/(1.50046275e-6) , 100))
 % % Ganancias
 
 % plot(wavelenghts_matlab , Raman.Sig.GainOnOFF.LP01,"DisplayName","Matlab") ; hold on
- plot((c./(RamanVPIE2.freqs)).*1e9,RamanVPIE2.GainOnOff,"DisplayName","VPI") 
+%  plot((c./(RamanVPIE2.freqs)).*1e9,RamanVPIE2.GainOnOff,"DisplayName","VPI") 
 % 
 % set(gca,'FontSize',8)
 % title("Distribución espectral de Ganancias",'FontSize',14) ; xlabel("Longitud de onda [nm]",'FontSize',14) ; ylabel("Ganancia [dBm]",'FontSize',14)
@@ -36,20 +36,20 @@ wavelenghts_matlab = ( c./linspace(c/(1.66551366e-6) , c/(1.50046275e-6) , 100))
 
 %% Señales
 
-% for i=0:6
-%     plot(Raman.z , Raman.Sig.Power.LP01(1+15*i,:)  ,"DisplayName",strcat(num2str(round(wavelenghts_matlab(1+15*i))), 'nm') ); hold on
-% end
-% 
-% set(gca,'ColorOrderIndex',1,'FontSize',8)
-% 
-% for i=0:6
-%     plot(RamanVPIE1.z , (1e-3.*10.^( RamanVPIE1.Signals(:,1+15*i)./10)) , '--' ,"DisplayName",strcat( num2str(round(RamanVPIE1.wavelength(1+15*i)*1e9) ), 'nm')  ) 
-% end
-% 
-% title('Distribución Axial de la Potencia de Señal','FontSize',14) ; xlabel('Posición en fibra [km]','FontSize',14) ; ylabel('Potencia [mW]','FontSize',14)
-% legend('Location', 'southoutside','Orientation','horizontal','Box','off','NumColumns',7,'FontSize',9)
-% annotation('textbox', [0.13, 0.148, 0, 0], 'string', 'Matlab')
-% annotation('textbox', [0.13, 0.127, 0, 0], 'string', 'VPIphotonics')
+for i=0:6
+    plot(Raman.z , Raman.Sig.Power.LP01(1+15*i,:)  ,"DisplayName",strcat(num2str(round(wavelenghts_matlab(1+15*i))), 'nm') ); hold on
+end
+
+set(gca,'ColorOrderIndex',1,'FontSize',8)
+
+for i=0:6
+    plot(RamanVPIE1.z , (1e-3.*10.^( RamanVPIE1.Signals(:,1+15*i)./10)) , '--' ,"DisplayName",strcat( num2str(round(RamanVPIE1.wavelength(1+15*i)*1e9) ), 'nm')  ) 
+end
+
+title('Distribución Axial de la Potencia de Señal','FontSize',14) ; xlabel('Posición en fibra [km]','FontSize',14) ; ylabel('Potencia [mW]','FontSize',14)
+legend('Location', 'southoutside','Orientation','horizontal','Box','off','NumColumns',7,'FontSize',9)
+annotation('textbox', [0.13, 0.148, 0, 0], 'string', 'Matlab')
+annotation('textbox', [0.13, 0.127, 0, 0], 'string', 'VPIphotonics')
 
 
 % % % Potencia

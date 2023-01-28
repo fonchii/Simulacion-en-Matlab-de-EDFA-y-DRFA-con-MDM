@@ -55,8 +55,8 @@ close all ; clear all
 
 
 % % ----------- Ganancias vs Potencia Entrada ---------- %   Pout vs Pin
-% load("Data_Gain-vs-PsIn_5m-100mw") % Data_Gain-vs-PsIn_10m-150mw.mat
-% load("Data_Gain-vs-PsIn_10m-200mw.mat")
+% load("Data_Gain-vs-PsIn_5m-100mw") % utilizada para 5m % Data_Gain-vs-PsIn_10m-150mw.mat
+% % load("Data_Gain-vs-PsIn_10m-200mw.mat") % utilizada para 10m
 % %for i=[3,5,7,9,11,13,15,17,19] 
 % row = 0;
 % for Pin=10:2:50
@@ -106,11 +106,11 @@ cont = 1;
 % ejex = [50:50:500]; %ejex = [150:50:1000];
 % for j=["3m" "5m" "7m" "10m" "15m" ]%for j=["3m" "5m" "7m" "10m" "15m" "20m"]
 %     %plot(ejex , PotenciasvsLargo.(strcat("L",j)) , 'DisplayName' , strcat('Largo= ',j)  )  ; hold on;
-%     plot(ejex , GananciasvsPot.(strcat("L",j))(1:end) , 'DisplayName' , strcat('Largo= ',j)  )  ; hold on;
+%     plot(ejex , GananciasvsPot.(strcat("L",j))(1:end) , 'DisplayName' , strcat('Largo= ',j) , 'LineWidth',1.5)  ; hold on;
 % end ; clear s ejex leyenda;
-% set(gca,'FontSize',8)
-% legend(Location="southoutside",FontSize=9,Box="off",Orientation="horizontal",NumColumns=3)
-% title('Ganancia vs Potencia de Bombeo para canal de 1555 nm','FontSize',14) ; xlabel('Potencia de Bombeo [mw]','FontSize',14) ; ylabel('Ganancia [dB]','FontSize',14)
+% set(gca,'FontSize',13)
+% legend(Location="southoutside",FontSize=13,Box="off",Orientation="horizontal",NumColumns=3)
+% title('Ganancia vs Potencia de Bombeo para canal de 1555 nm','FontSize',18) ; xlabel('Potencia de Bombeo [mw]','FontSize',16) ; ylabel('Ganancia [dB]','FontSize',16)
 % set( gcf,'PaperSize',[29.7 21.0], 'PaperPosition',[0 0 29.7 21.0])
 % ylim([5 30])
 % % % SAVE:
@@ -121,12 +121,12 @@ cont = 1;
 % xlargos=[3,5,7,10,15]; %xlargos=[3,5,7,10,15,20];
 % %for g = [150,200,250,300,400,500,700,1000,1500]
 % for g = [100,150,200,250,300,400,500]
-%     plot(xlargos , GananciasvsLargo.(strcat('P',int2str(g),'mw'))(1:end-1) , 'DisplayName' , strcat('Pump= ',int2str(g),' mw') )  ; hold on;
+%     plot(xlargos , GananciasvsLargo.(strcat('P',int2str(g),'mw'))(1:end-1) , 'DisplayName' , strcat('Pump= ',int2str(g),' mw') , 'LineWidth',1.5)  ; hold on;
 %     
 % end ; clear s ejex leyenda;
-% set(gca,'FontSize',8)
-% legend(Location="southoutside",FontSize=9,Box="off",Orientation="horizontal",NumColumns=5)
-% title('Ganancia vs Largo del amplificador para canal de 1555 nm ','FontSize',14) ; xlabel('Largo del EDFA [m]','FontSize',14) ; ylabel('Ganancia [dB]','FontSize',14)
+% set(gca,'FontSize',13) % 8
+% legend(Location="southoutside",FontSize=13,Box="off",Orientation="horizontal",NumColumns=5) % FontSize=9
+% title('Ganancia vs Largo del amplificador para canal de 1555 nm ','FontSize',18) ; xlabel('Largo del EDFA [m]','FontSize',16) ; ylabel('Ganancia [dB]','FontSize',16) % 14
 %  set( gcf,'PaperSize',[29.7 21.0], 'PaperPosition',[0 0 29.7 21.0])
 % % % SAVE:
 % print -dpdf 'GananciavsLargo'
@@ -146,19 +146,20 @@ cont = 1;
 % print -dpdf 'GananciaEspectral_vsPin' ;% close all;
 
 % %% ----- Pout vs Pin ----- %%
-
+    %   % load("Data_Gain-vs-PsIn_5m-100mw") -> 5m , usar codigo de más arriba
+    %   % load("Data_Gain-vs-PsIn_10m-200mw.mat") -> 10m, usar código de más arriba
 % figure(2)
 % for i = [1530,1540,1550,1560]
-%     plot( GananciasvsPin.Lambda_ejex  , GananciasvsPin.(strcat("Lambda",num2str(i),"nm")) , "DisplayName",strcat(num2str(i)," nm")) ; hold on
+%     plot( GananciasvsPin.Lambda_ejex  , GananciasvsPin.(strcat("Lambda",num2str(i),"nm")) , "DisplayName",strcat(num2str(i)," nm") , 'LineWidth',1) ; hold on
 % end
-% xline(-20,'--',"DisplayName","Punto de Operación")
-% set(gca,  'fontSize',8); % 'xdir','reverse',
-% title("Potencia de Salida vs Potencia de Entrada","FontSize",14) ; ylabel("Potencia de Salida [dBm]","FontSize",14) ; xlabel("Potencia de Entrada [dBm]","FontSize",14)
-% legend('Location','southoutside','Box','off','Orientation','horizontal','FontSize',9)
-
-%set( gcf,'PaperSize',[29.7 21.0], 'PaperPosition',[0 0 29.7 21.0])
+% xline(-20,'--',"DisplayName","Punto de Operación") % -37
+% set(gca,  'fontSize',13); % 'xdir','reverse',
+% title("Potencia de Salida vs Potencia de Entrada","FontSize",18) ; ylabel("Potencia de Salida [dBm]","FontSize",16) ; xlabel("Potencia de Entrada [dBm]","FontSize",16)
+% legend('Location','southoutside','Box','off','Orientation','horizontal','FontSize',13)
+% 
+% set( gcf,'PaperSize',[29.7 21.0], 'PaperPosition',[0 0 29.7 21.0])
 % % % %SAVE:
-%print -dpdf 'Pout_vs_Pin'
+% print -dpdf 'Pout_vs_Pin'
 
 
 %% %% Parámetros de entrada

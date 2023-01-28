@@ -4,40 +4,37 @@ close all ; clc ; clear all
 %% Datos Entrada
 c = 299792458;
 % FIBRA
-In.Fibra.RamanMethod              = 'Forward&Backward';                   % 'Forward', 'Backward', 'Forward&Backward'
-In.Fibra.AttenuationMethod        = 'Dynamic';                    % 'Dynamic' , 'Static'
-In.Fibra.Length                   = 50;                          % fibre length (km)
+In.Fibra.RamanMethod              = 'Backward';                   % 'Forward', 'Backward', 'Forward&Backward'
+In.Fibra.AttenuationMethod        = 'Static';                    % 'Dynamic' , 'Static'
+In.Fibra.Length                   = 100;                          % fibre length (km)
 In.Fibra.T                        = 25;                           % Temperatura Fibra (ambiente)
 In.Fibra.PolarizationFactor       = 0.5;                          % C_R_max
-In.Fibra.n1=1.46;  In.Fibra.n2=1.42; In.Fibra.radio=25e-6; In.Fibra.area=pi*(In.Fibra.radio)^2;
+In.Fibra.n1=1.47;  In.Fibra.n2=1.42; In.Fibra.radio=5.04626e-6; In.Fibra.area=pi*(In.Fibra.radio)^2;
 
 
 % BOMBEOS : 
 %     % LP01
 
-In.Pump.LP01.Wavelengths       = 1450;               %c/(200e12) ;                    % [nm]
-In.Pump.LP01.Powers            = 100*1e-3;                                                % [mW]
-%In.Pump.LP11a.Alpha             = [0.25]; 
+In.Pump.LP01.Wavelengths       = 1500;               %c/(200e12) ;                    % [nm]
+In.Pump.LP01.Powers            = 300*1e-3;                                                % [mW]
+In.Pump.LP01.Alpha             = 0.25;  % Solo se utiliza si AttenuationMethod = 'Static' 
 
 
 % SEÑALES : 
-Nch = 41;
+Nch = 100;
     % LP01  
-In.Signal.LP11a.Wavelengths          = linspace(1530,1570,Nch) ;
-In.Signal.LP11a.Powers               = -30*ones( 1,length(In.Signal.LP11a.Wavelengths) );                 %[dBm]
-%In.Signal.LP01.Alpha                = 0.2;                                                              % [dB/km]
-In.ASE.LP11a                         = -200*ones( 1,length(In.Signal.LP11a.Wavelengths) );
-    % LP21a
-In.Signal.LP21a.Wavelengths          = linspace(1530,1570,Nch) ;
-In.Signal.LP21a.Powers               = -30*ones( 1,length(In.Signal.LP21a.Wavelengths) );                 %[dBm]
-%In.Signal.LP21a.Alpha                = 0.2;                                                              % [dB/km]
-In.ASE.LP21a                         = -200*ones( 1,length(In.Signal.LP21a.Wavelengths) );
+In.Signal.LP01.Wavelengths          = linspace(1554,1655,Nch) ;
+In.Signal.LP01.Powers               = 0*ones( 1,length(In.Signal.LP01.Wavelengths) );                 %[dBm]
+In.Signal.LP01.Alpha                = 0.2; % [dB/km]             Solo se utiliza si AttenuationMethod = 'Static' 
+In.ASE.LP01                         = -58*ones( 1,length(In.Signal.LP01.Wavelengths) );
+
 
 %% Calculo de amplificación
 
 tic;
 Raman = RamanMMv3(In) ; 
 tend = toc; fprintf("Tiempo de cómputo: %.2fs\n",tend);
+
 
 %% Graficar
 
@@ -47,7 +44,7 @@ for mp = 1:length(Raman.ModoP)
     pump.(Raman.ModoP{mp}).forward = Raman.Pump.forward.(Raman.ModoP{mp});
     pump.(Raman.ModoP{mp}).backward = Raman.Pump.backward.(Raman.ModoP{mp});
 end
-signal = Raman.Sig.Power;title
+signal = Raman.Sig.Power;
 gain = Raman.Sig.GainOnOFF;
 osnr = Raman.OSNR;
 
@@ -140,7 +137,7 @@ for ms = 1:10:length(Raman.ModoS)
         strlambda = strcat( num2str( In.Signal.(Raman.ModoS{ms}).Wavelengths(lS)) , "nm");
         subplot(1,length(Raman.ModoS),fs) ; plot(z,10.*log10(Raman.ASE.(Raman.ModoS{ms})(lS,:)./1e-3) , 'DisplayName',strlambda) ,ylabel("Potencia [dBm]") ; hold on
         xlabel("Largo [km]") ; title(strcat("ASE Modo ", Raman.ModoS{ms})) ; legend('Location','southoutside','NumColumns',10)
-        ylim([-60 -40])
+        %ylim([-60 -40])
     end
     fs = fs+1;
 end

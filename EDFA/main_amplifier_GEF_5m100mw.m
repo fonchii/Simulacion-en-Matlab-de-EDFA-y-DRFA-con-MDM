@@ -69,46 +69,50 @@ t_end = toc; fprintf('Tiempo de cómputo: %.2f segundos\n', t_end);
 %Filtro = EDFA.Nucleo1.GEF.best_weight_Function;
 
     %% Graficos
-
-close all
-graf.Nc = length(fieldnames(EDFA)); 
-graf.z = EDFA.(strcat('Nucleo',int2str(1))).z;
-xlab = 'Posición en fibra [m]'; ylab = 'Potencia [dBm]';
-
+% % --------- Load Data --------- %
+load("EDFA_GananciaEqualizada_5m-100mw")
 
 % % --------- Just Gain --------- %
 % 
 %load("EDFA_Gain_OptiSystem_SinGEF.mat")
 %load("EDFA_Gain_VPI_SinGEF.mat")
 
+close all
+graf.Nc = length(fieldnames(EDFA)); 
+graf.z = EDFA.(strcat('Nucleo',int2str(1))).z;
+xlab = 'Posición en fibra [m]'; ylab = 'Potencia [dBm]';
+
+% % --------- Grafico Ganancia Ecualizada vs No Ecualizada --------- %
 for s = 1:length(Signal.modos)
     figure(1)
     graf.ganancias.(strcat("LP_",Signal.modos(s))) = EDFA.Nucleo1.salida.ganancias.(strcat("LP_",Signal.modos(s)));
     leyenda = strcat((strcat("LP",Signal.modos(s))));
     
     ejex = Signal.lambda.(strcat("LP_",Signal.modos(s))).*1e9;
-    plot(ejex,graf.ganancias.(strcat("LP_",Signal.modos(s))) , '-o' , 'DisplayName',leyenda ) ; hold on ; title('Ganancias') ; legend(); grid on ;
-    xlabel('Longitud de onda [nm]'); ylabel(ylab) %xlabel('λ [nm]') 
+    plot(ejex,graf.ganancias.(strcat("LP_",Signal.modos(s))) , '-o' , 'DisplayName',leyenda ) ; hold on ; legend(); grid on ;
+    xlabel('Longitud de onda [nm]','FontSize',16); ylabel(ylab,'FontSize',16) %xlabel('λ [nm]') 
     
-    legend('Location','southoutside','Box','off','NumColumns',2)
+    legend('Location','southoutside','Box','off','NumColumns',2,FontSize=13)
     ylim([14.5 19.5])
     hold on
-    set(gca,"ColorOrderIndex",s)
+    set(gca,"ColorOrderIndex",s,'FontSize',13)
     plot(ejex,EDFA.Nucleo1.salida.ganancias_sinGEF.(strcat("LP_",Signal.modos(s))) , '--*' , 'DisplayName',strcat(leyenda,' sin GEF' )   )
 end ; clear s ejex leyenda;
+title('Ganancias','FontSize',18) ;
 dim = [.132 .63 .4 .3]; str = strcat("Ripple: ",num2str(round(EDFA.Nucleo1.GEF.Ripple,2)) , ' dB en Modo LP01');
-annotation('textbox',dim,'String',str,'FitBoxToText','on');
+annotation('textbox',dim,'String',str,'FitBoxToText','on'); grid off
 
 % % % ----- Save ----- %
 % set( gcf,'PaperSize',[29.7 21.0], 'PaperPosition',[0 0 29.7 21.0])
 % print -dpdf 'GananciaEqualizada_5m-100mw'  
 
+% % --------- Grafico Filtro Ecualizador --------- %
 % figure(2)
 % plot(Signal.lambda.(strcat("LP_",Signal.modos(1))).*1e9 , EDFA.Nucleo1.GEF.best_weight_Function ) 
-% set(gca,'FontSize',8);
-% title('Filtro Ecualizador' , 'FontSize',14) ; xlabel('Longitud de onda [nm]','FontSize',14) ; ylabel('Magnitud [-]', 'FontSize',14)
-
-% % % %----- Save ----- %
+% set(gca,'FontSize',13);
+% title('Filtro Ecualizador' , 'FontSize',18) ; xlabel('Longitud de onda [nm]','FontSize',16) ; ylabel('Magnitud [-]', 'FontSize',16)
+% 
+% % % % %----- Save ----- %
 % set( gcf,'PaperSize',[29.7 21.0], 'PaperPosition',[0 0 29.7 21.0])
 % print -dpdf 'FiltroEqualizador_5m-100mw' 
 

@@ -33,6 +33,7 @@ magg = [mag eta(:,2)' mag2];
 Gr_fun              = @(f)interp1(FF_gR,C_R,f);
 eta_fun = @(lambda)interp1(f,magg,lambda);
 %figure(1) ; plot( FF_gR,Gr_fun(FF_gR) ) , xlabel("Δ F [Hz]") ; ylabel("Magnitude") ; title("RamanResponce")
+%figure(1) ; plot( FF_gR.*1e-12,Gr_fun(FF_gR)/1000 ) , set(gca,'ColorOrderIndex',1,'FontSize',13), xlabel("Corrimiento en Frecuencia [THz]","FontSize",16) ; ylabel("Ganancia Raman (m/W)","FontSize",16) ; title("Coeficiente de ganancia Raman","FontSize",18)
 %figure(2) ; plot(eta(:,1),eta(:,2)) , xlabel("λ [nm]") ; ylabel("Magnitude") ; title("Rayleigh Coeficient")
 
 
@@ -95,7 +96,8 @@ switch In.Fibra.AttenuationMethod
             alphaP.(ModoP{mp}) = @(f) interp1(alp1,alp2,f);
         end
     case 'Static'
-        alp = load('RADynamic_Attenuation.dat');
+        %alp = load('RADynamic_Attenuation.dat');
+        alp = (1300:1:1700)';
         alp1 = alp(:,1).*1e-9 ;  
         for ms=1:length(ModoS)
             alp2 = ones( 1,length(alp1 ) ).* ( In.Signal.(ModoS{ms}).Alpha .* log(10)/10) ;
@@ -165,7 +167,11 @@ end
 ASE_BW = 1e12;  %6*10^12; %THz "paper: RAMAN amplifier gain dynamics with ASE"
 
 %% % Calculo potencias
-
+% Inicialización de variables
+for i = 1:length(ModoP)
+    Pf.(ModoP{i}) = zeros(1, length(Z) );
+    Pb.(ModoP{i}) = zeros(1,length(Z) );
+end
 switch In.Fibra.RamanMethod
     case 'Forward'
         for i = 1:length(ModoP)
@@ -184,6 +190,7 @@ switch In.Fibra.RamanMethod
     case 'Forward&Backward'
         for i = 1:length(ModoP)
             Pf.(ModoP{i})(:,1) = Ppf0.(ModoP{i});
+
             Pb.(ModoP{i})(:,end) = PpbL.(ModoP{i});
             Ppbcalc = 1;
             AdjIter = true;
@@ -405,6 +412,7 @@ Raman.ModoS = ModoS; Raman.ModoP = ModoP;
 Raman.fmn = fmn;
 Raman.gR = gR;
 Raman.OSNR = OSNR;
+Raman.OSNR_Z = TempOSNR;
 Raman.NF = NF;
 Raman.functions.gr = Gr_fun ;
 Raman.functions.eta = eta_fun ;

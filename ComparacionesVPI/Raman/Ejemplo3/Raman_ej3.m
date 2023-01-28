@@ -29,15 +29,18 @@ GainDiff = abs( RamanVPIE3.GainOnOff - Raman.Sig.GainOnOFF.LP01 );
 % plot(wavelenghts_matlab , Raman.Sig.GainOnOFF.LP01,"DisplayName","Matlab") ; hold on
 % plot(RamanVPIE3.wavelength.*1e9 , RamanVPIE3.GainOnOff,"DisplayName","VPI") 
 % 
-% set(gca,'FontSize',8)
-% title("Distribución espectral de Ganancias",'FontSize',14) ; xlabel("Longitud de onda [nm]",'FontSize',14) ; ylabel("Ganancia [dBm]",'FontSize',14)
+% set(gca,'FontSize',13)
+% title("Distribución espectral de Ganancias",'FontSize',18) ; xlabel("Longitud de onda [nm]",'FontSize',16) ; ylabel("Ganancia [dBm]",'FontSize',16)
 % 
 %     % Diferencia de Ganancias
 % yyaxis right
 % ylabel('Diferencia de Ganancias','FontSize',14)
-% plot(wavelenghts_matlab , GainDiff ,  "-o" , DisplayName = "Diferencia de Ganancias" , Color='#0072BD')
+% %plot(wavelenghts_matlab , GainDiff ,  "-o" , DisplayName = "Diferencia de Ganancias" , Color='#0072BD')
 % ylim([0, 5]) ; %grid minor
-% legend('Location', 'southoutside','Orientation','horizontal','Box','off' , "NumColumns",2,"FontSize",9)
+% legend('Location', 'southoutside','Orientation','horizontal','Box','off' , "NumColumns",2,"FontSize",13)
+% set( gcf,'PaperSize',[29.7 21.0], 'PaperPosition',[0 0 29.7 21.0])
+% print -dpdf 'RamanGananciasE2'
+
 
 %Analisis de forma:
 %plot((Raman.Sig.GainOnOFF.LP01./max(Raman.Sig.GainOnOFF.LP01)).*max(RamanVPIE3.GainOnOff),"DisplayName","Matlab_ajustado") ; legend()
@@ -48,16 +51,18 @@ GainDiff = abs( RamanVPIE3.GainOnOff - Raman.Sig.GainOnOFF.LP01 );
 %     plot(Raman.z , Raman.Sig.Power.LP01(1+15*i,:)  ,"DisplayName",strcat(num2str(round(wavelenghts_matlab(1+15*i))), 'nm') ); hold on
 % end
 % 
-% set(gca,'ColorOrderIndex',1,'FontSize',8)
+% set(gca,'ColorOrderIndex',1,'FontSize',13)
 % 
 % for i=0:6
 %     plot(RamanVPIE3.z , (1e-3.*10.^( RamanVPIE3.Signals(:,1+15*i)./10)) , '--' ,"DisplayName",strcat( num2str(round(RamanVPIE3.wavelength(1+15*i)*1e9) ), 'nm')  ) 
 % end
 % 
-% title('Distribución Axial de la Potencia de Señal','FontSize',14) ; xlabel('Posición en fibra [km]','FontSize',14) ; ylabel('Potencia [mW]','FontSize',14)
-% legend('Location', 'southoutside','Orientation','horizontal','Box','off','NumColumns',7,'FontSize',9)
-% annotation('textbox', [0.13, 0.148, 0, 0], 'string', 'Matlab')
-% annotation('textbox', [0.13, 0.127, 0, 0], 'string', 'VPIphotonics')
+% title('Distribución Axial de la Potencia de Señal','FontSize',18) ; xlabel('Posición en fibra [km]','FontSize',16) ; ylabel('Potencia [mW]','FontSize',16)
+% legend('Location', 'southoutside','Orientation','horizontal','Box','off','NumColumns',7,'FontSize',13)
+% annotation('textbox', [0.08, 0.154, 0, 0], 'string', 'Matlab')
+% annotation('textbox', [0.08, 0.127, 0, 0], 'string', 'VPIphotonics')
+% % set( gcf,'PaperSize',[29.7 21.0], 'PaperPosition',[0 0 29.7 21.0])
+% % print -dpdf 'RamanSignalPotE2'
 
 
 % % % Pump
@@ -65,13 +70,15 @@ GainDiff = abs( RamanVPIE3.GainOnOff - Raman.Sig.GainOnOFF.LP01 );
 % plot(Raman.z , Raman.Pump.forward.LP01 , "DisplayName", "Matlab  Forward") ; hold on
 % plot(Raman.z , Raman.Pump.backward.LP01 , "DisplayName", "Matlab Backward")
 % 
-% set(gca,'ColorOrderIndex',1,'FontSize',8)
+% set(gca,'ColorOrderIndex',1,'FontSize',13)
 % 
 % plot(RamanVPIE3.z , (1e-3.*10.^( RamanVPIE3.PumpFwd./10)) , '--' , "DisplayName","VPI Forward" ) 
 % plot(RamanVPIE3.z , (1e-3.*10.^( RamanVPIE3.PumpBwd./10)) , '--' , "DisplayName","VPI Backward" )
 % 
-% title('Distribución Axial de la Potencia de Bombeo','FontSize',14) ; xlabel('Posición en fibra [km]','FontSize',14) ; ylabel('Potencia [mW]','FontSize',14)
-% legend('Location', 'southoutside','Orientation','horizontal','Box','off' , "NumColumns",2,"FontSize",9)
+% title('Distribución Axial de la Potencia de Bombeo','FontSize',18) ; xlabel('Posición en fibra [km]','FontSize',16) ; ylabel('Potencia [mW]','FontSize',16)
+% legend('Location', 'southoutside','Orientation','horizontal','Box','off' , "NumColumns",2,"FontSize",13)
+% set( gcf,'PaperSize',[29.7 21.0], 'PaperPosition',[0 0 29.7 21.0])
+% print -dpdf 'RamanPumpPotE2'
 
 
 % % % ASE
@@ -80,17 +87,18 @@ GainDiff = abs( RamanVPIE3.GainOnOff - Raman.Sig.GainOnOFF.LP01 );
 %     plot(Raman.z , Raman.ASE.LP01(1+15*i,:)*1000  ,"DisplayName",strcat(num2str(round(wavelenghts_matlab(1+15*i))), 'nm') ); hold on
 % end
 % % 
-% set(gca,'ColorOrderIndex',1,'FontSize',8)
+% set(gca,'ColorOrderIndex',1,'FontSize',13)
 % ase_wl = c./RamanVPIE3.ASE_freqs;
 % for i=0:6
 %     plot(RamanVPIE3.z , RamanVPIE3.ASE_Fwd_mW(:,1+15*i) , '--' ,"DisplayName",strcat( num2str(round(ase_wl(RamanVPIE3.ASE_freqs_idx(1+15*i))*1e9) ), 'nm')  ) 
 % end
 % 
-% title('Distribución Axial de la Potencia ASE','FontSize',14) ; xlabel('Posición [km]','FontSize',14) ; ylabel('Potencia [mW]','FontSize',14)
-% legend('Location', 'southoutside','Orientation','horizontal','Box','off','NumColumns',7,'FontSize',9)
-% annotation('textbox', [0.13, 0.148, 0, 0], 'string', 'Matlab')
-% annotation('textbox', [0.13, 0.127, 0, 0], 'string', 'VPIphotonics')
-
+% title('Distribución Axial de la Potencia ASE','FontSize',18) ; xlabel('Posición [km]','FontSize',16) ; ylabel('Potencia [mW]','FontSize',16)
+% legend('Location', 'southoutside','Orientation','horizontal','Box','off','NumColumns',7,'FontSize',13)
+% annotation('textbox', [0.08, 0.154, 0, 0], 'string', 'Matlab')
+% annotation('textbox', [0.08, 0.127, 0, 0], 'string', 'VPIphotonics')
+% set( gcf,'PaperSize',[29.7 21.0], 'PaperPosition',[0 0 29.7 21.0])
+% print -dpdf 'RamanASEPotE2'
 
 
 % % % OSNR
@@ -105,16 +113,18 @@ GainDiff = abs( RamanVPIE3.GainOnOff - Raman.Sig.GainOnOFF.LP01 );
 %     plot(Raman.z , OSNR_Matlab(1+15*i,:)  ,"DisplayName",strcat(num2str(round(wavelenghts_matlab(1+15*i))), 'nm') ); hold on
 % end
 % % 
-% set(gca,'ColorOrderIndex',1,'FontSize',8)
+% set(gca,'ColorOrderIndex',1,'FontSize',13)
 % ase_wl = c./RamanVPIE3.ASE_freqs;
 % for i=0:6
 %     plot(RamanVPIE3.z , OSNR_VPI(:,1+15*i) , '--' ,"DisplayName",strcat( num2str(round(ase_wl(RamanVPIE3.ASE_freqs_idx(1+15*i))*1e9) ), 'nm')  ) 
 % end
-% 
-% title('Distribución Axial de la OSNR','FontSize',14) ; xlabel('Posición [km]','FontSize',14) ; ylabel('Magnitud [dB]','FontSize',14)
-% legend('Location', 'southoutside','Orientation','horizontal','Box','off','NumColumns',7,'FontSize',9)
-% annotation('textbox', [0.13, 0.148, 0, 0], 'string', 'Matlab')
-% annotation('textbox', [0.13, 0.127, 0, 0], 'string', 'VPIphotonics')
+% ylim([5,40])
+% title('Distribución Axial de la OSNR','FontSize',18) ; xlabel('Posición [km]','FontSize',16) ; ylabel('Magnitud [dB]','FontSize',16)
+% legend('Location', 'southoutside','Orientation','horizontal','Box','off','NumColumns',7,'FontSize',13)
+% annotation('textbox', [0.08, 0.154, 0, 0], 'string', 'Matlab')
+% annotation('textbox', [0.08, 0.127, 0, 0], 'string', 'VPIphotonics')
+% set( gcf,'PaperSize',[29.7 21.0], 'PaperPosition',[0 0 29.7 21.0])
+% print -dpdf 'RamanOSNRE2'
 
 
 % % % NF
@@ -130,9 +140,10 @@ plot(wavelenghts_matlab , NF_Matlab  ,"DisplayName",strcat('Matlab') ); hold on
 plot(RamanVPIE3.wavelength.*1e9 , NF_VPI , "DisplayName",strcat( 'VPIPhotonics')  ) 
 
 
-title('Figura de Ruido','FontSize',14) ; xlabel('Longitud de onda [nm]','FontSize',14) ; ylabel('Magnitud [dB]','FontSize',14)
-legend('Location', 'southoutside','Orientation','horizontal','Box','off','NumColumns',7,'FontSize',9)
-
+title('Figura de Ruido','FontSize',18) ; xlabel('Longitud de onda [nm]','FontSize',16) ; ylabel('Magnitud [dB]','FontSize',16)
+legend('Location', 'southoutside','Orientation','horizontal','Box','off','NumColumns',7,'FontSize',13)
+set( gcf,'PaperSize',[29.7 21.0], 'PaperPosition',[0 0 29.7 21.0])
+print -dpdf 'RamanNFE2'
 
 
 
