@@ -4,7 +4,7 @@ close all ; clc ; clear all
 %% Datos Entrada
 c = 299792458;
 % FIBRA
-In.Fibra.RamanMethod              = 'Forward';                   % 'Forward', 'Backward', 'Forward&Backward'
+In.Fibra.RamanMethod              = 'Forward&Backward';                   % 'Forward', 'Backward', 'Forward&Backward'
 In.Fibra.AttenuationMethod        = 'Dynamic';                    % 'Dynamic' , 'Static'
 In.Fibra.Length                   = 50;                          % fibre length (km)
 In.Fibra.T                        = 25;                           % Temperatura Fibra (ambiente)
@@ -16,8 +16,8 @@ In.Fibra.radio=5e-6; In.Fibra.area=pi*(In.Fibra.radio)^2;
 % BOMBEOS : 
 %     % LP01
 
-In.Pump.LP01.Wavelengths       = 1450;               %c/(200e12) ;                    % [nm]
-In.Pump.LP01.Powers            = 100*1e-3;                                                % [mW]
+In.Pump.LP01.Wavelengths       = [1400, 1420, 1430, 1440, 1460 1480, 1498];               %c/(200e12) ;                    % [nm]
+In.Pump.LP01.Powers            = [15, 40, 10, 40, 25, 80, 40 ].*1e-3./1; %100*1e-3*ones( 1,length(In.Pump.LP01.Wavelengths) );                                                % [mW]
 %In.Pump.LP11a.Alpha             = [0.25]; 
 
 
@@ -25,12 +25,12 @@ In.Pump.LP01.Powers            = 100*1e-3;                                      
 Nch = 100;
     % LP01  
 In.Signal.LP11a.Wavelengths          = linspace(1500,1600,Nch) ;
-In.Signal.LP11a.Powers               = -30*ones( 1,length(In.Signal.LP11a.Wavelengths) );                 %[dBm]
+In.Signal.LP11a.Powers               = -10*ones( 1,length(In.Signal.LP11a.Wavelengths) );                 %[dBm]
 %In.Signal.LP01.Alpha                = 0.2;                                                              % [dB/km]
 In.ASE.LP11a                         = -58*ones( 1,length(In.Signal.LP11a.Wavelengths) );
     % LP21a
 In.Signal.LP21a.Wavelengths          = linspace(1500,1600,Nch) ;
-In.Signal.LP21a.Powers               = -30*ones( 1,length(In.Signal.LP21a.Wavelengths) );                 %[dBm]
+In.Signal.LP21a.Powers               = -10*ones( 1,length(In.Signal.LP21a.Wavelengths) );                 %[dBm]
 %In.Signal.LP21a.Alpha                = 0.2;                                                              % [dB/km]
 In.ASE.LP21a                         = -58*ones( 1,length(In.Signal.LP21a.Wavelengths) );
 

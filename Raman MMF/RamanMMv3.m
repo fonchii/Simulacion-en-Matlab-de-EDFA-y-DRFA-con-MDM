@@ -169,8 +169,8 @@ ASE_BW = 1e12;  %6*10^12; %THz "paper: RAMAN amplifier gain dynamics with ASE"
 %% % Calculo potencias
 % Inicialización de variables
 for i = 1:length(ModoP)
-    Pf.(ModoP{i}) = zeros(1, length(Z) );
-    Pb.(ModoP{i}) = zeros(1,length(Z) );
+    Pf.(ModoP{i}) = zeros( length( lambdaP.(ModoP{i}) ) , length(Z) ) ; %zeros(1, length(Z) );
+    Pb.(ModoP{i}) = zeros( length( lambdaP.(ModoP{i}) ) , length(Z)) ;% zeros(1, length(Z) );
 end
 switch In.Fibra.RamanMethod
     case 'Forward'
