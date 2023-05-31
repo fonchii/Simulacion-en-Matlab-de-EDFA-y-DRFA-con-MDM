@@ -11,6 +11,16 @@ Se analiza el comportamiento modal de estos amplificadores, primero individualme
 Los resultados obtenidos muestran la importancia de la ecualización de ganancia, la dependencia modal de la ganancia y el comportamiento del ruido, para bombeo directo y reverso. Este comportamiento se acentúa al disponer estos amplificadores en una cascada, lo que obliga a un buen diseño para conseguir un comportamiento aceptable.
 
 
+## Requisitos
+
+- Matlab
+- Multiprocessing Toolbox
+
+## Ejemplo de uso EDFA:
+
+Como ejemplo puede ejecutar directamente el archivo "EDFA_MMvPCCv3.m"
+
+
 
 ## Ejemplo de visualización 3D de dos modos espaciales
 
