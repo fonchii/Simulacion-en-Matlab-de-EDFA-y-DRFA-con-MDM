@@ -1,6 +1,6 @@
-# MemoriaTitulacion
- EDFA-RAMAN-MMF
+# Simulación de amplificadores ópticos EDFA y Raman Distribuido con multiplexación por division de modos (MDM)
 
-SoyReManco
+
+Visualización 3D de modos espaciales
 
 ![Modos LP](MMF.png)
